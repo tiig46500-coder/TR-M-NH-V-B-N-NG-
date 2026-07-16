@@ -21,8 +21,49 @@ export default function FlashcardsAndAi() {
   // ==========================================
   const [currentCardIdx, setCurrentCardIdx] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  
+  // Cache for dynamic Gemini tips
+  const [customTips, setCustomTips] = useState<Record<number, string>>({});
+  const [loadingTipIds, setLoadingTipIds] = useState<Record<number, boolean>>({});
 
   const currentCard = FLASHCARDS[currentCardIdx];
+
+  const handleCardClick = async () => {
+    const cardId = currentCard.id;
+    const nextFlippedState = !isFlipped;
+    
+    setIsFlipped(nextFlippedState);
+
+    // If flipping to back and there's no custom tip generated yet, fetch it dynamically from Gemini
+    if (nextFlippedState && !customTips[cardId]) {
+      setLoadingTipIds((prev) => ({ ...prev, [cardId]: true }));
+      try {
+        const res = await fetch("/api/gemini-flashcard", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            category: currentCard.category,
+            front: currentCard.front
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error("API request failed");
+        }
+
+        const data = await res.json();
+        setCustomTips((prev) => ({ ...prev, [cardId]: data.reply }));
+      } catch (error) {
+        console.error("Error fetching Gemini flashcard solution:", error);
+        // Fallback to pre-configured solution in case of network issue
+        setCustomTips((prev) => ({ ...prev, [cardId]: currentCard.back }));
+      } finally {
+        setLoadingTipIds((prev) => ({ ...prev, [cardId]: false }));
+      }
+    }
+  };
 
   const handleNextCard = () => {
     setIsFlipped(false);
@@ -136,16 +177,33 @@ export default function FlashcardsAndAi() {
           </p>
         </div>
 
-        {/* CSS 3D Flippable Card */}
-        <div className="relative h-72 w-full perspective-1000">
+        {/* CSS 3D Flippable Card with full 3D browser optimization */}
+        <div 
+          className="relative h-72 w-full"
+          style={{ perspective: "1000px" }}
+        >
           <div
-            onClick={() => setIsFlipped(!isFlipped)}
-            className={`relative w-full h-full duration-500 transform-style-3d cursor-pointer ${
-              isFlipped ? "rotate-y-180" : ""
-            }`}
+            onClick={handleCardClick}
+            style={{
+              transformStyle: "preserve-3d",
+              transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+              transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+            }}
+            className="relative w-full h-full cursor-pointer select-none"
           >
             {/* Front Side */}
-            <div className="absolute inset-0 w-full h-full backface-hidden bg-gradient-to-br from-amber-50/75 to-amber-100/35 backdrop-blur-md rounded-2xl border border-white/50 p-6 flex flex-col justify-between shadow-sm">
+            <div 
+              style={{
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden", // Safari compatibility
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+              }}
+              className="bg-gradient-to-br from-amber-50/85 to-amber-100/40 backdrop-blur-md rounded-2xl border border-white/50 p-6 flex flex-col justify-between shadow-sm"
+            >
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold tracking-wider text-amber-600 bg-amber-100/70 px-2 py-0.5 rounded uppercase border border-amber-200/20">
                   {currentCard.category}
@@ -165,23 +223,61 @@ export default function FlashcardsAndAi() {
               </div>
             </div>
 
-            {/* Back Side (Flipped) */}
-            <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 p-6 flex flex-col justify-between shadow-md">
+            {/* Back Side (Flipped & styled in modern healing Dark Mode) */}
+            <div 
+              style={{
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden", // Safari compatibility
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                transform: "rotateY(180deg)",
+              }}
+              className="bg-slate-900/95 backdrop-blur-lg rounded-2xl border border-slate-700/65 p-6 flex flex-col justify-between shadow-xl"
+            >
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-bold tracking-wider text-emerald-600 bg-emerald-50/80 px-2 py-0.5 rounded uppercase border border-emerald-150">
-                  Giải Pháp Tâm Lý
+                <span className="text-[10px] font-bold tracking-wider text-emerald-400 bg-emerald-950/60 px-2.5 py-0.5 rounded uppercase border border-emerald-500/30">
+                  {loadingTipIds[currentCard.id] ? "Đang đúc kết..." : "Bí kíp 1 phút • Gemini"}
                 </span>
-                <Heart className="w-4.5 h-4.5 text-emerald-400 fill-emerald-500/10" />
+                <Heart className="w-4.5 h-4.5 text-rose-400 fill-rose-500/10" />
               </div>
 
-              <div className="py-2 overflow-y-auto max-h-[160px] pr-1">
-                <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600 text-justify font-normal">
-                  {currentCard.back}
-                </p>
-              </div>
+              {/* Display loading skeleton or the beautiful result */}
+              {loadingTipIds[currentCard.id] ? (
+                <div className="flex-1 flex flex-col items-center justify-center py-4 space-y-3.5">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                    className="text-2xl"
+                  >
+                    🌱
+                  </motion.div>
+                  <div className="space-y-2 w-full px-4">
+                    <div className="h-3 bg-emerald-500/15 rounded-full w-3/4 mx-auto animate-pulse" />
+                    <div className="h-3 bg-emerald-500/15 rounded-full w-5/6 mx-auto animate-pulse" style={{ animationDelay: "200ms" }} />
+                    <div className="h-3 bg-emerald-500/15 rounded-full w-2/3 mx-auto animate-pulse" style={{ animationDelay: "400ms" }} />
+                  </div>
+                  <span className="text-[10px] text-emerald-400/80 font-mono tracking-wide animate-pulse">
+                    Mầm non đang lớn mầm chữa lành...
+                  </span>
+                </div>
+              ) : (
+                <div className="flex-1 flex items-center justify-center py-2 overflow-y-auto max-h-[160px] pr-1">
+                  <motion.p 
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="text-xs sm:text-[13px] leading-relaxed text-emerald-50/90 text-center font-medium font-sans px-2"
+                  >
+                    {customTips[currentCard.id] || currentCard.back}
+                  </motion.p>
+                </div>
+              )}
 
-              <div className="text-[10px] text-emerald-500 font-semibold text-center mt-1">
-                Thực hành ngay ngày hôm nay cậu nhé! 🌱
+              <div className="text-[10px] text-emerald-400 font-semibold text-center mt-1">
+                Thực hành ngay ngày hôm nay cậu nhé! 🫧
               </div>
             </div>
           </div>

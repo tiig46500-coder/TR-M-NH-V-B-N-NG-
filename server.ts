@@ -162,6 +162,42 @@ async function startServer() {
     }
   });
 
+  // Dynamic Gemini-powered Flashcard solution endpoint
+  app.post("/api/gemini-flashcard", async (req, res) => {
+    try {
+      const { category, front } = req.body;
+      if (!category || !front) {
+        return res.status(400).json({ error: "Yêu cầu cung cấp chủ đề và câu hỏi của thẻ." });
+      }
+
+      const client = getAiClient();
+      if (!client) {
+        // Fallback response for Demo Mode when GEMINI_API_KEY is not configured
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        return res.json({
+          reply: `[Demo] Hãy thực hành ngay: Tắt bớt các thiết bị gây nhiễu, nhắm mắt hít thở sâu 3 nhịp và cam kết tập trung giải quyết vấn đề của "${category}" trong 1 phút thôi nhé. Cậu làm được mà! 🌱✨`,
+          isDemo: true
+        });
+      }
+
+      const systemPrompt = `Bạn là một chuyên gia tâm lý học đường Gen Z thấu cảm. Hãy đưa ra 1 GIẢI PHÁP TÂM LÝ HỌC ĐƯỜNG cực kỳ thực tế, dễ thực hiện NGAY TRONG 1 PHÚT cho vấn đề: ${category} (với câu hỏi cụ thể là: "${front}"). Yêu cầu: Ngắn gọn tối đa 2-3 dòng (dưới 80 từ), hành văn ấm áp, chữa lành, sử dụng các icon dễ thương như 🌱, ✨, 🫧.`;
+
+      const response = await client.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: systemPrompt,
+        config: {
+          temperature: 0.7,
+        },
+      });
+
+      const reply = response.text || "Hãy thở sâu và kiên nhẫn với bản thân nhé! 🌱";
+      return res.json({ reply, isDemo: false });
+    } catch (error: any) {
+      console.error("Error in /api/gemini-flashcard:", error);
+      return res.status(500).json({ error: "Có lỗi xảy ra khi tạo bí kíp chữa lành. Vui lòng thử lại!" });
+    }
+  });
+
   // Handle static assets and SPA routing using Vite
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

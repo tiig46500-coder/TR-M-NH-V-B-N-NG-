@@ -164,4 +164,28 @@ export const FLASHCARDS: FlashcardItem[] = [
     front: "Khi cơn lo âu hoặc ngột thở vì áp lực ập đến bất ngờ, tớ phải làm gì ngay lập tức?",
     back: "Thực hành quy tắc hít thở hộp (Box Breathing): Hít vào 4 giây - Nín thở 4 giây - Thở ra 4 giây - Nín thở 4 giây. Lặp lại 4 chu kỳ. Phương pháp này gửi tín hiệu an toàn đến hệ thần kinh, giúp nhịp tim ổn định và xoa dịu não bộ tức thì.",
   },
+  {
+    id: 5,
+    category: "Trì hoãn",
+    front: "Làm thế nào để bắt tay vào học bài ngay lập tức khi đang nằm dài thèm lướt mạng xã hội?",
+    back: "Áp dụng 'Quy tắc 5 giây': Đếm ngược 5 - 4 - 3 - 2 - 1 và đứng bật dậy ngồi vào bàn ngay. Cam kết chỉ học đúng 2 phút rồi được nghỉ. Thường thì rào cản lớn nhất nằm ở việc bắt đầu, khi đã ngồi vào bàn bạn sẽ dễ dàng làm tiếp! 🌱",
+  },
+  {
+    id: 6,
+    category: "Áp lực thi cử",
+    front: "Tớ luôn bị căng thẳng tột độ, tim đập thon thót và bỗng quên hết kiến thức ngay trước giờ thi?",
+    back: "Nhắm mắt, hít vào sâu bằng mũi cho bụng phình lên, thở ra chậm rãi bằng miệng cho bụng xẹp xuống. Nghĩ thầm: 'Mình đã nỗ lực hết mình, bài thi này không định nghĩa toàn bộ giá trị của mình.' Hơi thở sâu sẽ dẹp tan hoocmon stress, bật lại sự minh mẫn. ✨",
+  },
+  {
+    id: 7,
+    category: "Mất tập trung",
+    front: "Làm sao để tập trung cao độ khi tự học tại nhà mà không bị xao nhãng bởi điện thoại hay tin nhắn?",
+    back: "Sử dụng phương pháp Pomodoro: Hẹn giờ 25 phút học hoàn toàn nghiêm túc (úp điện thoại xuống hoặc để xa tầm tay), sau đó tự thưởng 5 phút nghỉ ngơi. Sau 4 chu kỳ thì nghỉ dài 15-20 phút. Chia nhỏ thời gian giúp não luôn tập trung cao độ. 🫧",
+  },
+  {
+    id: 8,
+    category: "Overthinking",
+    front: "Mỗi đêm xuống tớ cứ trằn trọc suy nghĩ tiêu cực về những lỗi lầm cũ hoặc sợ hãi tương lai?",
+    back: "Hãy thực hành 'Brain Dump' (Viết xả stress): Lấy một tờ giấy nháp, viết tự do tất cả những gì đang lộn xộn trong đầu ra mà không cần trau chuốt. Xong xuôi, hãy vo tròn tờ giấy lại và ném vào sọt rác. Hành động vật lý này giải phóng gánh nặng tâm lý cực tốt! 🌿",
+  },
 ];

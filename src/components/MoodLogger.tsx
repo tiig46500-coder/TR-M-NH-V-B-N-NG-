@@ -152,7 +152,7 @@ const ACTIVITIES: Record<string, ActivityConfig> = {
 };
 
 export default function MoodLogger() {
-  const { userData, setMoodLogs } = useUserData();
+  const { userData, setMoodLogs, setPlantStage } = useUserData();
   const logs = userData.moodLogs;
 
   const setLogs = (updated: MoodLogEntry[]) => {
@@ -181,11 +181,9 @@ export default function MoodLogger() {
   const [hoveredLog, setHoveredLog] = useState<MoodLogEntry | null>(null);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
-  // Load / Seed logs on mount if empty
+  // Do not auto-seed logs so that new users start with a clean slate
   useEffect(() => {
-    if (logs.length === 0) {
-      setLogs(SEED_LOGS);
-    }
+    // Left empty intentionally to support clean-slate onboarding
   }, []);
 
   // Sync state with form when selectedDate changes (to allow editing existing logs for that day)
@@ -287,9 +285,9 @@ export default function MoodLogger() {
     setLogs(updated);
   };
 
-  // Reset database back to seed data
+  // Reset database to completely empty state
   const handleResetData = () => {
-    setLogs(SEED_LOGS);
+    setLogs([]);
     setSelectedDate(new Date().toLocaleDateString("en-CA"));
     setShowConfirmReset(false);
   };
@@ -352,46 +350,70 @@ export default function MoodLogger() {
     const sortedLogs = [...logs].sort((a, b) => b.date.localeCompare(a.date));
     
     if (sortedLogs.length === 0) {
-      return { isBlooming: false, isWithered: false, reason: "Hãy ghi nhận nhật ký ngày đầu tiên để ươm mầm hạt giống nhé! 🌱" };
+      return { 
+        isBlooming: false, 
+        isWithered: false, 
+        growthLevel: 1,
+        reason: "Hãy ghi nhận nhật ký ngày đầu tiên để ươm mầm hạt giống nhé! 🌱" 
+      };
     }
 
     const last3 = sortedLogs.slice(0, 3);
     const negativeMoodIds = ["sad", "tired", "anxious"];
     
     const hasStress = last3.some(l => negativeMoodIds.includes(l.moodId) || l.energyLevel <= 2);
-    const isRegularAndHealthy = sortedLogs.length >= 3 && last3.every(l => !negativeMoodIds.includes(l.moodId) && l.energyLevel >= 3);
+    
+    const last5 = sortedLogs.slice(0, 5);
+    const avgEnergy = last5.reduce((sum, l) => sum + l.energyLevel, 0) / last5.length;
+    const streak = streakCount;
 
-    if (hasStress) {
-      if (isWatered) {
-        return { 
-          isBlooming: true, 
-          isWithered: false, 
-          reason: "Cảm ơn cậu đã tưới nước bằng hơi thở lành! Nhánh cây thảo mộc của cậu đã rũ bùn hồi sinh rực rỡ bên sườn đồi Xứ Lạng. 🌸✨" 
-        };
-      }
-      return { 
-        isBlooming: false, 
-        isWithered: true, 
-        reason: "Dạo này cậu có vẻ mệt mỏi và stress, cành lá đã héo rũ vì thiếu đi sự phản tư tưới mát. Hãy sạc lại pin năng lượng nhé! 🍂" 
-      };
+    let level = 1;
+    if (streak >= 5 && avgEnergy >= 3.5) {
+      level = 5;
+    } else if (streak >= 4) {
+      level = 4;
+    } else if (streak >= 3) {
+      level = 3;
+    } else if (streak >= 2) {
+      level = 2;
+    } else {
+      level = 1;
     }
 
-    if (isRegularAndHealthy) {
-      return { 
-        isBlooming: true, 
-        isWithered: false, 
-        reason: "Cậu ghi nhật ký đều đặn và có năng lượng rất tốt! Nhánh thảo mộc bản địa của cậu đang nở rộ rực rỡ và lấp lánh tinh tú. 🎉✨" 
-      };
+    // Determine bloom/wither status
+    let withered = hasStress && !isWatered;
+    let blooming = (level >= 3 || isWatered) && !withered;
+
+    let reasonStr = "";
+    if (withered) {
+      reasonStr = `[Cấp ${level}] Nhánh thảo mộc héo rũ do stress (Chuỗi: ${streak} ngày, Năng lượng TB: ${avgEnergy.toFixed(1)}/5). Cậu cần được xoa dịu bằng 1 phút thở sâu Hộp 4D để phục hồi! 🍂`;
+    } else if (level === 5) {
+      reasonStr = `[Cấp 5 - Rực rỡ nhất] Nhánh thảo mộc nở rộ viên mãn! Chuỗi thói quen ${streak} ngày và năng lượng dồi dào (${avgEnergy.toFixed(1)}/5) giúp khu vườn ngát hương. Cậu làm tuyệt lắm! 🌸✨`;
+    } else if (level === 4) {
+      reasonStr = `[Cấp 4] Nhánh cây đã lớn mạnh và hé nở 2-3 bông hoa rực rỡ (Chuỗi: ${streak} ngày, Năng lượng TB: ${avgEnergy.toFixed(1)}/5). 🌱✨`;
+    } else if (level === 3) {
+      reasonStr = `[Cấp 3] Xuất hiện các nụ hoa chúm chím căng đầy nhựa sống (Chuỗi: ${streak} ngày, Năng lượng TB: ${avgEnergy.toFixed(1)}/5). Cố gắng duy trì nhé! 🌱`;
+    } else if (level === 2) {
+      reasonStr = `[Cấp 2] Nhánh cây mọc thêm các cành nhỏ và lá xanh mơn mởn (Chuỗi: ${streak} ngày). Hãy tiếp tục phản tư để cây ra nụ nhé! 🌿`;
+    } else {
+      reasonStr = `[Cấp 1] Cành cây mộc mạc nguyên bản bắt đầu bén rễ. Hãy đều đặn ghi nhận nhật ký để tưới tắm cho cây lớn nhé! 🌱`;
     }
 
     return { 
-      isBlooming: false, 
-      isWithered: false, 
-      reason: "Hạt mầm đang lớn dần mỗi ngày. Hãy ghi nhật ký đều đặn 3 ngày với năng lượng tốt để đón hoa nở nhé! 🌱" 
+      isBlooming: blooming, 
+      isWithered: withered, 
+      growthLevel: level, 
+      reason: reasonStr 
     };
   };
 
-  const { isBlooming, isWithered, reason: gardenReason } = getGardenStatus();
+  const { isBlooming, isWithered, growthLevel, reason: gardenReason } = getGardenStatus();
+
+  useEffect(() => {
+    if (growthLevel !== userData.plantStage) {
+      setPlantStage(growthLevel);
+    }
+  }, [growthLevel, userData.plantStage, setPlantStage]);
 
   // Helper to generate coordinates for SVG Line Chart based on 7 days of logs
   const generateSvgPathAndPoints = () => {
@@ -810,7 +832,7 @@ export default function MoodLogger() {
               {/* Plant SVG Container */}
               <div className="relative w-36 h-36 flex items-center justify-center">
                 {gardenPlant === "dao" ? (
-                  /* HOA ĐÀO XỨ LẠNG SVG */
+                  /* HOA ĐÀO XỨ LẠNG SVG (DYNAMICS) */
                   <svg viewBox="0 0 100 100" className="w-full h-full">
                     {/* Dirt/Pot base */}
                     <ellipse cx="50" cy="85" rx="35" ry="6" fill="#cbd5e1" opacity="0.3" />
@@ -822,65 +844,161 @@ export default function MoodLogger() {
                       stroke={isWithered ? "#78716c" : "#7c2d12"}
                       strokeWidth="4"
                       strokeLinecap="round"
-                      animate={isWithered ? { rotate: [0, 2, 0] } : { rotate: [0, -1, 1, 0] }}
+                      animate={isWithered ? { rotate: [0, 1, 0] } : { rotate: [0, -1, 1, 0] }}
                       transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
                     />
                     
-                    {/* Side branches */}
-                    <path
-                      d="M 48 60 C 38 52, 35 48, 30 46"
-                      fill="none"
-                      stroke={isWithered ? "#78716c" : "#7c2d12"}
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M 51 45 C 58 38, 65 35, 70 34"
-                      fill="none"
-                      stroke={isWithered ? "#78716c" : "#7c2d12"}
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
+                    {/* Side branches - Level 2+ */}
+                    {growthLevel >= 2 && (
+                      <>
+                        {/* Left Side branch */}
+                        <path
+                          d="M 48 60 C 38 52, 35 48, 30 46"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#7c2d12"}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                        />
+                        {/* Right Side branch */}
+                        <path
+                          d="M 51 45 C 58 38, 65 35, 70 34"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#7c2d12"}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                        />
+                      </>
+                    )}
 
-                    {/* Green Leaves (Faded/brown if withered) */}
-                    <path d="M 32 46 Q 28 42, 30 46" fill={isWithered ? "#a8a29e" : "#10b981"} />
-                    <path d="M 68 34 Q 72 30, 70 34" fill={isWithered ? "#a8a29e" : "#10b981"} />
-                    <path d="M 54 30 Q 52 24, 55 30" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                    {/* Extra branches for Level 4+ */}
+                    {growthLevel >= 4 && (
+                      <>
+                        {/* Extra left branch */}
+                        <path
+                          d="M 43 50 C 37 45, 38 42, 42 38"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#7c2d12"}
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                        />
+                        {/* Extra right branch */}
+                        <path
+                          d="M 53 38 C 62 34, 60 30, 65 26"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#7c2d12"}
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                        />
+                      </>
+                    )}
 
-                    {/* Blossoms */}
+                    {/* Green Leaves - Level 2+ */}
+                    {growthLevel >= 2 && (
+                      <>
+                        <path d="M 32 46 Q 28 42, 30 46" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 68 34 Q 72 30, 70 34" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 54 30 Q 52 24, 55 30" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                      </>
+                    )}
+                    {/* Extra Leaves for Level 4+ */}
+                    {growthLevel >= 4 && (
+                      <>
+                        <path d="M 42 38 Q 38 34, 40 38" fill={isWithered ? "#a8a29e" : "#059669"} />
+                        <path d="M 65 26 Q 69 22, 67 26" fill={isWithered ? "#a8a29e" : "#059669"} />
+                        <path d="M 46 58 Q 42 54, 44 58" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                      </>
+                    )}
+
+                    {/* Blossoms & Buds */}
                     {isWithered ? (
                       /* Withered/Closed Buds */
                       <>
-                        <circle cx="55" cy="30" r="2.5" fill="#f43f5e" opacity="0.4" />
-                        <circle cx="30" cy="46" r="2.5" fill="#f43f5e" opacity="0.4" />
-                        <circle cx="70" cy="34" r="2.5" fill="#f43f5e" opacity="0.4" />
+                        {growthLevel >= 3 && <circle cx="55" cy="30" r="2.5" fill="#f43f5e" opacity="0.4" />}
+                        {growthLevel >= 3 && <circle cx="30" cy="46" r="2.5" fill="#f43f5e" opacity="0.4" />}
+                        {growthLevel >= 3 && <circle cx="70" cy="34" r="2.5" fill="#f43f5e" opacity="0.4" />}
                       </>
                     ) : (
-                      /* Beautiful Blooming Peach Blossoms */
                       <>
-                        {/* Blossom 1 Top */}
-                        <g transform="translate(55, 30)">
-                          <motion.circle r="7" fill="#fbcfe8" opacity="0.8" animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 3 }} />
-                          <circle r="4.5" fill="#f43f5e" />
-                          <circle r="1.5" fill="#fef08a" />
-                        </g>
-                        {/* Blossom 2 Left */}
-                        <g transform="translate(30, 46)">
-                          <motion.circle r="6" fill="#fbcfe8" opacity="0.8" animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 4, delay: 0.5 }} />
-                          <circle r="3.5" fill="#f43f5e" />
-                          <circle r="1" fill="#fef08a" />
-                        </g>
-                        {/* Blossom 3 Right */}
-                        <g transform="translate(70, 34)">
-                          <motion.circle r="6.5" fill="#fbcfe8" opacity="0.8" animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 3.5, delay: 1 }} />
-                          <circle r="4" fill="#f43f5e" />
-                          <circle r="1.2" fill="#fef08a" />
-                        </g>
+                        {/* Level 3: Tiny Buds */}
+                        {growthLevel === 3 && (
+                          <>
+                            <g transform="translate(55, 30)">
+                              <circle r="3" fill="#f43f5e" />
+                              <circle r="1" fill="#fef08a" />
+                            </g>
+                            <g transform="translate(30, 46)">
+                              <circle r="3" fill="#f43f5e" />
+                              <circle r="1" fill="#fef08a" />
+                            </g>
+                            <g transform="translate(70, 34)">
+                              <circle r="3" fill="#f43f5e" />
+                              <circle r="1" fill="#fef08a" />
+                            </g>
+                          </>
+                        )}
+
+                        {/* Level 4: 2-3 big blossoms */}
+                        {growthLevel === 4 && (
+                          <>
+                            {/* Blossom 1 Left */}
+                            <g transform="translate(30, 46)">
+                              <motion.circle r="6" fill="#fbcfe8" opacity="0.9" animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 4 }} />
+                              <circle r="3.5" fill="#f43f5e" />
+                              <circle r="1" fill="#fef08a" />
+                            </g>
+                            {/* Blossom 2 Right */}
+                            <g transform="translate(70, 34)">
+                              <motion.circle r="6.5" fill="#fbcfe8" opacity="0.9" animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 3.5, delay: 1 }} />
+                              <circle r="4" fill="#f43f5e" />
+                              <circle r="1.2" fill="#fef08a" />
+                            </g>
+                            {/* Top is still a bud */}
+                            <g transform="translate(55, 30)">
+                              <circle r="3" fill="#f43f5e" />
+                            </g>
+                          </>
+                        )}
+
+                        {/* Level 5: Fully Blooming Peach Tree */}
+                        {growthLevel >= 5 && (
+                          <>
+                            {/* Blossom 1 Top */}
+                            <g transform="translate(55, 30)">
+                              <motion.circle r="7.5" fill="#fbcfe8" opacity="0.95" animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 3 }} />
+                              <circle r="4.5" fill="#f43f5e" />
+                              <circle r="1.5" fill="#fef08a" />
+                            </g>
+                            {/* Blossom 2 Left */}
+                            <g transform="translate(30, 46)">
+                              <motion.circle r="6.5" fill="#fbcfe8" opacity="0.95" animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 4, delay: 0.5 }} />
+                              <circle r="3.8" fill="#f43f5e" />
+                              <circle r="1" fill="#fef08a" />
+                            </g>
+                            {/* Blossom 3 Right */}
+                            <g transform="translate(70, 34)">
+                              <motion.circle r="7" fill="#fbcfe8" opacity="0.95" animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 3.5, delay: 1 }} />
+                              <circle r="4" fill="#f43f5e" />
+                              <circle r="1.2" fill="#fef08a" />
+                            </g>
+                            {/* Blossom 4 Extra Lower Left */}
+                            <g transform="translate(42, 38)">
+                              <motion.circle r="5.5" fill="#fbcfe8" opacity="0.9" animate={{ scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 5, delay: 1.5 }} />
+                              <circle r="3" fill="#f43f5e" />
+                              <circle r="0.8" fill="#fef08a" />
+                            </g>
+                            {/* Blossom 5 Extra Upper Right */}
+                            <g transform="translate(65, 26)">
+                              <motion.circle r="5.5" fill="#fbcfe8" opacity="0.9" animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 4.5, delay: 2 }} />
+                              <circle r="3" fill="#f43f5e" />
+                              <circle r="0.8" fill="#fef08a" />
+                            </g>
+                          </>
+                        )}
                       </>
                     )}
                   </svg>
                 ) : (
-                  /* NHÁNH HOA HỒI SVG */
+                  /* NHÁNH HOA HỒI SVG (DYNAMICS) */
                   <svg viewBox="0 0 100 100" className="w-full h-full">
                     {/* Ground base */}
                     <ellipse cx="50" cy="85" rx="30" ry="5" fill="#cbd5e1" opacity="0.3" />
@@ -894,10 +1012,12 @@ export default function MoodLogger() {
                       strokeLinecap="round"
                     />
 
-                    {/* Star Anise Body (8-pointed structure) */}
+                    {/* Star Anise Body (Growth-dependent petals structure) */}
                     <g transform="translate(50, 50)" className="origin-center">
-                      {Array.from({ length: 8 }).map((_, idx) => {
-                        const angle = idx * 45;
+                      {Array.from({ length: growthLevel === 1 ? 3 : growthLevel === 2 ? 5 : growthLevel === 3 ? 6 : 8 }).map((_, idx) => {
+                        const totalPetals = growthLevel === 1 ? 3 : growthLevel === 2 ? 5 : growthLevel === 3 ? 6 : 8;
+                        const angle = idx * (360 / totalPetals);
+                        const petalScale = growthLevel >= 4 ? 1.1 : growthLevel === 3 ? 0.9 : 0.75;
                         return (
                           <motion.path
                             key={idx}
@@ -905,21 +1025,21 @@ export default function MoodLogger() {
                             fill={isWithered ? "#a8a29e" : "#b45309"}
                             stroke={isWithered ? "#78716c" : "#78350f"}
                             strokeWidth="1"
-                            transform={`rotate(${angle})`}
-                            animate={isWithered ? {} : { scale: [1, 1.03, 1] }}
+                            transform={`rotate(${angle}) scale(${petalScale})`}
+                            animate={isWithered ? {} : { scale: [petalScale, petalScale * 1.03, petalScale] }}
                             transition={{ repeat: Infinity, duration: 4, delay: idx * 0.15 }}
                           />
                         );
                       })}
-                      {/* Central Shiny Seed buds */}
-                      {!isWithered && Array.from({ length: 8 }).map((_, idx) => {
+                      {/* Central Shiny Seed buds - level 4+ */}
+                      {!isWithered && growthLevel >= 4 && Array.from({ length: 8 }).map((_, idx) => {
                         const angle = idx * 45;
                         return (
                           <circle
                             key={`seed-${idx}`}
                             cx="0"
                             cy="-15"
-                            r="2.2"
+                            r={growthLevel === 5 ? "2.5" : "1.8"}
                             fill="#fef08a"
                             transform={`rotate(${angle})`}
                           />

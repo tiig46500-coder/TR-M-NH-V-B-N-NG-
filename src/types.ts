@@ -45,7 +45,7 @@ export interface FlashcardItem {
   id: number;
   front: string;
   back: string;
-  category: "FOMO" | "Peer Pressure" | "Mindfulness" | "Social Detox";
+  category: string;
 }
 
 export interface ChatMessage {

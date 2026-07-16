@@ -397,16 +397,33 @@ export default function SelfDiscovery() {
           </div>
 
           {/* FLIPPABLE 3D CARD COMPONENT */}
-          <div className="relative h-[430px] w-full max-w-[320px] mx-auto perspective-1000">
+          <div 
+            className="relative h-[430px] w-full max-w-[320px] mx-auto"
+            style={{ perspective: "1000px" }}
+          >
             <div
               onClick={() => setIsFlipped(!isFlipped)}
-              className={`relative w-full h-full duration-600 transform-style-3d cursor-pointer ${
-                isFlipped ? "rotate-y-180" : ""
-              }`}
+              style={{
+                transformStyle: "preserve-3d",
+                transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+                transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+              }}
+              className="relative w-full h-full cursor-pointer select-none"
             >
               
               {/* CARD FRONT SIDE */}
-              <div className={`absolute inset-0 w-full h-full backface-hidden rounded-[36px] p-6 flex flex-col justify-between border-2 shadow-xl overflow-hidden ${personalityResult.cardColor} ${personalityResult.borderColor}`}>
+              <div 
+                style={{
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                }}
+                className={`rounded-[36px] p-6 flex flex-col justify-between border-2 shadow-xl overflow-hidden ${personalityResult.cardColor} ${personalityResult.borderColor}`}
+              >
                 
                 {/* Visual Glow Layer inside Card */}
                 <div className={`absolute top-0 right-0 w-44 h-44 rounded-full bg-gradient-to-br ${personalityResult.bgGradient} opacity-20 blur-3xl`} />
@@ -449,7 +466,19 @@ export default function SelfDiscovery() {
               </div>
 
               {/* CARD BACK SIDE */}
-              <div className={`absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-[36px] p-6 flex flex-col justify-between border-2 shadow-xl overflow-hidden bg-white ${personalityResult.borderColor}`}>
+              <div 
+                style={{
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  transform: "rotateY(180deg)",
+                }}
+                className={`rounded-[36px] p-6 flex flex-col justify-between border-2 shadow-xl overflow-hidden bg-white ${personalityResult.borderColor}`}
+              >
                 
                 {/* Visual Header */}
                 <div className="flex justify-between items-center border-b border-slate-100 pb-2">
@@ -466,7 +495,7 @@ export default function SelfDiscovery() {
                   {/* Strengths & Weaknesses */}
                   <div className="grid grid-cols-2 gap-2.5 pt-1">
                     <div className="space-y-1 bg-emerald-50/40 p-2 rounded-xl border border-emerald-100/30">
-                      <h5 className="text-[10px] font-bold text-emerald-700 uppercase">Ưu Điểm</h5>
+                      <h5 className="text-[10px] font-bold text-emerald-700 uppercase">Đặc trưng cốt lõi</h5>
                       <ul className="text-[9px] text-slate-500 space-y-0.5">
                         {personalityResult.strengths.map((st, i) => (
                           <li key={i} className="flex items-center gap-1">
@@ -477,7 +506,7 @@ export default function SelfDiscovery() {
                       </ul>
                     </div>
                     <div className="space-y-1 bg-rose-50/40 p-2 rounded-xl border border-rose-100/30">
-                      <h5 className="text-[10px] font-bold text-rose-700 uppercase">Điểm Nhạy Cảm</h5>
+                      <h5 className="text-[10px] font-bold text-rose-700 uppercase">Điểm mù tâm lý</h5>
                       <ul className="text-[9px] text-slate-500 space-y-0.5">
                         {personalityResult.weaknesses.map((wk, i) => (
                           <li key={i} className="flex items-center gap-1">
@@ -493,7 +522,7 @@ export default function SelfDiscovery() {
                   <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-150">
                     <h5 className="text-[9.5px] font-bold text-slate-700 uppercase flex items-center gap-1">
                       <Heart className="w-3 h-3 text-rose-500 fill-rose-500/10" />
-                      Lời khuyên tăng trưởng
+                      Lời khuyên phát triển 🌱
                     </h5>
                     <p className="text-[9px] text-slate-500 leading-relaxed mt-1 font-light">
                       {personalityResult.growthAdvice}
@@ -517,46 +546,12 @@ export default function SelfDiscovery() {
             </div>
           </div>
 
-          {/* ACTION BUTTONS (DOWNLOAD/SHARE/RETAKE) */}
-          <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center">
+          {/* ACTION BUTTONS (RETAKE) */}
+          <div className="flex gap-3.5 justify-center items-center">
             
             <button
-              onClick={handleDownload}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {downloadSuccess ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-500 stroke-[3]" />
-                  Đã tải thẻ về thiết bị!
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4 text-slate-400" />
-                  Tải Thẻ Bài Tính Cách
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={handleShare}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {shareSuccess ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-500 stroke-[3]" />
-                  Đã sao chép liên kết chia sẻ!
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-4 h-4 text-slate-400" />
-                  Chia sẻ cho bạn bè (Viral)
-                </>
-              )}
-            </button>
-
-            <button
               onClick={handleStartTest}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5 text-white/70 animate-spin-slow" />
               Đo lường lại

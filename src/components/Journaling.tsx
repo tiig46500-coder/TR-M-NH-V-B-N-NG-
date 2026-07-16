@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Bookmark
 } from "lucide-react";
+import { useUserData, ReflectionLog, FutureLetter } from "../context/UserContext";
 
 interface Prompt {
   id: number;
@@ -31,40 +32,31 @@ const DAILY_PROMPTS: Prompt[] = [
   { id: 6, text: "Ngày hôm nay, cậu tự hào về điều mộc mạc nào nhất của bản thân? Dù chỉ là uống đủ nước." }
 ];
 
-interface ReflectionLog {
-  id: string;
-  date: string;
-  promptText: string;
-  answerText: string;
-}
-
-interface FutureLetter {
-  id: string;
-  writeDate: string;
-  unlockDate: string; // ISO string
-  content: string;
-  releaseTimelineLabel: string;
-  isSealed: boolean;
-}
-
 interface JournalingProps {
   initialTab?: "daily" | "future";
 }
 
 export default function Journaling({ initialTab }: JournalingProps) {
+  const { userData, addReflection, deleteReflection, addFutureLetter, deleteFutureLetter, addXP } = useUserData();
+  const reflections = userData.reflections || [];
+  const futureLetters = userData.futureLetters || [];
+
   // Reflections state
   const [currentPromptIdx, setCurrentPromptIdx] = useState(0);
   const [reflectionInput, setReflectionInput] = useState("");
-  const [reflections, setReflections] = useState<ReflectionLog[]>([]);
 
   // Future Letters state
   const [letterContent, setLetterContent] = useState("");
   const [releaseTimeline, setReleaseTimeline] = useState("7"); // Days
-  const [futureLetters, setFutureLetters] = useState<FutureLetter[]>([]);
   
   // Animation states
   const [isSealing, setIsSealing] = useState(false);
   const [activeTab, setActiveTab] = useState<"daily" | "future">(initialTab || "daily");
+
+  // Deletion and toast states
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<"reflection" | "letter" | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialTab) {
@@ -73,21 +65,19 @@ export default function Journaling({ initialTab }: JournalingProps) {
   }, [initialTab]);
 
   useEffect(() => {
-    // Load reflections
-    const storedReflections = localStorage.getItem("remix_corez_reflections");
-    if (storedReflections) {
-      setReflections(JSON.parse(storedReflections));
-    }
-
-    // Load future letters
-    const storedLetters = localStorage.getItem("remix_corez_future_letters");
-    if (storedLetters) {
-      setFutureLetters(JSON.parse(storedLetters));
-    }
-
     // Select random prompt on start
     setCurrentPromptIdx(Math.floor(Math.random() * DAILY_PROMPTS.length));
   }, []);
+
+  // Toast auto-clear
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => {
+        setToastMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
 
   const handleNextPrompt = () => {
     let nextIdx = currentPromptIdx;
@@ -114,19 +104,35 @@ export default function Journaling({ initialTab }: JournalingProps) {
       answerText: reflectionInput
     };
 
-    const updated = [newLog, ...reflections];
-    setReflections(updated);
-    localStorage.setItem("remix_corez_reflections", JSON.stringify(updated));
+    addReflection(newLog);
+    addXP(15); // reward for reflection
     setReflectionInput("");
-    alert("Ghi nhận nhật ký phản tư thành công! Cậu đang làm rất tốt trên hành trình quay về lắng nghe chính mình. 🌱");
+    setToastMessage("Ghi nhận nhật ký phản tư thành công! (+15 karmaXP) 🌱");
   };
 
-  const handleDeleteReflection = (id: string) => {
-    if (window.confirm("Cậu chắc chắn muốn xóa dòng phản tư này chứ?")) {
-      const updated = reflections.filter(r => r.id !== id);
-      setReflections(updated);
-      localStorage.setItem("remix_corez_reflections", JSON.stringify(updated));
+  const handleDeleteReflectionClick = (id: string) => {
+    setDeleteTargetId(id);
+    setDeleteType("reflection");
+  };
+
+  const handleDeleteLetterClick = (id: string) => {
+    setDeleteTargetId(id);
+    setDeleteType("letter");
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTargetId || !deleteType) return;
+    
+    if (deleteType === "reflection") {
+      deleteReflection(deleteTargetId);
+      setToastMessage("Đã xóa nhật ký thành công! 🍃");
+    } else {
+      deleteFutureLetter(deleteTargetId);
+      setToastMessage("Đã xóa lá thư thời gian thành công! 🍃");
     }
+    
+    setDeleteTargetId(null);
+    setDeleteType(null);
   };
 
   const handleSealLetter = (e: React.FormEvent) => {
@@ -158,21 +164,12 @@ export default function Journaling({ initialTab }: JournalingProps) {
         isSealed: true
       };
 
-      const updated = [newLetter, ...futureLetters];
-      setFutureLetters(updated);
-      localStorage.setItem("remix_corez_future_letters", JSON.stringify(updated));
+      addFutureLetter(newLetter);
+      addXP(30); // reward for sealing a future letter
       setLetterContent("");
       setIsSealing(false);
-      alert("Đã niêm phong thư bằng sáp ong thành công! ✉️ Lá thư đã được khóa và thả trôi sông thời gian, tớ sẽ giữ kín cho tới khi đúng ngày mở khóa cậu nhé!");
+      setToastMessage("Đã niêm phong thư bằng sáp ong thành công! (+30 karmaXP) ✉️");
     }, 2200);
-  };
-
-  const handleDeleteLetter = (id: string) => {
-    if (window.confirm("Cậu chắc chắn muốn xóa lá thư thời gian này chứ?")) {
-      const updated = futureLetters.filter(l => l.id !== id);
-      setFutureLetters(updated);
-      localStorage.setItem("remix_corez_future_letters", JSON.stringify(updated));
-    }
   };
 
   // Check if letter is unlocked
@@ -338,7 +335,7 @@ export default function Journaling({ initialTab }: JournalingProps) {
                           <span>{log.date}</span>
                         </div>
                         <button
-                          onClick={() => handleDeleteReflection(log.id)}
+                          onClick={() => handleDeleteReflectionClick(log.id)}
                           className="text-slate-300 hover:text-rose-500 p-0.5 rounded transition-colors opacity-0 group-hover:opacity-100 absolute top-2.5 right-2.5 cursor-pointer"
                           title="Xóa dòng nhật ký này"
                         >
@@ -525,7 +522,7 @@ export default function Journaling({ initialTab }: JournalingProps) {
                           </div>
                           
                           <button
-                            onClick={() => handleDeleteLetter(letter.id)}
+                            onClick={() => handleDeleteLetterClick(letter.id)}
                             className="text-slate-300 hover:text-rose-500 p-0.5 rounded transition-colors opacity-0 group-hover:opacity-100 absolute top-2 right-2 cursor-pointer"
                             title="Xóa bức thư này"
                           >
@@ -582,6 +579,66 @@ export default function Journaling({ initialTab }: JournalingProps) {
           </motion.div>
         )}
 
+      </AnimatePresence>
+
+      {/* Confirmation Deletion Modal */}
+      <AnimatePresence>
+        {deleteTargetId && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="w-full max-w-sm bg-white/90 dark:bg-slate-900/95 border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl rounded-[28px] p-6 shadow-2xl relative overflow-hidden"
+            >
+              <div className="flex items-center gap-2 border-b border-slate-100/30 pb-3 mb-4">
+                <div className="p-2 bg-rose-50 dark:bg-rose-950/40 text-rose-500 rounded-xl">
+                  <Trash2 className="w-5 h-5 animate-pulse" />
+                </div>
+                <h4 className="font-serif text-sm font-bold text-slate-800 dark:text-slate-100">Xác nhận xóa</h4>
+              </div>
+
+              <p className="text-xs text-slate-500 dark:text-slate-300 leading-relaxed mb-5">
+                {deleteType === "reflection" 
+                  ? "Cậu có chắc chắn muốn xóa nhật ký của ngày này không? Hành động này không thể hoàn tác."
+                  : "Cậu có chắc chắn muốn xóa lá thư thời gian này không? Hành động này không thể hoàn tác."}
+              </p>
+
+              <div className="flex gap-2.5 w-full">
+                <button
+                  onClick={() => {
+                    setDeleteTargetId(null);
+                    setDeleteType(null);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Xác nhận xóa
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-6 right-6 bg-slate-900/90 dark:bg-slate-850/95 border border-white/10 text-white px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-xl z-[120] flex items-center gap-2 text-xs font-semibold"
+          >
+            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
       </AnimatePresence>
 
     </div>

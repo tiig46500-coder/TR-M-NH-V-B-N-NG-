@@ -21,7 +21,9 @@ import {
   Award,
   ShieldCheck,
   VolumeX,
-  Smartphone
+  Smartphone,
+  BellOff,
+  Moon
 } from "lucide-react";
 import { INITIAL_CONFESSIONS, LẠNG_SƠN_PLACES } from "../data";
 import { Confession, HabitChallenge, LạngSơnPlace } from "../types";
@@ -141,13 +143,16 @@ export default function Space4D() {
   // Tab 3: Detox (Thanh lọc số) State & Logic
   // ==========================================
   const [detoxTasks, setDetoxTasks] = useState({
-    unfollowedToxic: false,
-    interactedPositive: false,
-    activatedLimit: false,
+    unfollowedToxic: false,       // D3-1
+    interactedPositive: false,    // D3-2
+    grayscaleChallenge: false,    // D3-3
+    disableNotifications: false,  // D3-4
+    bedtimeCurfew: false,         // D3-5
+    activatedLimit: false,        // D3-6
   });
   const [dailyOnlineLimit, setDailyOnlineLimit] = useState<number>(1.5); // hours/day, default 1.5
 
-  const toggleDetoxTask = (key: "unfollowedToxic" | "interactedPositive" | "activatedLimit") => {
+  const toggleDetoxTask = (key: keyof typeof detoxTasks) => {
     setDetoxTasks(prev => ({
       ...prev,
       [key]: !prev[key]
@@ -155,12 +160,15 @@ export default function Space4D() {
   };
 
   const completedDetoxCount = Object.values(detoxTasks).filter(Boolean).length;
-  const detoxProgressPercent = Math.round((completedDetoxCount / 3) * 100);
+  const detoxProgressPercent = Math.round((completedDetoxCount / 6) * 100);
 
   const resetDetox = () => {
     setDetoxTasks({
       unfollowedToxic: false,
       interactedPositive: false,
+      grayscaleChallenge: false,
+      disableNotifications: false,
+      bedtimeCurfew: false,
       activatedLimit: false,
     });
     setDailyOnlineLimit(1.5);
@@ -441,7 +449,7 @@ export default function Space4D() {
                         strokeDasharray={377} // 2 * PI * r = 2 * 3.14159 * 60 = 377
                         initial={{ strokeDashoffset: 377 }}
                         animate={{ 
-                          strokeDashoffset: 377 - (377 * (completedDetoxCount / 3)) 
+                          strokeDashoffset: 377 - (377 * (completedDetoxCount / 6)) 
                         }}
                         transition={{ duration: 1 }}
                         strokeLinecap="round"
@@ -456,11 +464,11 @@ export default function Space4D() {
                   </div>
 
                   <p className="text-xs text-slate-500 mt-4 font-medium text-center leading-snug">
-                    Đạt <span className="text-[#34D399] font-bold">{completedDetoxCount}/3</span> thói quen thanh lọc hôm nay
+                    Đạt <span className="text-[#34D399] font-bold">{completedDetoxCount}/6</span> thói quen thanh lọc hôm nay
                   </p>
                 </div>
 
-                {/* 3 Interactive Detox Tasks */}
+                {/* 6 Interactive Detox Tasks */}
                 <div className="md:col-span-8 space-y-3.5">
                   
                   {/* Task 1 */}
@@ -480,11 +488,11 @@ export default function Space4D() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <Trash2 className="w-4 h-4 text-emerald-500" />
-                        <h4 className="text-xs sm:text-sm font-bold text-slate-700">Kỹ thuật "Dọn rác không gian số"</h4>
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-700">Dọn rác không gian số</h4>
                         <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold font-mono">D3-1</span>
                       </div>
                       <p className="text-[11px] text-slate-500 mt-1 leading-relaxed text-justify">
-                        Chủ động "unfollow" (hủy theo dõi) hoặc ẩn các tài khoản, hội nhóm độc hại, chuyên khoe mẽ gây áp lực đồng trang lứa.
+                        Hủy theo dõi các trang/hội nhóm độc hại, tiêu cực gây áp lực đồng trang lứa.
                       </p>
                     </div>
                   </div>
@@ -510,12 +518,90 @@ export default function Space4D() {
                         <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold font-mono">D3-2</span>
                       </div>
                       <p className="text-[11px] text-slate-500 mt-1 leading-relaxed text-justify">
-                        Chủ động tìm kiếm, tương tác (like, share, bình luận) với các nội dung mang năng lượng tích cực (kiến thức, văn hóa, sở thích lành mạnh) để định hướng thuật toán TikTok/Facebook phân phối nguồn tin ích lợi.
+                        Chủ động tương tác với nội dung tích cực, kiến thức học tập hoặc kỹ năng sống.
                       </p>
                     </div>
                   </div>
 
                   {/* Task 3 */}
+                  <div 
+                    onClick={() => toggleDetoxTask("grayscaleChallenge")}
+                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 select-none ${
+                      detoxTasks.grayscaleChallenge 
+                        ? "bg-emerald-50/50 border-emerald-300 text-slate-800 shadow-sm" 
+                        : "bg-white/40 border-white/30 hover:bg-white/65 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center mt-0.5 shrink-0 ${
+                      detoxTasks.grayscaleChallenge ? "bg-[#34D399] border-[#34D399] text-white" : "border-slate-300 bg-white"
+                    }`}>
+                      {detoxTasks.grayscaleChallenge && <Check className="w-4 h-4 stroke-[3]" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="w-4 h-4 text-emerald-500" />
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-700">Thử thách Màn hình xám</h4>
+                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold font-mono">D3-3</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-relaxed text-justify">
+                        Chuyển màn hình điện thoại sang chế độ trắng đen/grayscale để giảm kích thích thị giác, bớt thèm lướt mạng xã hội.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Task 4 */}
+                  <div 
+                    onClick={() => toggleDetoxTask("disableNotifications")}
+                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 select-none ${
+                      detoxTasks.disableNotifications 
+                        ? "bg-emerald-50/50 border-emerald-300 text-slate-800 shadow-sm" 
+                        : "bg-white/40 border-white/30 hover:bg-white/65 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center mt-0.5 shrink-0 ${
+                      detoxTasks.disableNotifications ? "bg-[#34D399] border-[#34D399] text-white" : "border-slate-300 bg-white"
+                    }`}>
+                      {detoxTasks.disableNotifications && <Check className="w-4 h-4 stroke-[3]" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <BellOff className="w-4 h-4 text-emerald-500" />
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-700">Tắt thông báo không cần thiết</h4>
+                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold font-mono">D3-4</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-relaxed text-justify">
+                        Tắt toàn bộ thông báo từ các ứng dụng mua sắm, giải trí, chỉ giữ lại kênh liên lạc quan trọng trong giờ học.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Task 5 */}
+                  <div 
+                    onClick={() => toggleDetoxTask("bedtimeCurfew")}
+                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-3.5 select-none ${
+                      detoxTasks.bedtimeCurfew 
+                        ? "bg-emerald-50/50 border-emerald-300 text-slate-800 shadow-sm" 
+                        : "bg-white/40 border-white/30 hover:bg-white/65 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center mt-0.5 shrink-0 ${
+                      detoxTasks.bedtimeCurfew ? "bg-[#34D399] border-[#34D399] text-white" : "border-slate-300 bg-white"
+                    }`}>
+                      {detoxTasks.bedtimeCurfew && <Check className="w-4 h-4 stroke-[3]" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Moon className="w-4 h-4 text-emerald-500" />
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-700">Thiết lập Giờ Giới Nghiêm Thiết Bị</h4>
+                        <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold font-mono">D3-5</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-relaxed text-justify">
+                        Không chạm vào điện thoại trước khi đi ngủ 30 phút để bảo vệ giấc ngủ và hệ thần kinh.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Task 6 */}
                   <div 
                     className={`p-4 rounded-2xl border transition-all flex flex-col gap-3.5 select-none ${
                       detoxTasks.activatedLimit 
@@ -535,16 +621,16 @@ export default function Space4D() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-emerald-500" />
-                          <h4 className="text-xs sm:text-sm font-bold text-slate-700">Thử thách "Chủ động khoảng nghỉ"</h4>
-                          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold font-mono">D3-3</span>
+                          <h4 className="text-xs sm:text-sm font-bold text-slate-700">Chủ động khoảng nghỉ</h4>
+                          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold font-mono">D3-6</span>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-1 leading-relaxed text-justify">
-                          Thay vì cấm dùng điện thoại, hãy cài đặt giới hạn thời gian sử dụng mạng, thỏa thuận khung giờ online hợp lý ngoài giờ học.
+                          Giới hạn thời gian sử dụng mạng xã hội ngoài giờ học, cài đặt ranh giới thời gian hợp lý.
                         </p>
                       </div>
                     </div>
 
-                    {/* Interactive Slider inside Task 3 */}
+                    {/* Interactive Slider inside Task 6 */}
                     <div className="pl-9 pr-2 space-y-2">
                       <div className="flex justify-between items-center text-[11px] text-slate-500">
                         <span>Thời gian giới hạn ngoài giờ học:</span>

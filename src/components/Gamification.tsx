@@ -17,6 +17,7 @@ import {
   Coffee,
   Info
 } from "lucide-react";
+import { useUserData } from "../context/UserContext";
 
 interface DailyChallengeTask {
   id: string;
@@ -124,46 +125,127 @@ const BADGES: BadgeConfig[] = [
   }
 ];
 
+const CORE_ACHIEVEMENTS: BadgeConfig[] = [
+  {
+    id: "ach-detox-100",
+    title: "Thải Độc Bền Bỉ",
+    desc: "Đã rèn luyện khả năng hiện diện tuyệt đối trong cuộc sống thực tại ngoài màn hình phẳng.",
+    requirement: "Tích lũy đạt 100 phút Thải độc số tại Không gian 4D.",
+    emoji: "🔋",
+    color: "text-indigo-600 bg-indigo-100",
+    borderColor: "border-indigo-200",
+    bgLight: "bg-indigo-50/50"
+  },
+  {
+    id: "ach-empathy-10",
+    title: "Người Thấu Cảm",
+    desc: "Lắng nghe sâu sắc những chuyển biến tinh tế trong xúc cảm nội tâm của bản thân.",
+    requirement: "Ghi nhận đủ 10 nhật ký cảm xúc hàng ngày.",
+    emoji: "🧡",
+    color: "text-rose-600 bg-rose-100",
+    borderColor: "border-rose-200",
+    bgLight: "bg-rose-50/50"
+  },
+  {
+    id: "ach-reflection-5",
+    title: "Học Giả Phản Tư",
+    desc: "Dành thời gian chất lượng để đối thoại chân thành với chính mình qua ngòi bút.",
+    requirement: "Hoàn thành đủ 5 dòng nhật ký Phản tư hàng ngày.",
+    emoji: "📖",
+    color: "text-emerald-600 bg-emerald-100",
+    borderColor: "border-emerald-200",
+    bgLight: "bg-emerald-50/50"
+  },
+  {
+    id: "ach-gardener-3",
+    title: "Người Gieo Mầm Xanh",
+    desc: "Chăm sóc bền bỉ giúp cành thảo mộc bản địa Lạng Sơn sinh trưởng xum xuê.",
+    requirement: "Cây bản địa đạt cấp độ sinh trưởng Cấp 3 trở lên.",
+    emoji: "🌸",
+    color: "text-pink-600 bg-pink-100",
+    borderColor: "border-pink-200",
+    bgLight: "bg-pink-50/50"
+  }
+];
+
 export default function Gamification() {
+  const { userData, addXP, setXP } = useUserData();
+  const totalXp = userData.karmaXP;
+
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
-  const [totalXp, setTotalXp] = useState(120); // Base starting XP
   const [taskHistory, setTaskHistory] = useState<Record<string, number>>({
-    "task-detox": 1,
-    "task-physical": 1,
-    "task-connect": 1,
+    "task-detox": 0,
+    "task-physical": 0,
+    "task-connect": 0,
     "task-mental": 0,
-    "task-breath": 2
+    "task-breath": 0
   });
-  const [dayCounter, setDayCounter] = useState(4); // Day 4 out of 21
-  const [totalTasksDone, setTotalTasksDone] = useState(5);
+  const [dayCounter, setDayCounter] = useState(1); // Day 1 out of 21
+  const [totalTasksDone, setTotalTasksDone] = useState(0);
   
   // Confetti / Alert effects
   const [unlockedBadge, setUnlockedBadge] = useState<string | null>(null);
 
   // Load from local storage
   useEffect(() => {
-    const storedXp = localStorage.getItem("remix_corez_xp");
     const storedHistory = localStorage.getItem("remix_corez_task_history");
     const storedDone = localStorage.getItem("remix_corez_tasks_done");
     const storedDay = localStorage.getItem("remix_corez_day_counter");
     const storedCompletedToday = localStorage.getItem("remix_corez_completed_today");
 
-    if (storedXp) setTotalXp(parseInt(storedXp));
     if (storedHistory) setTaskHistory(JSON.parse(storedHistory));
     if (storedDone) setTotalTasksDone(parseInt(storedDone));
     if (storedDay) setDayCounter(parseInt(storedDay));
     if (storedCompletedToday) setCompletedTaskIds(JSON.parse(storedCompletedToday));
   }, []);
 
+  // Watch for newly unlocked core achievements
+  useEffect(() => {
+    const achs = [
+      { id: "ach-detox-100", title: "Thải Độc Bền Bỉ" },
+      { id: "ach-empathy-10", title: "Người Thấu Cảm" },
+      { id: "ach-reflection-5", title: "Học Giả Phản Tư" },
+      { id: "ach-gardener-3", title: "Người Gieo Mầm Xanh" }
+    ];
+
+    for (const ach of achs) {
+      const isUnlocked = isAchUnlocked(ach.id);
+      const isAlreadyNotified = localStorage.getItem(`remix_corez_notified_${ach.id}`);
+      
+      if (isUnlocked && !isAlreadyNotified) {
+        setUnlockedBadge(ach.title);
+        localStorage.setItem(`remix_corez_notified_${ach.id}`, "true");
+        addXP(50); // Extra reward for major core achievement!
+        break;
+      }
+    }
+  }, [userData.detoxMinutes, userData.moodLogs, userData.reflections, userData.plantStage]);
+
+  // Core achievements check helpers
+  const isAchUnlocked = (id: string) => {
+    if (id === "ach-detox-100") return (userData.detoxMinutes || 0) >= 100;
+    if (id === "ach-empathy-10") return (userData.moodLogs || []).length >= 10;
+    if (id === "ach-reflection-5") return (userData.reflections || []).length >= 5;
+    if (id === "ach-gardener-3") return (userData.plantStage || 0) >= 3;
+    return false;
+  };
+
+  const getAchProgressText = (id: string) => {
+    if (id === "ach-detox-100") return `${Math.min(100, userData.detoxMinutes || 0)}/100p`;
+    if (id === "ach-empathy-10") return `${Math.min(10, (userData.moodLogs || []).length)}/10`;
+    if (id === "ach-reflection-5") return `${Math.min(5, (userData.reflections || []).length)}/5`;
+    if (id === "ach-gardener-3") return `Cấp ${userData.plantStage || 1}/3`;
+    return "0/1";
+  };
+
   // Sync to local storage on changes
   const saveGameState = (updatedXp: number, updatedHistory: Record<string, number>, updatedDone: number, updatedDay: number, updatedCompleted: string[]) => {
-    setTotalXp(updatedXp);
+    setXP(updatedXp);
     setTaskHistory(updatedHistory);
     setTotalTasksDone(updatedDone);
     setDayCounter(updatedDay);
     setCompletedTaskIds(updatedCompleted);
 
-    localStorage.setItem("remix_corez_xp", updatedXp.toString());
     localStorage.setItem("remix_corez_task_history", JSON.stringify(updatedHistory));
     localStorage.setItem("remix_corez_tasks_done", updatedDone.toString());
     localStorage.setItem("remix_corez_day_counter", updatedDay.toString());
@@ -452,54 +534,107 @@ export default function Gamification() {
               <span className="text-[10px] text-slate-400 font-mono">Huy hiệu đạt được</span>
             </div>
 
-            {/* Badges list */}
-            <div className="grid grid-cols-1 gap-2.5 flex-1 justify-center py-1">
-              {BADGES.map((badge) => {
-                const isUnlocked = isBadgeUnlocked(badge.id);
-                // Calculate progress
-                let progressText = "0/3";
-                if (badge.id === "badge-detox") progressText = `${Math.min(3, taskHistory["task-detox"] || 0)}/3`;
-                if (badge.id === "badge-physical") progressText = `${Math.min(3, taskHistory["task-physical"] || 0)}/3`;
-                if (badge.id === "badge-connect") progressText = `${Math.min(3, taskHistory["task-connect"] || 0)}/3`;
-                if (badge.id === "badge-conqueror") progressText = `${Math.min(12, totalTasksDone)}/12`;
+             {/* Badges list */}
+             <div className="space-y-4 flex-1 overflow-y-auto pr-1 max-h-[350px]">
+               {/* SECTION A: HUY HIỆU THỬ THÁCH */}
+               <div className="space-y-2">
+                 <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                   Thử thách 21 ngày
+                 </h5>
+                 <div className="grid grid-cols-1 gap-2">
+                   {BADGES.map((badge) => {
+                     const isUnlocked = isBadgeUnlocked(badge.id);
+                     let progressText = "0/3";
+                     if (badge.id === "badge-detox") progressText = `${Math.min(3, taskHistory["task-detox"] || 0)}/3`;
+                     if (badge.id === "badge-physical") progressText = `${Math.min(3, taskHistory["task-physical"] || 0)}/3`;
+                     if (badge.id === "badge-connect") progressText = `${Math.min(3, taskHistory["task-connect"] || 0)}/3`;
+                     if (badge.id === "badge-conqueror") progressText = `${Math.min(12, totalTasksDone)}/12`;
 
-                return (
-                  <div
-                    key={badge.id}
-                    className={`p-2.5 rounded-xl border flex items-center gap-3 relative overflow-hidden transition-all ${
-                      isUnlocked 
-                        ? `${badge.bgLight} ${badge.borderColor} shadow-sm` 
-                        : "bg-white/20 border-slate-100 opacity-60"
-                    }`}
-                  >
-                    {/* Badge Emoji container */}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
-                      isUnlocked ? badge.color : "bg-slate-100 text-slate-300 border border-slate-200"
-                    }`}>
-                      {isUnlocked ? badge.emoji : <Lock className="w-4 h-4 text-slate-300" />}
-                    </div>
+                     return (
+                       <div
+                         key={badge.id}
+                         className={`p-2.5 rounded-xl border flex items-center gap-3 relative overflow-hidden transition-all ${
+                           isUnlocked 
+                             ? `${badge.bgLight} ${badge.borderColor} shadow-sm` 
+                             : "bg-white/20 border-slate-100 opacity-60"
+                         }`}
+                       >
+                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
+                           isUnlocked ? badge.color : "bg-slate-100 text-slate-300 border border-slate-200"
+                         }`}>
+                           {isUnlocked ? badge.emoji : <Lock className="w-4 h-4 text-slate-300" />}
+                         </div>
 
-                    {/* Badge details */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center gap-1.5">
-                        <h5 className="text-[11.5px] font-bold text-slate-800 truncate">
-                          {badge.title}
-                        </h5>
-                        <span className="text-[9px] font-mono text-slate-400 shrink-0 bg-white px-1.5 py-0.5 rounded border border-slate-100">
-                          {progressText}
-                        </span>
-                      </div>
-                      <p className="text-[9.5px] text-slate-500 truncate leading-none mt-0.5 font-light">
-                        {badge.desc}
-                      </p>
-                      <p className="text-[8.5px] text-slate-400 font-light italic leading-none mt-1">
-                        YC: {badge.requirement}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                         <div className="flex-1 min-w-0">
+                           <div className="flex justify-between items-center gap-1.5">
+                             <h5 className="text-[11.5px] font-bold text-slate-800 truncate">
+                               {badge.title}
+                             </h5>
+                             <span className="text-[9px] font-mono text-slate-400 shrink-0 bg-white px-1.5 py-0.5 rounded border border-slate-100">
+                               {progressText}
+                             </span>
+                           </div>
+                           <p className="text-[9.5px] text-slate-500 truncate leading-none mt-0.5 font-light">
+                             {badge.desc}
+                           </p>
+                           <p className="text-[8.5px] text-slate-400 font-light italic leading-none mt-1">
+                             YC: {badge.requirement}
+                           </p>
+                         </div>
+                       </div>
+                     );
+                   })}
+                 </div>
+               </div>
+
+               {/* SECTION B: THÀNH TỰU BẢN NGÃ */}
+               <div className="space-y-2 pt-2 border-t border-slate-150/40">
+                 <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1 flex items-center gap-1">
+                   <Sparkles className="w-3 h-3 text-emerald-500" />
+                   Thành tựu Cốt lõi
+                 </h5>
+                 <div className="grid grid-cols-1 gap-2">
+                   {CORE_ACHIEVEMENTS.map((ach) => {
+                     const isUnlocked = isAchUnlocked(ach.id);
+                     const progressText = getAchProgressText(ach.id);
+
+                     return (
+                       <div
+                         key={ach.id}
+                         className={`p-2.5 rounded-xl border flex items-center gap-3 relative overflow-hidden transition-all ${
+                           isUnlocked 
+                             ? `${ach.bgLight} ${ach.borderColor} shadow-sm` 
+                             : "bg-white/20 border-slate-100 opacity-60"
+                         }`}
+                       >
+                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
+                           isUnlocked ? ach.color : "bg-slate-100 text-slate-300 border border-slate-200"
+                         }`}>
+                           {isUnlocked ? ach.emoji : <Lock className="w-4 h-4 text-slate-300" />}
+                         </div>
+
+                         <div className="flex-1 min-w-0">
+                           <div className="flex justify-between items-center gap-1.5">
+                             <h5 className="text-[11.5px] font-bold text-slate-800 truncate">
+                               {ach.title}
+                             </h5>
+                             <span className="text-[9px] font-mono text-slate-400 shrink-0 bg-white px-1.5 py-0.5 rounded border border-slate-100">
+                               {progressText}
+                             </span>
+                           </div>
+                           <p className="text-[9.5px] text-slate-500 truncate leading-none mt-0.5 font-light">
+                             {ach.desc}
+                           </p>
+                           <p className="text-[8.5px] text-slate-400 font-light italic leading-none mt-1">
+                             YC: {ach.requirement}
+                           </p>
+                         </div>
+                       </div>
+                     );
+                   })}
+                 </div>
+               </div>
+             </div>
 
             {/* Quick footer alert */}
             <div className="pt-2 text-center text-[9px] text-slate-400 font-light border-t border-slate-150/40">

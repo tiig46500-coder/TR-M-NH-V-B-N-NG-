@@ -10,6 +10,22 @@ export interface MoodLog {
   activities: string[];
 }
 
+export interface ReflectionLog {
+  id: string;
+  date: string;
+  promptText: string;
+  answerText: string;
+}
+
+export interface FutureLetter {
+  id: string;
+  writeDate: string;
+  unlockDate: string; // ISO string
+  content: string;
+  releaseTimelineLabel: string;
+  isSealed: boolean;
+}
+
 export interface UserData {
   diiScore: number;
   diiLevel: RiskLevel | null;
@@ -17,6 +33,8 @@ export interface UserData {
   moodLogs: MoodLog[];
   detoxMinutes: number;
   plantStage: number; // Giai đoạn của Cây bản địa (0 - 3)
+  reflections: ReflectionLog[];
+  futureLetters: FutureLetter[];
 }
 
 interface UserContextType {
@@ -28,6 +46,10 @@ interface UserContextType {
   setMoodLogs: (logs: MoodLog[]) => void;
   addDetoxMinutes: (minutes: number) => void;
   setPlantStage: (stage: number) => void;
+  addReflection: (log: ReflectionLog) => void;
+  deleteReflection: (id: string) => void;
+  addFutureLetter: (letter: FutureLetter) => void;
+  deleteFutureLetter: (id: string) => void;
   resetAllData: () => void;
 }
 
@@ -38,6 +60,8 @@ const DEFAULT_USER_DATA: UserData = {
   moodLogs: [],
   detoxMinutes: 0,
   plantStage: 0,
+  reflections: [],
+  futureLetters: [],
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -57,6 +81,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           moodLogs: Array.isArray(parsed.moodLogs) ? parsed.moodLogs : [],
           detoxMinutes: typeof parsed.detoxMinutes === "number" ? parsed.detoxMinutes : 0,
           plantStage: typeof parsed.plantStage === "number" ? parsed.plantStage : 0,
+          reflections: Array.isArray(parsed.reflections) ? parsed.reflections : [],
+          futureLetters: Array.isArray(parsed.futureLetters) ? parsed.futureLetters : [],
         };
       } catch (e) {
         console.error("Error parsing user data from localStorage", e);
@@ -70,11 +96,27 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const legacyDiiLevel = localStorage.getItem("remix_corez_dii_level") as RiskLevel | null;
     const legacyDetox = localStorage.getItem("remix_corez_detox_minutes");
     const legacyPlant = localStorage.getItem("remix_corez_plant_stage");
+    const legacyReflections = localStorage.getItem("remix_corez_reflections");
+    const legacyLetters = localStorage.getItem("remix_corez_future_letters");
 
     let parsedMoodLogs: MoodLog[] = [];
     if (legacyMoodLogs) {
       try {
         parsedMoodLogs = JSON.parse(legacyMoodLogs);
+      } catch (e) {}
+    }
+
+    let parsedReflections: ReflectionLog[] = [];
+    if (legacyReflections) {
+      try {
+        parsedReflections = JSON.parse(legacyReflections);
+      } catch (e) {}
+    }
+
+    let parsedLetters: FutureLetter[] = [];
+    if (legacyLetters) {
+      try {
+        parsedLetters = JSON.parse(legacyLetters);
       } catch (e) {}
     }
 
@@ -85,6 +127,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       moodLogs: parsedMoodLogs,
       detoxMinutes: legacyDetox ? parseInt(legacyDetox, 10) : 0,
       plantStage: legacyPlant ? parseInt(legacyPlant, 10) : 0,
+      reflections: parsedReflections,
+      futureLetters: parsedLetters,
     };
   });
 
@@ -92,7 +136,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     localStorage.setItem("remix_corez_user_data", JSON.stringify(userData));
 
-    // Also write to legacy keys so old components that pull directly from localStorage remain perfectly synchronized
+    // Also write to legacy keys so old components remain synchronized
     localStorage.setItem("remix_corez_xp", userData.karmaXP.toString());
     localStorage.setItem("remix_corez_mood_logs", JSON.stringify(userData.moodLogs));
     if (userData.diiLevel) {
@@ -103,6 +147,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("remix_corez_dii_score", userData.diiScore.toString());
     localStorage.setItem("remix_corez_detox_minutes", userData.detoxMinutes.toString());
     localStorage.setItem("remix_corez_plant_stage", userData.plantStage.toString());
+    localStorage.setItem("remix_corez_reflections", JSON.stringify(userData.reflections));
+    localStorage.setItem("remix_corez_future_letters", JSON.stringify(userData.futureLetters));
 
     // Dispatch custom event to notify external listeners of mood log updates if needed
     window.dispatchEvent(new Event("remix_corez_mood_logs_updated"));
@@ -161,6 +207,34 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   };
 
+  const addReflection = (log: ReflectionLog) => {
+    setUserData((prev) => ({
+      ...prev,
+      reflections: [log, ...prev.reflections],
+    }));
+  };
+
+  const deleteReflection = (id: string) => {
+    setUserData((prev) => ({
+      ...prev,
+      reflections: prev.reflections.filter((r) => r.id !== id),
+    }));
+  };
+
+  const addFutureLetter = (letter: FutureLetter) => {
+    setUserData((prev) => ({
+      ...prev,
+      futureLetters: [letter, ...prev.futureLetters],
+    }));
+  };
+
+  const deleteFutureLetter = (id: string) => {
+    setUserData((prev) => ({
+      ...prev,
+      futureLetters: prev.futureLetters.filter((l) => l.id !== id),
+    }));
+  };
+
   const resetAllData = () => {
     // Clear all related keys in localStorage
     localStorage.removeItem("remix_corez_user_data");
@@ -194,6 +268,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setMoodLogs,
         addDetoxMinutes,
         setPlantStage,
+        addReflection,
+        deleteReflection,
+        addFutureLetter,
+        deleteFutureLetter,
         resetAllData,
       }}
     >
