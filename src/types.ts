@@ -3,7 +3,7 @@ export interface QuizQuestion {
   text: string;
 }
 
-export type RiskLevel = "GREEN" | "YELLOW" | "RED";
+export type RiskLevel = "GREEN" | "YELLOW" | "ORANGE" | "RED";
 
 export interface QuizResult {
   score: number;

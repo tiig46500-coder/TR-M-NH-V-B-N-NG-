@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { MoodLogEntry } from "../types";
 import BreathExercisePopup from "./BreathExercisePopup";
+import { useUserData } from "../context/UserContext";
 
 // Seed data to make the UI beautiful and fully illustrated on first load
 const SEED_LOGS: MoodLogEntry[] = [
@@ -151,9 +152,19 @@ const ACTIVITIES: Record<string, ActivityConfig> = {
 };
 
 export default function MoodLogger() {
-  const [logs, setLogs] = useState<MoodLogEntry[]>([]);
+  const { userData, setMoodLogs } = useUserData();
+  const logs = userData.moodLogs;
+
+  const setLogs = (updated: MoodLogEntry[]) => {
+    setMoodLogs(updated);
+  };
+
   const [isBreathOpen, setIsBreathOpen] = useState(false);
   const [breathReason, setBreathReason] = useState("");
+  
+  // Evolving Mood Garden Local States (Lạng Sơn Localization)
+  const [isWatered, setIsWatered] = useState(false);
+  const [gardenPlant, setGardenPlant] = useState<"dao" | "hoi">("dao");
   
   // Logger Form State
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -170,20 +181,10 @@ export default function MoodLogger() {
   const [hoveredLog, setHoveredLog] = useState<MoodLogEntry | null>(null);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
-  // Load logs on mount
+  // Load / Seed logs on mount if empty
   useEffect(() => {
-    const stored = localStorage.getItem("remix_corez_mood_logs");
-    if (stored) {
-      try {
-        setLogs(JSON.parse(stored));
-      } catch (e) {
-        // Fallback to seed data if error parsing
-        setLogs(SEED_LOGS);
-      }
-    } else {
-      // Initialize with seed data if first time
+    if (logs.length === 0) {
       setLogs(SEED_LOGS);
-      localStorage.setItem("remix_corez_mood_logs", JSON.stringify(SEED_LOGS));
     }
   }, []);
 
@@ -237,7 +238,9 @@ export default function MoodLogger() {
     updatedLogs.sort((a, b) => b.date.localeCompare(a.date));
 
     setLogs(updatedLogs);
-    localStorage.setItem("remix_corez_mood_logs", JSON.stringify(updatedLogs));
+    
+    // Reset watered state
+    setIsWatered(false);
     
     // Trigger success animations
     setSuccessMsg(true);
@@ -282,13 +285,11 @@ export default function MoodLogger() {
   const handleDeleteLog = (id: string) => {
     const updated = logs.filter(l => l.id !== id);
     setLogs(updated);
-    localStorage.setItem("remix_corez_mood_logs", JSON.stringify(updated));
   };
 
   // Reset database back to seed data
   const handleResetData = () => {
     setLogs(SEED_LOGS);
-    localStorage.setItem("remix_corez_mood_logs", JSON.stringify(SEED_LOGS));
     setSelectedDate(new Date().toLocaleDateString("en-CA"));
     setShowConfirmReset(false);
   };
@@ -345,6 +346,52 @@ export default function MoodLogger() {
     .slice(-7);
 
   const streakCount = calculateStreak();
+
+  // Check garden status helper
+  const getGardenStatus = () => {
+    const sortedLogs = [...logs].sort((a, b) => b.date.localeCompare(a.date));
+    
+    if (sortedLogs.length === 0) {
+      return { isBlooming: false, isWithered: false, reason: "Hãy ghi nhận nhật ký ngày đầu tiên để ươm mầm hạt giống nhé! 🌱" };
+    }
+
+    const last3 = sortedLogs.slice(0, 3);
+    const negativeMoodIds = ["sad", "tired", "anxious"];
+    
+    const hasStress = last3.some(l => negativeMoodIds.includes(l.moodId) || l.energyLevel <= 2);
+    const isRegularAndHealthy = sortedLogs.length >= 3 && last3.every(l => !negativeMoodIds.includes(l.moodId) && l.energyLevel >= 3);
+
+    if (hasStress) {
+      if (isWatered) {
+        return { 
+          isBlooming: true, 
+          isWithered: false, 
+          reason: "Cảm ơn cậu đã tưới nước bằng hơi thở lành! Nhánh cây thảo mộc của cậu đã rũ bùn hồi sinh rực rỡ bên sườn đồi Xứ Lạng. 🌸✨" 
+        };
+      }
+      return { 
+        isBlooming: false, 
+        isWithered: true, 
+        reason: "Dạo này cậu có vẻ mệt mỏi và stress, cành lá đã héo rũ vì thiếu đi sự phản tư tưới mát. Hãy sạc lại pin năng lượng nhé! 🍂" 
+      };
+    }
+
+    if (isRegularAndHealthy) {
+      return { 
+        isBlooming: true, 
+        isWithered: false, 
+        reason: "Cậu ghi nhật ký đều đặn và có năng lượng rất tốt! Nhánh thảo mộc bản địa của cậu đang nở rộ rực rỡ và lấp lánh tinh tú. 🎉✨" 
+      };
+    }
+
+    return { 
+      isBlooming: false, 
+      isWithered: false, 
+      reason: "Hạt mầm đang lớn dần mỗi ngày. Hãy ghi nhật ký đều đặn 3 ngày với năng lượng tốt để đón hoa nở nhé! 🌱" 
+    };
+  };
+
+  const { isBlooming, isWithered, reason: gardenReason } = getGardenStatus();
 
   // Helper to generate coordinates for SVG Line Chart based on 7 days of logs
   const generateSvgPathAndPoints = () => {
@@ -698,50 +745,214 @@ export default function MoodLogger() {
             )}
           </div>
 
-          {/* VISUAL B: MOOD PIXEL GARDEN (CALENDAR GRID REPRESENTATION) */}
-          <div className="bg-white/65 backdrop-blur-xl rounded-[28px] border border-white/40 p-5 shadow-sm space-y-4">
+          {/* VISUAL B: EVOLVING MOOD GARDEN (LẠNG SƠN LOCALIZATION) */}
+          <div className="bg-white/65 backdrop-blur-xl rounded-[28px] border border-white/40 p-5 shadow-sm space-y-4 relative overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/30 pb-2">
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                <CalendarDays className="w-4 h-4 text-emerald-500" />
-                Vườn Cảm Xúc (Lưu Trữ Pixel)
+                <Sparkles className="w-4 h-4 text-emerald-500 animate-spin-slow" />
+                Vườn Thảo Mộc Bản Địa Xứ Lạng
               </h4>
-              <span className="text-[10px] text-slate-400 font-mono">Dữ liệu gần đây</span>
+              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200/50">
+                <button
+                  type="button"
+                  onClick={() => setGardenPlant("dao")}
+                  className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                    gardenPlant === "dao" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  Hoa Đào 🌸
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGardenPlant("hoi")}
+                  className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                    gardenPlant === "hoi" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  Hoa Hồi 🌰
+                </button>
+              </div>
             </div>
 
-            <p className="text-[10.5px] text-slate-500 leading-relaxed">
-              Mỗi ô vuông tượng trưng cho một ngày của cậu. Hãy phủ xanh khu vườn bằng sự bình yên và thăng hoa từ trải nghiệm đời thực.
-            </p>
+            {/* Visual Display Stage */}
+            <div className="relative h-44 w-full bg-gradient-to-b from-sky-50/25 to-slate-50/50 rounded-2xl border border-slate-100 flex items-center justify-center overflow-hidden">
+              {/* Particle Effects (Framer Motion) when blooming */}
+              {isBlooming && (
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                  {Array.from({ length: 8 }).map((_, idx) => (
+                    <motion.div
+                      key={idx}
+                      className="absolute rounded-full"
+                      style={{
+                        backgroundColor: gardenPlant === "dao" ? "#fbcfe8" : "#fef08a",
+                        width: idx % 2 === 0 ? "6px" : "10px",
+                        height: idx % 2 === 0 ? "6px" : "10px",
+                        left: `${15 + idx * 10}%`,
+                        bottom: "10%",
+                      }}
+                      animate={{
+                        y: ["0px", "-160px"],
+                        x: ["0px", idx % 2 === 0 ? "15px" : "-15px"],
+                        opacity: [0, 0.8, 0],
+                        scale: [1, 1.3, 0.7],
+                      }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 3 + (idx % 3),
+                        delay: idx * 0.4,
+                        ease: "easeOut",
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
 
-            {/* Pixel Grid representing the last 24 days */}
-            <div className="flex flex-wrap gap-2 justify-center py-2 bg-white/20 p-3 rounded-2xl border border-white/30">
-              {Array.from({ length: 24 }).map((_, i) => {
-                // Generate relative dates backward from today
-                const date = new Date();
-                date.setDate(date.getDate() - (23 - i));
-                const dateStr = date.toLocaleDateString("en-CA");
-                
-                const logged = logs.find(l => l.date === dateStr);
-                const moodConf = logged ? MOODS[logged.moodId] : null;
-
-                return (
-                  <div
-                    key={i}
-                    title={logged ? `${getFormattedDateLabel(dateStr)}: ${moodConf?.label} ${moodConf?.emoji}` : `${getFormattedDateLabel(dateStr)}: Chưa ghi nhận`}
-                    className={`w-7 h-7 rounded-lg border transition-all flex items-center justify-center text-xs shadow-sm relative group cursor-help ${
-                      logged 
-                        ? `${moodConf?.color} ${moodConf?.border} font-bold scale-100 hover:scale-110 hover:shadow` 
-                        : "bg-white/40 border-slate-100 hover:bg-slate-50 text-slate-300"
-                    }`}
-                  >
-                    {logged ? moodConf?.emoji : ""}
+              {/* Plant SVG Container */}
+              <div className="relative w-36 h-36 flex items-center justify-center">
+                {gardenPlant === "dao" ? (
+                  /* HOA ĐÀO XỨ LẠNG SVG */
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    {/* Dirt/Pot base */}
+                    <ellipse cx="50" cy="85" rx="35" ry="6" fill="#cbd5e1" opacity="0.3" />
                     
-                    {/* Tooltip effect */}
-                    <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-2 py-1 rounded shadow-md pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                      {logged ? `${moodConf?.label} (${logged.energyLevel}/5)` : "Chưa ghi nhận"}
-                    </div>
-                  </div>
-                );
-              })}
+                    {/* Branch trunk */}
+                    <motion.path
+                      d="M 50 85 C 48 65, 45 45, 55 30"
+                      fill="none"
+                      stroke={isWithered ? "#78716c" : "#7c2d12"}
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      animate={isWithered ? { rotate: [0, 2, 0] } : { rotate: [0, -1, 1, 0] }}
+                      transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+                    />
+                    
+                    {/* Side branches */}
+                    <path
+                      d="M 48 60 C 38 52, 35 48, 30 46"
+                      fill="none"
+                      stroke={isWithered ? "#78716c" : "#7c2d12"}
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 51 45 C 58 38, 65 35, 70 34"
+                      fill="none"
+                      stroke={isWithered ? "#78716c" : "#7c2d12"}
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
+
+                    {/* Green Leaves (Faded/brown if withered) */}
+                    <path d="M 32 46 Q 28 42, 30 46" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                    <path d="M 68 34 Q 72 30, 70 34" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                    <path d="M 54 30 Q 52 24, 55 30" fill={isWithered ? "#a8a29e" : "#10b981"} />
+
+                    {/* Blossoms */}
+                    {isWithered ? (
+                      /* Withered/Closed Buds */
+                      <>
+                        <circle cx="55" cy="30" r="2.5" fill="#f43f5e" opacity="0.4" />
+                        <circle cx="30" cy="46" r="2.5" fill="#f43f5e" opacity="0.4" />
+                        <circle cx="70" cy="34" r="2.5" fill="#f43f5e" opacity="0.4" />
+                      </>
+                    ) : (
+                      /* Beautiful Blooming Peach Blossoms */
+                      <>
+                        {/* Blossom 1 Top */}
+                        <g transform="translate(55, 30)">
+                          <motion.circle r="7" fill="#fbcfe8" opacity="0.8" animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 3 }} />
+                          <circle r="4.5" fill="#f43f5e" />
+                          <circle r="1.5" fill="#fef08a" />
+                        </g>
+                        {/* Blossom 2 Left */}
+                        <g transform="translate(30, 46)">
+                          <motion.circle r="6" fill="#fbcfe8" opacity="0.8" animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 4, delay: 0.5 }} />
+                          <circle r="3.5" fill="#f43f5e" />
+                          <circle r="1" fill="#fef08a" />
+                        </g>
+                        {/* Blossom 3 Right */}
+                        <g transform="translate(70, 34)">
+                          <motion.circle r="6.5" fill="#fbcfe8" opacity="0.8" animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 3.5, delay: 1 }} />
+                          <circle r="4" fill="#f43f5e" />
+                          <circle r="1.2" fill="#fef08a" />
+                        </g>
+                      </>
+                    )}
+                  </svg>
+                ) : (
+                  /* NHÁNH HOA HỒI SVG */
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    {/* Ground base */}
+                    <ellipse cx="50" cy="85" rx="30" ry="5" fill="#cbd5e1" opacity="0.3" />
+
+                    {/* Stem */}
+                    <path
+                      d="M 50 85 Q 50 65, 50 50"
+                      fill="none"
+                      stroke={isWithered ? "#78716c" : "#065f46"}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                    />
+
+                    {/* Star Anise Body (8-pointed structure) */}
+                    <g transform="translate(50, 50)" className="origin-center">
+                      {Array.from({ length: 8 }).map((_, idx) => {
+                        const angle = idx * 45;
+                        return (
+                          <motion.path
+                            key={idx}
+                            d="M 0 0 C -4 -10, -8 -20, 0 -24 C 8 -20, 4 -10, 0 0"
+                            fill={isWithered ? "#a8a29e" : "#b45309"}
+                            stroke={isWithered ? "#78716c" : "#78350f"}
+                            strokeWidth="1"
+                            transform={`rotate(${angle})`}
+                            animate={isWithered ? {} : { scale: [1, 1.03, 1] }}
+                            transition={{ repeat: Infinity, duration: 4, delay: idx * 0.15 }}
+                          />
+                        );
+                      })}
+                      {/* Central Shiny Seed buds */}
+                      {!isWithered && Array.from({ length: 8 }).map((_, idx) => {
+                        const angle = idx * 45;
+                        return (
+                          <circle
+                            key={`seed-${idx}`}
+                            cx="0"
+                            cy="-15"
+                            r="2.2"
+                            fill="#fef08a"
+                            transform={`rotate(${angle})`}
+                          />
+                        );
+                      })}
+                      {/* Core center ring */}
+                      <circle cx="0" cy="0" r="3.5" fill={isWithered ? "#57534e" : "#451a03"} />
+                    </g>
+                  </svg>
+                )}
+              </div>
+            </div>
+
+            {/* Watering Interaction Action */}
+            <div className="space-y-3">
+              <p className="text-[11px] text-slate-500 leading-relaxed text-center font-light px-2">
+                {gardenReason}
+              </p>
+
+              {isWithered && (
+                <div className="flex justify-center pt-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBreathReason("Nhánh cây thảo mộc của cậu đang héo rũ vì stress. Hãy tưới nước cho cây bằng 1 phút thở sâu Hộp 4D cùng CoreZ để cây nở hoa lấp lánh trở lại nhé! 🌱");
+                      setIsBreathOpen(true);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>💧 Tưới nước bằng 1 phút thở 4D</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -870,6 +1081,9 @@ export default function MoodLogger() {
         isOpen={isBreathOpen} 
         onClose={() => setIsBreathOpen(false)} 
         reason={breathReason} 
+        onComplete={() => {
+          setIsWatered(true);
+        }}
       />
     </div>
   );

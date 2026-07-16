@@ -47,7 +47,11 @@ interface FutureLetter {
   isSealed: boolean;
 }
 
-export default function Journaling() {
+interface JournalingProps {
+  initialTab?: "daily" | "future";
+}
+
+export default function Journaling({ initialTab }: JournalingProps) {
   // Reflections state
   const [currentPromptIdx, setCurrentPromptIdx] = useState(0);
   const [reflectionInput, setReflectionInput] = useState("");
@@ -60,7 +64,13 @@ export default function Journaling() {
   
   // Animation states
   const [isSealing, setIsSealing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"daily" | "future">("daily");
+  const [activeTab, setActiveTab] = useState<"daily" | "future">(initialTab || "daily");
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   useEffect(() => {
     // Load reflections

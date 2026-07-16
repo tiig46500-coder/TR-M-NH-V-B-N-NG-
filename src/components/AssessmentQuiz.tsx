@@ -61,35 +61,45 @@ export default function AssessmentQuiz({ onComplete, onNavigateToDashboard }: As
     let description = "";
     let tips: string[] = [];
 
-    if (totalScore <= 12) {
+    if (totalScore >= 12 && totalScore <= 24) {
       level = "GREEN";
-      title = "Bản Ngã Vững Vàng • Tâm Trí Bình Yên";
+      title = "Mức độ An toàn • Chông chênh thấp";
       description =
-        "Chúc mừng cậu! Cậu đang làm rất tốt trong việc làm chủ bản thân, kiểm soát thời gian trực tuyến và duy trì ranh giới khỏe mạnh với mạng xã hội. Cậu có nội lực vững vàng và ít bị lung lay bởi những con số lấp lánh trên màn hình ảo.";
+        "Tâm lý ổn định, có khả năng làm chủ tốt không gian số, nhận thức rõ giá trị thực của bản thân. Chúc mừng cậu nhé, cậu đang có ranh giới lành mạnh tuyệt vời với các thiết bị công nghệ và không bị cuốn vào những hào nhoáng của thế giới ảo.";
       tips = [
-        "Hãy duy trì những thói quen lành mạnh hiện tại cậu nhé.",
-        "Chia sẻ năng lượng tích cực này đến những người bạn xung quanh cậu.",
-        "Tiếp tục thực hành Detox số định kỳ để tâm trí luôn trong lành.",
+        "Hãy tiếp tục duy trì ranh giới số lành mạnh hiện tại cậu nhé.",
+        "Lan tỏa năng lượng bình yên, cân bằng này tới mọi người xung quanh.",
+        "Dành thời gian rèn luyện thêm nhiều thói quen tự chăm sóc bản thân offline.",
       ];
-    } else if (totalScore <= 18) {
+    } else if (totalScore >= 25 && totalScore <= 36) {
       level = "YELLOW";
-      title = "Bản Ngã Chông Chênh • Cần Nạp Năng Lượng";
+      title = "Mức độ Cảnh báo nhẹ • Chông chênh trung bình";
       description =
-        "Có vẻ như nhịp sống ảo và áp lực so sánh ngầm đang bắt đầu len lỏi vào tâm trí cậu rồi đấy. Có những lúc cậu cảm thấy bồn chồn, lo sợ mình bị bỏ lại phía sau (FOMO). Đây là tín hiệu cho thấy cậu cần dành thời gian yêu thương và tái tạo năng lượng cho bản thân.";
+        "Bắt đầu chịu tác động của thuật toán và áp lực đồng trang lứa. Có những lúc cậu lướt mạng xã hội vô thức và cảm thấy bồn chồn lo âu về vị trí của bản thân. Đây là dấu hiệu cho thấy cậu nên kiểm soát lại thời gian và cách thức sử dụng mạng xã hội.";
       tips = [
-        "Thiết lập giới hạn thời gian lướt mạng xã hội (tối đa 45 phút/ngày).",
-        "Thực hành viết nhật ký biết ơn để nhận ra những giá trị chân thực mình đang có.",
-        "Dành ít nhất 1 giờ mỗi ngày hoàn toàn không điện thoại trước khi đi ngủ.",
+        "Thiết lập giới hạn thời gian lướt mạng xã hội xuống dưới 1 giờ mỗi ngày.",
+        "Thực hành viết nhật ký cảm xúc hoặc nhật ký biết ơn để giải tỏa bớt lo âu.",
+        "Thực hiện tắt hết kết nối điện thoại trước khi đi ngủ tối thiểu 30 phút.",
+      ];
+    } else if (totalScore >= 37 && totalScore <= 48) {
+      level = "ORANGE";
+      title = "Mức độ Báo động • Chông chênh cao";
+      description =
+        "Bị ảnh hưởng tâm lý rõ rệt. Cậu dễ rơi vào trạng thái tự ti khi so sánh mình với người khác, cảm thấy lo âu khi thiếu tương tác hoặc bỏ lỡ thông báo số. Đã đến lúc cậu cần chủ động áp dụng các biện pháp 'Thanh lọc số' mạnh mẽ hơn để bảo vệ bản thân.";
+      tips = [
+        "Tắt tất cả thông báo không thực sự quan trọng từ các ứng dụng mạng xã hội.",
+        "Thử thách bản thân ngắt kết nối tạm thời hoặc giới hạn sử dụng thiết bị nghiêm ngặt.",
+        "Dành ít nhất 2 giờ mỗi ngày cho các hoạt động thể chất hoặc sở thích thực tế.",
       ];
     } else {
       level = "RED";
-      title = "Khủng Hoảng Bản Ngã • Cần Hỗ Trợ Kịp Thời";
+      title = "Mức độ Nghiêm trọng • Chông chênh rất cao";
       description =
-        "Cậu ơi, dường như áp lực đồng trang lứa và thế giới ảo đang đè nén khiến cậu kiệt sức. Cậu thường xuyên rơi vào vòng xoáy lo âu, trống rỗng và nghi ngờ giá trị bản thân. Đừng quá lo lắng, nhận diện được điều này đã là một bước dũng cảm rồi. Hãy để chúng mình đồng hành xoa dịu cậu nhé.";
+        "Báo động đỏ về sức khỏe tinh thần. Cậu đang có nguy cơ rơi vào trạng thái cô lập xã hội, trầm cảm hoặc kiệt sức tinh thần do mạng xã hội. Cậu rất cần thực hiện ngay các biện pháp 'Ngắt kết nối' (Digital Detox) triệt để và tìm kiếm sự hỗ trợ tư vấn tâm lý kịp thời.";
       tips = [
-        "Mạnh dạn gỡ bỏ hoặc tạm khóa các ứng dụng mạng xã hội gây lo âu trong 3 ngày.",
-        "Sử dụng hộp thư 'Bức tường ẩn danh' để trút bỏ gánh nặng lòng mình.",
-        "Nhấn nút SOS phía góc dưới bên phải để kết nối với phòng tham vấn tâm lý học đường.",
+        "Mạnh dạn thực hành 'Ngắt kết nối hoàn toàn' (Digital Detox) từ 2-5 ngày để thanh lọc tâm trí.",
+        "Trút bỏ những lo toan ẩn giấu qua 'Bức tường ẩn danh' hoặc chia sẻ trực tiếp với người đáng tin cậy.",
+        "Nhấn nút SOS ở góc dưới màn hình để liên hệ ngay phòng hỗ trợ tư vấn tâm lý học đường.",
       ];
     }
 
@@ -242,8 +252,13 @@ export default function AssessmentQuiz({ onComplete, onNavigateToDashboard }: As
                   </div>
                 )}
                 {calculatedResult.level === "YELLOW" && (
-                  <div className="p-3 rounded-full bg-amber-50/80 text-amber-500 border border-amber-100 flex items-center gap-2">
+                  <div className="p-3 rounded-full bg-yellow-50/80 text-yellow-500 border border-yellow-100 flex items-center gap-2">
                     <Activity className="w-7 h-7" />
+                  </div>
+                )}
+                {calculatedResult.level === "ORANGE" && (
+                  <div className="p-3 rounded-full bg-orange-50/80 text-orange-500 border border-orange-100 flex items-center gap-2">
+                    <ShieldAlert className="w-7 h-7" />
                   </div>
                 )}
                 {calculatedResult.level === "RED" && (
@@ -253,10 +268,43 @@ export default function AssessmentQuiz({ onComplete, onNavigateToDashboard }: As
                 )}
               </div>
 
-              {/* Score label */}
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white/60 border border-white/50 px-3 py-1 rounded-full font-mono mb-2.5 inline-block">
-                Điểm Bản Ngã: {calculatedResult.score} / 25
-              </span>
+              {/* Score and Color Badge Indicator */}
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6 bg-slate-50/50 backdrop-blur-md p-4 rounded-3xl border border-slate-100/50">
+                <div className="text-center sm:text-left">
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold font-mono">Điểm Bản Ngã DII</p>
+                  <p className="text-4xl font-extrabold text-slate-800 tracking-tight mt-1 leading-none">
+                    {calculatedResult.score} <span className="text-sm text-slate-400 font-normal">/ 60</span>
+                  </p>
+                </div>
+                
+                {/* Colored Box Indicator / Ô màu */}
+                <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-white border border-slate-100 shadow-sm shrink-0">
+                  {calculatedResult.level === "GREEN" && (
+                    <>
+                      <div className="w-4.5 h-4.5 rounded-lg bg-emerald-500 animate-pulse shrink-0 shadow-md shadow-emerald-500/30" />
+                      <span className="text-xs font-bold text-emerald-600">Mức độ An toàn (Xanh lá)</span>
+                    </>
+                  )}
+                  {calculatedResult.level === "YELLOW" && (
+                    <>
+                      <div className="w-4.5 h-4.5 rounded-lg bg-yellow-400 animate-pulse shrink-0 shadow-md shadow-yellow-400/30" />
+                      <span className="text-xs font-bold text-yellow-600">Mức độ Cảnh báo nhẹ (Vàng)</span>
+                    </>
+                  )}
+                  {calculatedResult.level === "ORANGE" && (
+                    <>
+                      <div className="w-4.5 h-4.5 rounded-lg bg-orange-500 animate-pulse shrink-0 shadow-md shadow-orange-500/30" />
+                      <span className="text-xs font-bold text-orange-500">Mức độ Báo động (Cam)</span>
+                    </>
+                  )}
+                  {calculatedResult.level === "RED" && (
+                    <>
+                      <div className="w-4.5 h-4.5 rounded-lg bg-rose-600 animate-pulse shrink-0 shadow-md shadow-rose-600/30" />
+                      <span className="text-xs font-bold text-rose-600">Mức độ Nghiêm trọng (Đỏ)</span>
+                    </>
+                  )}
+                </div>
+              </div>
 
               <h2 className="font-serif text-2xl font-bold text-slate-800 leading-tight mb-4">
                 {calculatedResult.title}

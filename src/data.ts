@@ -32,6 +32,34 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     id: 5,
     text: "Sau khi sử dụng mạng xã hội trong thời gian dài, tớ thường cảm thấy trống rỗng, mệt mỏi hoặc nghi ngờ giá trị bản thân.",
   },
+  {
+    id: 6,
+    text: "Tớ cảm thấy bất an hoặc buồn bã khi những bài đăng hoặc bức ảnh của mình nhận được ít lượt thích (like), bình luận hay tương tác.",
+  },
+  {
+    id: 7,
+    text: "Tớ có xu hướng liên tục làm mới (refresh) bảng tin một cách vô thức ngay cả khi không có thông báo gì mới.",
+  },
+  {
+    id: 8,
+    text: "Tớ cảm thấy khó tập trung vào học tập hoặc trò chuyện trực tiếp với người thân mà không liếc nhìn điện thoại.",
+  },
+  {
+    id: 9,
+    text: "Tớ dễ bị ảnh hưởng tâm trạng bởi các bình luận hoặc ý kiến trái chiều của người lạ trên không gian mạng.",
+  },
+  {
+    id: 10,
+    text: "Tớ cảm thấy kiệt sức trước lượng thông tin dồn dập trên internet nhưng lại không đủ dũng khí để tạm dừng hoặc tắt máy.",
+  },
+  {
+    id: 11,
+    text: "Tớ thường xuyên có cảm giác 'mọi người xung quanh đều đang tiến bộ và hạnh phúc hơn mình' mỗi khi lướt mạng.",
+  },
+  {
+    id: 12,
+    text: "Tớ cảm thấy thế giới ảo trên màn hình đôi khi chân thực và dễ chia sẻ cảm xúc hơn cuộc sống đời thực xung quanh mình.",
+  },
 ];
 
 export const INITIAL_CONFESSIONS: Confession[] = [

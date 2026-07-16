@@ -76,7 +76,6 @@ export default function LandingPage({ onStart }: LandingPageProps) {
               </div>
             </div>
             <div className="text-xs sm:text-sm text-slate-600 leading-normal">
-              <span className="font-medium text-slate-700">Đạo đức Nghiên cứu: </span>
               Tớ đồng ý tham gia khảo sát ẩn danh và các hoạt động trải nghiệm thực hành phục vụ nghiên cứu khoa học hành vi của dự án. Thông tin của tớ hoàn toàn được bảo mật và ẩn danh.
             </div>
           </label>

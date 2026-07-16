@@ -6,11 +6,12 @@ interface BreathExercisePopupProps {
   isOpen: boolean;
   onClose: () => void;
   reason?: string; // e.g., "Dành cho cậu vì dữ liệu cảm xúc 3 ngày qua hơi chông chênh"
+  onComplete?: () => void;
 }
 
 type Phase = "idle" | "inhale" | "hold1" | "exhale" | "hold2" | "completed";
 
-export default function BreathExercisePopup({ isOpen, onClose, reason }: BreathExercisePopupProps) {
+export default function BreathExercisePopup({ isOpen, onClose, reason, onComplete }: BreathExercisePopupProps) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [timeLeft, setTimeLeft] = useState(60); // 60 seconds total
   const [phaseTimer, setPhaseTimer] = useState(4); // 4 seconds per phase
@@ -24,6 +25,7 @@ export default function BreathExercisePopup({ isOpen, onClose, reason }: BreathE
       setTimeLeft((prev) => {
         if (prev <= 1) {
           setPhase("completed");
+          if (onComplete) onComplete();
           clearInterval(mainInterval);
           return 0;
         }

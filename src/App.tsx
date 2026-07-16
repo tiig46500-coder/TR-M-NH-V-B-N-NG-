@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Compass, 
@@ -13,7 +13,11 @@ import {
   Users,
   BookOpen,
   Mail,
-  Zap
+  Zap,
+  Sun,
+  Moon,
+  X,
+  RotateCcw
 } from "lucide-react";
 import LandingPage from "./components/LandingPage";
 import AssessmentQuiz from "./components/AssessmentQuiz";
@@ -26,26 +30,64 @@ import Journaling from "./components/Journaling";
 import Community from "./components/Community";
 import PanicButton from "./components/PanicButton";
 import SosButton from "./components/SosButton";
+import HealingAudioPlayer from "./components/HealingAudioPlayer";
+import { useUserData } from "./context/UserContext";
 import { RiskLevel } from "./types";
 
 export default function App() {
+  const { userData, updateDiiScore, resetAllData } = useUserData();
+  const assessmentLevel = userData.diiLevel;
+  const assessmentScore = userData.diiScore;
+
   // Views: 'landing' | 'quiz' | 'main'
   const [currentView, setCurrentView] = useState<"landing" | "quiz" | "main">("landing");
   
   // Dashboard Tabs: 'space4d' | 'self_discovery' | 'mood' | 'journaling' | 'gamification' | 'community' | 'mentor'
   const [activeTab, setActiveTab] = useState<"space4d" | "self_discovery" | "mood" | "journaling" | "gamification" | "community" | "mentor">("space4d");
   
-  // Scoring parameters stored in state
-  const [assessmentLevel, setAssessmentLevel] = useState<RiskLevel | null>(null);
-  const [assessmentScore, setAssessmentScore] = useState<number>(0);
+  // State for Reset Confirmation Modal
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  // Healing Themes: 'light' | 'dark-indigo' | 'dark-moss'
+  const [theme, setTheme] = useState<"light" | "dark-indigo" | "dark-moss">("light");
+
+  // Empathetic AI Mentor Trigger state
+  const [showMentorToast, setShowMentorToast] = useState(false);
+  const [journalingSubTab, setJournalingSubTab] = useState<"daily" | "future">("daily");
+
+  const checkMentorTrigger = () => {
+    const logs = userData.moodLogs;
+    if (logs && logs.length >= 3) {
+      const sorted = [...logs].sort((a, b) => b.date.localeCompare(a.date));
+      const last3 = sorted.slice(0, 3);
+      const negativeMoods = ["sad", "tired", "anxious"];
+      const all3Low = last3.every(l => l.energyLevel <= 2 || negativeMoods.includes(l.moodId));
+      if (all3Low) {
+        setShowMentorToast(true);
+        return;
+      }
+    }
+    setShowMentorToast(false);
+  };
+
+  // Evaluate triggers reactively when logs change
+  useEffect(() => {
+    checkMentorTrigger();
+  }, [userData.moodLogs]);
+
+  // Redirect to main view if already has a DII score (onboarding completed)
+  useEffect(() => {
+    if (userData.diiLevel && currentView === "landing") {
+      setCurrentView("main");
+    }
+  }, [userData.diiLevel]);
 
   const handleStartOnboarding = () => {
     setCurrentView("quiz");
   };
 
   const handleCompleteQuiz = (level: RiskLevel, score: number) => {
-    setAssessmentLevel(level);
-    setAssessmentScore(score);
+    updateDiiScore(score, level);
   };
 
   const handleNavigateToDashboard = () => {
@@ -57,8 +99,119 @@ export default function App() {
     setCurrentView("quiz");
   };
 
+  // Determine outer container theme class name
+  const getThemeClasses = () => {
+    switch (theme) {
+      case "dark-indigo":
+        return "min-h-screen text-slate-100 font-sans antialiased selection:bg-indigo-900 selection:text-indigo-100 transition-colors duration-500 pb-16 relative overflow-hidden dark-theme-indigo";
+      case "dark-moss":
+        return "min-h-screen text-slate-100 font-sans antialiased selection:bg-emerald-950 selection:text-emerald-100 transition-colors duration-500 pb-16 relative overflow-hidden dark-theme-moss";
+      default:
+        return "min-h-screen bg-[#F8FAFC] text-[#334155] font-sans antialiased selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-500 pb-16 relative overflow-hidden";
+    }
+  };
+
   return (
-    <div id="app-root" className="min-h-screen bg-[#F8FAFC] text-[#334155] font-sans antialiased selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-500 pb-16 relative overflow-hidden">
+    <div id="app-root" className={getThemeClasses()}>
+      {/* CSS overrides for dark-indigo & dark-moss therapeutic modes */}
+      <style>{`
+        /* Deep Dark Indigo overrides */
+        .dark-theme-indigo {
+          --card-bg: rgba(21, 23, 35, 0.85);
+          --card-border: rgba(255, 255, 255, 0.08);
+          background-color: #0b0c12;
+          color: #f1f5f9;
+        }
+        .dark-theme-indigo .bg-white\\/65, 
+        .dark-theme-indigo .bg-white\\/70,
+        .dark-theme-indigo .bg-white\\/80,
+        .dark-theme-indigo .bg-white\\/90 {
+          background-color: rgba(21, 23, 35, 0.85) !important;
+          border-color: rgba(255, 255, 255, 0.08) !important;
+        }
+        .dark-theme-indigo p, 
+        .dark-theme-indigo span:not(.no-dark-override),
+        .dark-theme-indigo div:not(.no-dark-override), 
+        .dark-theme-indigo h1, 
+        .dark-theme-indigo h2, 
+        .dark-theme-indigo h3, 
+        .dark-theme-indigo h4,
+        .dark-theme-indigo label {
+          color: #f1f5f9 !important;
+        }
+        .dark-theme-indigo .text-slate-800,
+        .dark-theme-indigo .text-slate-700,
+        .dark-theme-indigo .text-slate-600,
+        .dark-theme-indigo .text-slate-500 {
+          color: #cbd5e1 !important;
+        }
+        .dark-theme-indigo .text-slate-400 {
+          color: #94a3b8 !important;
+        }
+        .dark-theme-indigo input,
+        .dark-theme-indigo textarea,
+        .dark-theme-indigo select {
+          background-color: rgba(15, 17, 26, 0.9) !important;
+          border-color: rgba(255, 255, 255, 0.15) !important;
+          color: #ffffff !important;
+        }
+        .dark-theme-indigo .bg-slate-50 {
+          background-color: rgba(15, 17, 26, 0.7) !important;
+        }
+
+        /* Deep Dark Moss Green overrides */
+        .dark-theme-moss {
+          --card-bg: rgba(14, 22, 18, 0.85);
+          --card-border: rgba(255, 255, 255, 0.08);
+          background-color: #060907;
+          color: #f0f7f3;
+        }
+        .dark-theme-moss .bg-white\\/65, 
+        .dark-theme-moss .bg-white\\/70,
+        .dark-theme-moss .bg-white\\/80,
+        .dark-theme-moss .bg-white\\/90 {
+          background-color: rgba(14, 22, 18, 0.85) !important;
+          border-color: rgba(255, 255, 255, 0.08) !important;
+        }
+        .dark-theme-moss p, 
+        .dark-theme-moss span:not(.no-dark-override),
+        .dark-theme-moss div:not(.no-dark-override), 
+        .dark-theme-moss h1, 
+        .dark-theme-moss h2, 
+        .dark-theme-moss h3, 
+        .dark-theme-moss h4,
+        .dark-theme-moss label {
+          color: #f0f7f3 !important;
+        }
+        .dark-theme-moss .text-slate-800,
+        .dark-theme-moss .text-slate-700,
+        .dark-theme-moss .text-slate-600,
+        .dark-theme-moss .text-slate-500 {
+          color: #d1e2d8 !important;
+        }
+        .dark-theme-moss .text-slate-400 {
+          color: #a2b7aa !important;
+        }
+        .dark-theme-moss input,
+        .dark-theme-moss textarea,
+        .dark-theme-moss select {
+          background-color: rgba(10, 16, 13, 0.9) !important;
+          border-color: rgba(255, 255, 255, 0.15) !important;
+          color: #ffffff !important;
+        }
+        .dark-theme-moss .bg-slate-50 {
+          background-color: rgba(10, 16, 13, 0.7) !important;
+        }
+
+        .animate-spin-slow {
+          animation: spin 10s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+
       {/* Dynamic Glowing Backdrops for Frosted Glass Theme */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#7DD3FC] opacity-20 blur-[100px] rounded-full"></div>
@@ -71,6 +224,9 @@ export default function App() {
 
       {/* 2. Global Floating SOS Hotline (Bottom-Right) */}
       <SosButton />
+
+      {/* 3. Global Healing Audio Player (Bottom-Left) */}
+      <HealingAudioPlayer />
 
       {/* View Switcher Container */}
       <AnimatePresence mode="wait">
@@ -115,6 +271,48 @@ export default function App() {
             transition={{ duration: 0.6 }}
             className="w-full max-w-5xl mx-auto px-4 pt-12 relative z-10"
           >
+            {/* Empathetic AI Mentor Toast Trigger Notification */}
+            <AnimatePresence>
+              {showMentorToast && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  className="mb-6 p-4 rounded-3xl bg-amber-50/90 dark:bg-slate-900/90 backdrop-blur-md border border-amber-200/50 dark:border-white/10 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-300 animate-bounce">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider font-mono">AI Mentor Thấu Cảm</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-100 font-medium leading-relaxed mt-0.5">
+                        "Tớ thấy dạo này cậu có vẻ mệt. Cậu có muốn chúng mình cùng viết một Bức thư gửi tương lai để trút bỏ gánh nặng này không?"
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => {
+                        // Deep link navigation to Time Capsules
+                        setJournalingSubTab("future");
+                        setActiveTab("journaling");
+                        setShowMentorToast(false);
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                    >
+                      Viết thư gửi tương lai ✉️
+                    </button>
+                    <button
+                      onClick={() => setShowMentorToast(false)}
+                      className="p-2 hover:bg-black/5 dark:hover:bg-white/5 text-slate-400 hover:text-slate-200 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             {/* Header / Brand Nav */}
             <header className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-white/40 pb-6 mb-8 text-center sm:text-left bg-white/40 backdrop-blur-md rounded-2xl p-4 border shadow-sm">
               <div className="flex items-center gap-3">
@@ -132,15 +330,67 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Display Current Psychological Indicator */}
-              {assessmentLevel && (
-                <div className="flex items-center gap-2.5 bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl px-4 py-2 shadow-sm">
-                  <div className="text-left">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold font-mono leading-none">Chỉ số bản ngã</p>
-                    <p className="text-xs font-bold text-slate-700 mt-1 leading-none">
-                      {assessmentLevel === "GREEN" && "Ổn định 🌱"}
-                      {assessmentLevel === "YELLOW" && "Chông chênh 🍂"}
-                      {assessmentLevel === "RED" && "Khủng hoảng 🚨"}
+              {/* Theme Toggle & Psychological Indicators & Reset */}
+              <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-end">
+                {/* Advanced Theme Selectors */}
+                <div className="flex items-center bg-slate-200/55 dark:bg-slate-900/40 p-1 rounded-2xl border border-white/10 shadow-inner">
+                  <button
+                    onClick={() => setTheme("light")}
+                    className={`p-1.5 rounded-xl text-xs transition-all flex items-center gap-1 cursor-pointer ${
+                      theme === "light"
+                        ? "bg-white text-emerald-600 shadow-sm font-bold"
+                        : "text-slate-400 hover:text-slate-600"
+                    }`}
+                    title="Giao diện Sáng"
+                  >
+                    <Sun className="w-3.5 h-3.5" />
+                    <span className="text-[10px] hidden md:inline">Sáng</span>
+                  </button>
+                  <button
+                    onClick={() => setTheme("dark-indigo")}
+                    className={`p-1.5 rounded-xl text-xs transition-all flex items-center gap-1 cursor-pointer ${
+                      theme === "dark-indigo"
+                        ? "bg-[#1e1b4b] text-indigo-300 shadow-sm font-bold border border-indigo-900/30"
+                        : "text-slate-400 hover:text-indigo-400"
+                    }`}
+                    title="Giao diện Chàm Dịu Mắt"
+                  >
+                    <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                    <span className="text-[10px] hidden md:inline">Tối Chàm</span>
+                  </button>
+                  <button
+                    onClick={() => setTheme("dark-moss")}
+                    className={`p-1.5 rounded-xl text-xs transition-all flex items-center gap-1 cursor-pointer ${
+                      theme === "dark-moss"
+                        ? "bg-[#064e3b] text-emerald-300 shadow-sm font-bold border border-emerald-900/30"
+                        : "text-slate-400 hover:text-emerald-400"
+                    }`}
+                    title="Giao diện Rêu Trầm"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-[10px] hidden md:inline">Tối Rêu</span>
+                  </button>
+                </div>
+
+                {/* Reset Game State Button */}
+                <button
+                  onClick={() => setShowResetConfirm(true)}
+                  className="p-1.5 rounded-2xl bg-rose-50/90 hover:bg-rose-100 text-rose-500 hover:text-rose-600 border border-rose-100 shadow-sm transition-all hover:scale-105 active:scale-95 flex items-center gap-1 cursor-pointer text-xs font-semibold no-dark-override"
+                  title="Xóa dữ liệu (Reset) và bắt đầu lại từ đầu"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="text-[10px] hidden md:inline">Đặt lại dữ liệu</span>
+                </button>
+
+                {assessmentLevel && (
+                  <div className="flex items-center gap-2.5 bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl px-4 py-2 shadow-sm">
+                    <div className="text-left">
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold font-mono leading-none">Chỉ số bản ngã</p>
+                      <p className="text-xs font-bold text-slate-700 mt-1 leading-none">
+                      {assessmentLevel === "GREEN" && "An toàn 🌱"}
+                      {assessmentLevel === "YELLOW" && "Cảnh báo nhẹ ⚠️"}
+                      {assessmentLevel === "ORANGE" && "Báo động 🚨"}
+                      {assessmentLevel === "RED" && "Nghiêm trọng 🛑"}
                     </p>
                   </div>
                   <button
@@ -152,6 +402,7 @@ export default function App() {
                   </button>
                 </div>
               )}
+              </div>
             </header>
 
             {/* Navigation Tabs (Primary Level - 7 CoreZ Pillars) */}
@@ -209,7 +460,10 @@ export default function App() {
                 {/* Tab 4: Góc Phản Tư (Journaling) */}
                 <button
                   id="tab-journaling"
-                  onClick={() => setActiveTab("journaling")}
+                  onClick={() => {
+                    setActiveTab("journaling");
+                    setJournalingSubTab("daily");
+                  }}
                   className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
                     activeTab === "journaling"
                       ? "text-emerald-600 bg-white/85 shadow-sm"
@@ -328,7 +582,7 @@ export default function App() {
                     exit={{ opacity: 0, y: -5 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Journaling />
+                    <Journaling initialTab={journalingSubTab} />
                   </motion.div>
                 )}
                 {activeTab === "gamification" && (
@@ -365,6 +619,57 @@ export default function App() {
         )}
 
       </AnimatePresence>
+
+      {/* 4. Beautiful Reset Confirmation Modal */}
+      <AnimatePresence>
+        {showResetConfirm && (
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="w-full max-w-sm bg-white border border-slate-100 rounded-[28px] p-6 shadow-2xl relative overflow-hidden text-slate-800 no-dark-override"
+            >
+              <div className="absolute inset-0 pointer-events-none z-0">
+                <div className="absolute top-[-20%] left-[-20%] w-48 h-48 bg-rose-200/20 blur-2xl rounded-full" />
+              </div>
+
+              <div className="relative z-10 flex items-center gap-2 border-b border-slate-100 pb-3 mb-4">
+                <div className="p-2 bg-rose-50 text-rose-500 rounded-xl">
+                  <RotateCcw className="w-5 h-5 animate-spin-slow" />
+                </div>
+                <h4 className="font-serif text-sm font-bold text-slate-800">Đặt lại Dữ liệu cá nhân</h4>
+              </div>
+
+              <p className="relative z-10 text-xs text-slate-500 leading-relaxed mb-5">
+                Hành động này sẽ xóa hoàn toàn điểm đo lường DII, điểm tích lũy karmaXP, nhật ký cảm xúc, số phút thải độc số và tiến trình phát triển của Cây bản địa. Cậu có chắc muốn làm lại từ đầu?
+              </p>
+
+              <div className="relative z-10 flex gap-2.5 w-full">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Quay lại
+                </button>
+                <button
+                  onClick={() => {
+                    resetAllData();
+                    setTheme("light");
+                    setCurrentView("landing");
+                    setShowResetConfirm(false);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Đặt lại ngay
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

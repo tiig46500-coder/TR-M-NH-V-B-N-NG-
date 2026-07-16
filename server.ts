@@ -1,14 +1,10 @@
 import express from "express";
 import path from "path";
-import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
@@ -104,6 +100,65 @@ async function startServer() {
     } catch (error: any) {
       console.error("Gemini API Error in /api/chat:", error);
       return res.status(500).json({ error: "Có lỗi xảy ra khi trò chuyện với trợ lý ảo. Vui lòng thử lại!" });
+    }
+  });
+
+  // AI Music Generation Endpoint (Gemini Lyria)
+  app.post("/api/generate-music", async (req, res) => {
+    try {
+      const { prompt } = req.body;
+      if (!prompt || typeof prompt !== "string") {
+        return res.status(400).json({ error: "Yêu cầu cung cấp từ khóa mô tả bản nhạc." });
+      }
+
+      const client = getAiClient();
+      if (!client) {
+        // Fallback for Demo Mode (if API key is missing)
+        return res.json({
+          isDemo: true,
+          audioBase64: "",
+          mimeType: "audio/wav",
+          title: prompt,
+          message: "Đang chạy chế độ Demo (không có phím API). Giai điệu tương ứng được giả lập bằng guitar acoustic."
+        });
+      }
+
+      // Call Lyria model via GoogleGenAI SDK
+      const responseStream = await client.models.generateContentStream({
+        model: "lyria-3-clip-preview",
+        contents: prompt,
+      });
+
+      let audioBase64 = "";
+      let mimeType = "audio/wav";
+
+      for await (const chunk of responseStream) {
+        const parts = chunk.candidates?.[0]?.content?.parts;
+        if (!parts) continue;
+
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            if (!audioBase64 && part.inlineData.mimeType) {
+              mimeType = part.inlineData.mimeType;
+            }
+            audioBase64 += part.inlineData.data;
+          }
+        }
+      }
+
+      if (!audioBase64) {
+        throw new Error("Không thể trích xuất dữ liệu âm thanh từ mô hình Lyria.");
+      }
+
+      return res.json({
+        isDemo: false,
+        audioBase64,
+        mimeType,
+        title: prompt
+      });
+    } catch (error: any) {
+      console.error("Error in /api/generate-music:", error);
+      return res.status(500).json({ error: "Có lỗi xảy ra khi tạo nhạc AI: " + error.message });
     }
   });
 
