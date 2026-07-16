@@ -1,0 +1,8 @@
+{
+  "name": "Remix: CoreZ – Kết nối giá trị, định hình tương lai",
+  "description": "Hệ sinh thái định vị bản ngã, đồng hành giải tỏa áp lực mạng xã hội và FOMO dành cho Gen Z.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
