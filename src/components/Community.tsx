@@ -48,6 +48,11 @@ export default function Community() {
   const [healingQuote, setHealingQuote] = useState<string | null>(null);
   const [karmaPoints, setKarmaPoints] = useState(0);
 
+  // Gemini Note Moderation & Sentiment states
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [moderationResult, setModerationResult] = useState<{ reason: string; suggestion: string } | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   useEffect(() => {
     // Load confessions
     const storedConfessions = localStorage.getItem("remix_corez_confessions");
@@ -75,38 +80,127 @@ export default function Community() {
     }
 
     // Load karma / XP score
-    const storedXp = localStorage.getItem("remix_corez_xp");
-    if (storedXp) {
-      setKarmaPoints(parseInt(storedXp));
-    }
+    const loadKarma = () => {
+      const storedKarma = localStorage.getItem("corez_karma_points") || localStorage.getItem("remix_corez_xp");
+      if (storedKarma) {
+        setKarmaPoints(parseInt(storedKarma, 10));
+      }
+    };
+    loadKarma();
+    const interval = setInterval(loadKarma, 3000);
+    return () => clearInterval(interval);
   }, []);
 
-  const handlePostConfession = (e: React.FormEvent) => {
+  const handlePostConfession = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || isAnalyzing) return;
 
-    const rotation = ROTATIONS[Math.floor(Math.random() * ROTATIONS.length)];
-    const color = PASTEL_COLORS[selectedColorIdx].class;
+    setIsAnalyzing(true);
+    setModerationResult(null);
+    setSuccessMessage(null);
 
-    const newConf: Confession = {
-      id: `conf-${Date.now()}`,
-      content: inputText,
-      timestamp: "Vừa xong",
-      color: color,
-      rotation: rotation
-    };
+    try {
+      const response = await fetch("/api/validate-note", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: inputText }),
+      });
 
-    const updatedConfessions = [newConf, ...confessions];
-    setConfessions(updatedConfessions);
-    localStorage.setItem("remix_corez_confessions", JSON.stringify(updatedConfessions));
+      if (!response.ok) {
+        throw new Error("Không thể liên hệ dịch vụ kiểm duyệt.");
+      }
 
-    // Update heart counts
-    const updatedHearts = { ...heartCounts, [newConf.id]: 0 };
-    setHeartCounts(updatedHearts);
-    localStorage.setItem("remix_corez_hearts", JSON.stringify(updatedHearts));
+      const result = await response.json();
 
-    setInputText("");
-    alert("Lời bộc bạch ẩn danh của cậu đã được dán lên bức tường kết nối thành công! Ở đây, tiếng lòng cậu luôn được nâng niu an toàn. 🌱");
+      if (!result.isApproved) {
+        setModerationResult({
+          reason: result.reason,
+          suggestion: result.suggestion || "Cậu ơi, hãy diễn đạt cảm nhận bằng ngôn ngữ nhẹ nhàng, chữa lành hơn nha."
+        });
+        setIsAnalyzing(false);
+        return;
+      }
+
+      // Approved confession posting
+      const rotation = ROTATIONS[Math.floor(Math.random() * ROTATIONS.length)];
+      const color = PASTEL_COLORS[selectedColorIdx].class;
+
+      // Add sentiment emojis or details to the confession text optionally
+      let finalContent = inputText;
+      if (result.sentiment === "positive") {
+        finalContent += " 😊";
+      } else if (result.sentiment === "sad") {
+        finalContent += " 🥺";
+      } else if (result.sentiment === "vulnerable") {
+        finalContent += " 🌱";
+      }
+
+      const newConf: Confession = {
+        id: `conf-${Date.now()}`,
+        content: finalContent,
+        timestamp: "Vừa xong",
+        color: color,
+        rotation: rotation
+      };
+
+      const updatedConfessions = [newConf, ...confessions];
+      setConfessions(updatedConfessions);
+      localStorage.setItem("remix_corez_confessions", JSON.stringify(updatedConfessions));
+
+      // Update heart counts
+      const updatedHearts = { ...heartCounts, [newConf.id]: 0 };
+      setHeartCounts(updatedHearts);
+      localStorage.setItem("remix_corez_hearts", JSON.stringify(updatedHearts));
+
+      // Award +15 Karma/XP points when posting confession successfully
+      const earnedKarma = 15;
+      const currentKarma = parseInt(localStorage.getItem("corez_karma_points") || "0") || parseInt(localStorage.getItem("remix_corez_xp") || "0") || 0;
+      const updatedKarma = currentKarma + earnedKarma;
+      setKarmaPoints(updatedKarma);
+      localStorage.setItem("corez_karma_points", updatedKarma.toString());
+      localStorage.setItem("remix_corez_xp", updatedKarma.toString());
+
+      setInputText("");
+      setSuccessMessage("Lời bộc bạch ấm áp của cậu đã được kiểm duyệt bởi Gemini và dán lên Bức Tường thành công! Nhận được +15 Karma 🌟");
+      
+      // Clear success toast after 6s
+      setTimeout(() => setSuccessMessage(null), 6000);
+
+    } catch (error) {
+      console.error("Note moderation failed:", error);
+      // Fallback: Post note without moderation if service fails to ensure 100% availability
+      const rotation = ROTATIONS[Math.floor(Math.random() * ROTATIONS.length)];
+      const color = PASTEL_COLORS[selectedColorIdx].class;
+
+      const newConf: Confession = {
+        id: `conf-${Date.now()}`,
+        content: inputText,
+        timestamp: "Vừa xong",
+        color: color,
+        rotation: rotation
+      };
+
+      const updatedConfessions = [newConf, ...confessions];
+      setConfessions(updatedConfessions);
+      localStorage.setItem("remix_corez_confessions", JSON.stringify(updatedConfessions));
+
+      const updatedHearts = { ...heartCounts, [newConf.id]: 0 };
+      setHeartCounts(updatedHearts);
+      localStorage.setItem("remix_corez_hearts", JSON.stringify(updatedHearts));
+
+      // Award +15 Karma/XP points on fallback post too
+      const currentKarma = parseInt(localStorage.getItem("corez_karma_points") || "0") || parseInt(localStorage.getItem("remix_corez_xp") || "0") || 0;
+      const updatedKarma = currentKarma + 15;
+      setKarmaPoints(updatedKarma);
+      localStorage.setItem("corez_karma_points", updatedKarma.toString());
+      localStorage.setItem("remix_corez_xp", updatedKarma.toString());
+
+      setInputText("");
+      setSuccessMessage("Lời bộc bạch đã được đăng lên thành công! Nhận được +15 Karma 🌱");
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleSendComfort = (confId: string) => {
@@ -121,9 +215,11 @@ export default function Community() {
     setHealingQuote(randomQuote);
 
     // Award +10 XP/Karma in local storage (Gamification linkage!)
-    const updatedXp = karmaPoints + 10;
-    setKarmaPoints(updatedXp);
-    localStorage.setItem("remix_corez_xp", updatedXp.toString());
+    const currentKarma = parseInt(localStorage.getItem("corez_karma_points") || "0") || parseInt(localStorage.getItem("remix_corez_xp") || "0") || 0;
+    const updatedKarma = currentKarma + 10;
+    setKarmaPoints(updatedKarma);
+    localStorage.setItem("corez_karma_points", updatedKarma.toString());
+    localStorage.setItem("remix_corez_xp", updatedKarma.toString());
   };
 
   return (
@@ -168,6 +264,66 @@ export default function Community() {
                   Nhận Thông Điệp Bình Yên 🧡
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* GEMINI MODERATION ALERT OVERLAY */}
+      <AnimatePresence>
+        {moderationResult && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="bg-white/95 border-2 border-amber-300 rounded-[30px] p-6 text-center max-w-sm shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-tr from-amber-50/50 to-orange-50/10 pointer-events-none" />
+
+              <div className="relative z-10 space-y-4">
+                <div className="mx-auto w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+                  <ShieldAlert className="w-6 h-6 text-amber-500 animate-bounce" />
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-mono font-bold tracking-widest text-amber-600 uppercase">Kiểm Duyệt Từ Gemini</h4>
+                  <p className="text-xs font-semibold text-slate-700 leading-relaxed text-justify">
+                    {moderationResult.reason}
+                  </p>
+                  <div className="p-3 bg-amber-50/60 rounded-2xl border border-amber-100 text-left">
+                    <span className="text-[9px] font-bold text-amber-800 block mb-1 font-mono uppercase">💡 Gợi ý viết lại của bạn Gemini:</span>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      {moderationResult.suggestion}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setModerationResult(null)}
+                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-colors"
+                >
+                  Để tớ chỉnh sửa lại nha 🧡
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* SUCCESS TOAST MESSAGE */}
+      <AnimatePresence>
+        {successMessage && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] max-w-md w-11/12">
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              className="bg-slate-900/90 backdrop-blur text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 text-xs border border-white/10"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>{successMessage}</span>
             </motion.div>
           </div>
         )}
@@ -231,15 +387,24 @@ export default function Community() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={!inputText.trim()}
-                className={`w-full py-3.5 rounded-xl font-bold text-xs text-white shadow-md active:scale-95 flex items-center justify-center gap-2 ${
-                  inputText.trim()
+                disabled={!inputText.trim() || isAnalyzing}
+                className={`w-full py-3.5 rounded-xl font-bold text-xs text-white shadow-md active:scale-95 flex items-center justify-center gap-2 transition-all ${
+                  inputText.trim() && !isAnalyzing
                     ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 cursor-pointer shadow-emerald-100"
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                    : "bg-slate-250 text-slate-400 cursor-not-allowed shadow-none"
                 }`}
               >
-                <Send className="w-4 h-4" />
-                Dán Lên Bức Tường Kết Nối
+                {isAnalyzing ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
+                    <span>Gemini đang lắng nghe...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Dán Lên Bức Tường Kết Nối</span>
+                  </>
+                )}
               </button>
             </div>
           </form>

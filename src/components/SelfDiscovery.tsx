@@ -11,6 +11,7 @@ import {
   Info, 
   MapPin, 
   ArrowRight,
+  ArrowLeft,
   User,
   Heart,
   Check,
@@ -350,55 +351,68 @@ export default function SelfDiscovery() {
                       : "bg-white/45 hover:bg-white/65 backdrop-blur-sm border-white/40 text-slate-600"
                   }`}
                 >
-                  <span className={`w-6 h-6 rounded-lg font-bold flex items-center justify-center text-xs border shrink-0 ${
-                    isSelected ? "bg-white/25 text-white border-white/30" : "bg-slate-55 border-slate-150 text-slate-400"
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center border font-mono text-[10px] font-bold ${
+                    isSelected ? "bg-white/25 border-white text-white" : "bg-slate-50 border-slate-200 text-slate-400"
                   }`}>
                     {opt.key}
                   </span>
-                  <span className="leading-snug pt-0.5">{opt.text}</span>
+                  <span className="flex-1 text-left font-sans">{opt.text}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Back button */}
-          <div className="flex justify-between items-center border-t border-white/40 pt-4">
+          {/* Navigation Controls */}
+          <div className="flex justify-between items-center mt-8 pt-4 border-t border-slate-100">
             <button
               onClick={handlePrev}
               disabled={currentQuestionIdx === 0}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all ${
-                currentQuestionIdx === 0
-                  ? "text-slate-300 cursor-not-allowed"
-                  : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
-              }`}
+              className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-600 disabled:opacity-40 transition-colors flex items-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
             >
-              <span>Quay lại</span>
+              <ArrowLeft className="w-4 h-4" />
+              Câu trước
             </button>
-            <span className="text-[10px] text-slate-400">Chọn phương án tự nhiên nhất nhé cậu</span>
+            <span className="text-[10px] font-mono font-bold text-slate-400">
+              CÂU {currentQuestionIdx + 1} / {DISCOVERY_QUESTIONS.length}
+            </span>
+            <button
+              onClick={() => {
+                if (currentQuestionIdx < DISCOVERY_QUESTIONS.length - 1) {
+                  setCurrentQuestionIdx(currentQuestionIdx + 1);
+                } else {
+                  calculateResult(selectedAnswers);
+                }
+              }}
+              disabled={!selectedAnswers[DISCOVERY_QUESTIONS[currentQuestionIdx].id]}
+              className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {currentQuestionIdx === DISCOVERY_QUESTIONS.length - 1 ? "Xem kết quả 🔮" : "Câu tiếp"}
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
 
         </div>
       )}
 
-      {/* Result Screen: GORGEOUS GLASS PERSONALITY CARD (FLIPPABLE) */}
+      {/* Result Screen */}
       {personalityResult && (
-        <div className="space-y-8 max-w-2xl mx-auto">
+        <div className="bg-white/60 backdrop-blur-xl rounded-[32px] border border-white/40 shadow-sm p-6 sm:p-8 mx-auto max-w-xl space-y-6 text-center relative">
           
-          <div className="text-center space-y-2">
-            <span className="text-[10px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase">
-              Định vị thành công 🎉
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase">
+              Bản Ngã Định Vị Thành Công!
             </span>
             <h3 className="font-serif text-xl sm:text-2xl font-bold text-slate-800">
-              Cậu sở hữu Thẻ Bài Tính Cách
+              Thẻ Bài Bản Ngã Của Cậu ✨
             </h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Chạm vào tấm thẻ bên dưới để xoay mặt sau xem chi tiết điểm mạnh, điểm yếu và gợi ý thói quen đời thực!
+            <p className="text-[11px] text-slate-400">
+              Lấy cảm hứng từ các triết lý sống mộc mạc & điểm đến xứ Lạng
             </p>
           </div>
 
           {/* FLIPPABLE 3D CARD COMPONENT */}
           <div 
-            className="relative h-[430px] w-full max-w-[320px] mx-auto"
+            className="relative h-[430px] w-full max-w-[320px] mx-auto no-dark-override"
             style={{ perspective: "1000px" }}
           >
             <div
@@ -408,7 +422,7 @@ export default function SelfDiscovery() {
                 transition: "transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
                 transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
               }}
-              className="relative w-full h-full cursor-pointer select-none"
+              className="relative w-full h-full cursor-pointer select-none no-dark-override"
             >
               
               {/* CARD FRONT SIDE */}
@@ -422,49 +436,49 @@ export default function SelfDiscovery() {
                   width: "100%",
                   height: "100%",
                 }}
-                className={`rounded-[36px] p-6 flex flex-col justify-between border-2 shadow-xl overflow-hidden ${personalityResult.cardColor} ${personalityResult.borderColor}`}
+                className={`rounded-[36px] p-6 flex flex-col justify-between border-2 shadow-xl overflow-hidden no-dark-override ${personalityResult.cardColor} ${personalityResult.borderColor}`}
               >
                 
                 {/* Visual Glow Layer inside Card */}
-                <div className={`absolute top-0 right-0 w-44 h-44 rounded-full bg-gradient-to-br ${personalityResult.bgGradient} opacity-20 blur-3xl`} />
-                <div className="absolute bottom-[-10%] left-[-10%] w-36 h-36 rounded-full bg-slate-300/10 blur-2xl" />
-
+                <div className={`absolute top-0 right-0 w-44 h-44 rounded-full bg-gradient-to-br ${personalityResult.bgGradient} opacity-20 blur-3xl no-dark-override`} />
+                <div className="absolute bottom-[-10%] left-[-10%] w-36 h-36 rounded-full bg-slate-300/10 blur-2xl no-dark-override" />
+ 
                 {/* Card Header */}
-                <div className="flex justify-between items-center relative z-10">
-                  <div className="flex items-center gap-1.5">
-                    <Compass className="w-5 h-5 text-emerald-500 animate-float" />
-                    <span className="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase">CoreZ Compass</span>
+                <div className="flex justify-between items-center relative z-10 no-dark-override">
+                  <div className="flex items-center gap-1.5 no-dark-override">
+                    <Compass className="w-5 h-5 text-emerald-500 animate-float no-dark-override" />
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase no-dark-override">CoreZ Compass</span>
                   </div>
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full bg-white shadow-sm border border-slate-150 ${personalityResult.textColor}`}>
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full bg-white shadow-sm border border-slate-150 no-dark-override ${personalityResult.textColor}`}>
                     {personalityResult.badge}
                   </span>
                 </div>
-
+ 
                 {/* Character Main Portrait (Text + Emoji + Subtitle) */}
-                <div className="text-center space-y-4 my-auto relative z-10">
-                  <div className={`mx-auto w-24 h-24 rounded-full bg-gradient-to-tr ${personalityResult.bgGradient} flex items-center justify-center text-5xl shadow-lg border-4 border-white animate-float`}>
+                <div className="text-center space-y-4 my-auto relative z-10 no-dark-override">
+                  <div className={`mx-auto w-24 h-24 rounded-full bg-gradient-to-tr ${personalityResult.bgGradient} flex items-center justify-center text-5xl shadow-lg border-4 border-white animate-float no-dark-override`}>
                     {personalityResult.emoji}
                   </div>
-                  <div className="space-y-1.5">
-                    <h4 className="font-serif text-2xl font-black tracking-tight text-slate-800">
+                  <div className="space-y-1.5 no-dark-override">
+                    <h4 className="font-serif text-2xl font-black tracking-tight text-slate-800 no-dark-override">
                       {personalityResult.title}
                     </h4>
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-sans">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-sans no-dark-override">
                       {personalityResult.subtitle}
                     </p>
                   </div>
                 </div>
-
+ 
                 {/* Card Footer (Prompt helper) */}
-                <div className="text-center border-t border-slate-200/50 pt-4 relative z-10 flex flex-col items-center gap-1">
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                    <Zap className="w-3.5 h-3.5 fill-emerald-500/15 animate-pulse" />
-                    <span>Bấm để lật xem bí kíp rèn luyện</span>
+                <div className="text-center border-t border-slate-200/50 pt-4 relative z-10 flex flex-col items-center gap-1 no-dark-override">
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 no-dark-override">
+                    <Zap className="w-3.5 h-3.5 fill-emerald-500/15 animate-pulse no-dark-override" />
+                    <span className="no-dark-override">Bấm để lật xem bí kíp rèn luyện</span>
                   </div>
-                  <span className="text-[9px] text-slate-400 font-mono">ID: CZ-{personalityResult.emoji.charCodeAt(0)}-2026</span>
+                  <span className="text-[9px] text-slate-400 font-mono no-dark-override">ID: CZ-{personalityResult.emoji.charCodeAt(0)}-2026</span>
                 </div>
               </div>
-
+ 
               {/* CARD BACK SIDE */}
               <div 
                 style={{
@@ -477,7 +491,7 @@ export default function SelfDiscovery() {
                   height: "100%",
                   transform: "rotateY(180deg)",
                 }}
-                className={`rounded-[36px] p-6 flex flex-col justify-between border-2 shadow-xl overflow-hidden bg-white ${personalityResult.borderColor}`}
+                className={`rounded-[36px] p-6 flex flex-col justify-between border-2 shadow-xl overflow-hidden bg-white no-dark-override ${personalityResult.borderColor}`}
               >
                 
                 {/* Visual Header */}

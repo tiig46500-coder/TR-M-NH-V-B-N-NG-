@@ -203,7 +203,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setPlantStage = (stage: number) => {
     setUserData((prev) => ({
       ...prev,
-      plantStage: Math.max(0, Math.min(3, stage)), // Limit to range [0, 3]
+      plantStage: Math.max(0, Math.min(5, stage)), // Limit to range [0, 5]
     }));
   };
 

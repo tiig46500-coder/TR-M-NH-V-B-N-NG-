@@ -98,7 +98,7 @@ export default function SosButton() {
       <button
         id="sos-button"
         onClick={handleOpen}
-        className="fixed bottom-4 right-4 z-40 px-5 py-3.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs sm:text-sm flex items-center gap-2 border border-rose-400 shadow-xl shadow-rose-200 dark:shadow-none transition-all duration-300 hover:scale-105 active:scale-95 animate-pulse cursor-pointer"
+        className="fixed bottom-8 right-8 z-[100] px-5 py-3.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs sm:text-sm flex items-center gap-2 border border-rose-400 shadow-xl shadow-rose-200 dark:shadow-none transition-all duration-300 hover:scale-105 active:scale-95 animate-pulse cursor-pointer"
       >
         <Phone className="w-4 h-4 fill-current animate-bounce" />
         <span>Sơ Cứu Cảm Xúc SOS</span>

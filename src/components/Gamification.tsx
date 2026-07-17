@@ -175,6 +175,26 @@ const CORE_ACHIEVEMENTS: BadgeConfig[] = [
     color: "text-pink-600 bg-pink-100",
     borderColor: "border-pink-200",
     bgLight: "bg-pink-50/50"
+  },
+  {
+    id: "ach-mindful-master",
+    title: "Bậc Thầy Tỉnh Thức",
+    desc: "Trở thành bậc thầy quan sát nội tâm, hòa hợp cả suy nghĩ và cảm xúc tự nhiên.",
+    requirement: "Ghi nhận ít nhất 3 nhật ký cảm xúc và 3 bài phản tư.",
+    emoji: "🧘",
+    color: "text-purple-600 bg-purple-100",
+    borderColor: "border-purple-200",
+    bgLight: "bg-purple-50/50"
+  },
+  {
+    id: "ach-consistent-user",
+    title: "Bạn Đồng Hành Kiên Trì",
+    desc: "Duy trì thói quen rèn luyện bản thân đều đặn mỗi ngày để làm chủ cảm xúc.",
+    requirement: "Hoàn thành 5 nhiệm vụ hàng ngày hoặc ghi nhận 5 nhật ký.",
+    emoji: "🗓️",
+    color: "text-amber-600 bg-amber-100",
+    borderColor: "border-amber-200",
+    bgLight: "bg-amber-50/50"
   }
 ];
 
@@ -310,18 +330,37 @@ export default function Gamification() {
   const [unlockedBadge, setUnlockedBadge] = useState<string | null>(null);
   const [showFireworks, setShowFireworks] = useState(false);
 
+  // Longest streak tracking
+  const [longestStreak, setLongestStreak] = useState(0);
+
   // Load from local storage
   useEffect(() => {
     const storedHistory = localStorage.getItem("remix_corez_task_history");
     const storedDone = localStorage.getItem("remix_corez_tasks_done");
     const storedDay = localStorage.getItem("remix_corez_day_counter");
     const storedCompletedToday = localStorage.getItem("remix_corez_completed_today");
+    const storedLongest = localStorage.getItem("remix_corez_longest_d3_streak");
 
     if (storedHistory) setTaskHistory(JSON.parse(storedHistory));
     if (storedDone) setTotalTasksDone(parseInt(storedDone));
     if (storedDay) setDayCounter(parseInt(storedDay));
     if (storedCompletedToday) setCompletedTaskIds(JSON.parse(storedCompletedToday));
+    if (storedLongest) setLongestStreak(parseInt(storedLongest));
   }, []);
+
+  // Sync longest streak on change of completed daily tasks
+  useEffect(() => {
+    const todayStreak = calculateD3Streak();
+    const storedLongest = localStorage.getItem("remix_corez_longest_d3_streak");
+    const currentLongest = storedLongest ? parseInt(storedLongest) : 0;
+
+    if (todayStreak > currentLongest) {
+      setLongestStreak(todayStreak);
+      localStorage.setItem("remix_corez_longest_d3_streak", todayStreak.toString());
+    } else {
+      setLongestStreak(currentLongest);
+    }
+  }, [completedTaskIds]);
 
   // Watch for newly unlocked core achievements
   useEffect(() => {
@@ -572,6 +611,8 @@ export default function Gamification() {
 
   return (
     <div className="w-full max-w-4xl mx-auto py-2 px-4 font-sans relative z-10" id="gamification-module">
+      {/* Canvas-based Fireworks Celebration */}
+      <Fireworks isTriggered={showFireworks} onComplete={() => setShowFireworks(false)} />
       
       {/* Badge Unlock Popup Overlay */}
       <AnimatePresence>
@@ -756,11 +797,28 @@ export default function Gamification() {
                   </div>
                 </div>
 
-                <div className="flex items-baseline gap-1.5 pl-1">
-                  <span className="text-2xl font-black text-purple-700 dark:text-purple-400 font-mono">
-                    {d3Streak}
-                  </span>
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">ngày liên tiếp</span>
+                {/* Detailed view of Longest Streak vs Current Streak */}
+                <div className="grid grid-cols-2 gap-2 bg-white/45 dark:bg-white/5 p-2 rounded-xl border border-purple-500/10">
+                  <div className="text-center sm:text-left sm:pl-2">
+                    <span className="text-[9px] text-slate-400 block font-mono uppercase tracking-wider">Chuỗi hiện tại</span>
+                    <div className="flex items-center justify-center sm:justify-start gap-1 mt-0.5">
+                      <Flame className="w-4 h-4 text-purple-600 fill-purple-600/10" />
+                      <span className="text-base font-black text-purple-700 dark:text-purple-300 font-mono leading-none">
+                        {d3Streak}
+                      </span>
+                      <span className="text-[9px] text-slate-500 font-medium">ngày</span>
+                    </div>
+                  </div>
+                  <div className="text-center sm:text-left sm:pl-2 border-l border-purple-500/15">
+                    <span className="text-[9px] text-slate-400 block font-mono uppercase tracking-wider">Kỷ lục chuỗi</span>
+                    <div className="flex items-center justify-center sm:justify-start gap-1 mt-0.5">
+                      <Trophy className="w-4 h-4 text-amber-500 fill-amber-500/10" />
+                      <span className="text-base font-black text-amber-600 font-mono leading-none">
+                        {longestStreak}
+                      </span>
+                      <span className="text-[9px] text-slate-500 font-medium">ngày</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Progress bar towards Digital Minimalist badge */}
@@ -831,23 +889,23 @@ export default function Gamification() {
           </div>
 
           {/* DIGITAL BADGES WALL */}
-          <div className="bg-white/65 backdrop-blur-xl rounded-[28px] border border-white/40 p-5 shadow-sm space-y-3.5 flex-1 flex flex-col justify-between">
+          <div className="bg-white/65 backdrop-blur-xl rounded-[28px] border border-white/40 p-5 shadow-sm space-y-3.5 flex-1 flex flex-col justify-between overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/30 pb-2">
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-emerald-500" />
-                Huy Chương Danh Dự (Badges)
+                Huy Chương Danh Độ (Badges Shelf)
               </h4>
-              <span className="text-[10px] text-slate-400 font-mono">Huy hiệu đạt được</span>
+              <span className="text-[10px] text-slate-400 font-mono">Trượt ngang xem 🌟</span>
             </div>
 
              {/* Badges list */}
-             <div className="space-y-4 flex-1 overflow-y-auto pr-1 max-h-[350px]">
+             <div className="space-y-4 flex-1 overflow-y-auto pr-1">
                {/* SECTION A: HUY HIỆU THỬ THÁCH */}
                <div className="space-y-2">
                  <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
                    Thử thách 21 ngày
                  </h5>
-                 <div className="grid grid-cols-1 gap-2">
+                 <div className="flex gap-3 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-slate-200">
                    {BADGES.map((badge) => {
                      const isUnlocked = isBadgeUnlocked(badge.id);
                      let progressText = "0/3";
@@ -858,9 +916,10 @@ export default function Gamification() {
                      if (badge.id === "badge-digital-minimalist") progressText = `${Math.min(3, d3Streak)}/3`;
 
                      return (
-                       <div
+                       <motion.div
+                         whileHover={{ y: -2 }}
                          key={badge.id}
-                         className={`p-2.5 rounded-xl border flex items-center gap-3 relative overflow-hidden transition-all ${
+                         className={`min-w-[145px] max-w-[145px] p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all shrink-0 ${
                            isUnlocked 
                              ? `${badge.bgLight} ${badge.borderColor} shadow-sm` 
                              : "bg-white/20 border-slate-100 opacity-60"
@@ -872,23 +931,23 @@ export default function Gamification() {
                            {isUnlocked ? badge.emoji : <Lock className="w-4 h-4 text-slate-300" />}
                          </div>
 
-                         <div className="flex-1 min-w-0">
-                           <div className="flex justify-between items-center gap-1.5">
-                             <h5 className="text-[11.5px] font-bold text-slate-800 truncate">
+                         <div className="mt-2 w-full flex-1 flex flex-col justify-between">
+                           <div className="space-y-0.5">
+                             <h5 className="text-[11px] font-bold text-slate-800 truncate" title={badge.title}>
                                {badge.title}
                              </h5>
-                             <span className="text-[9px] font-mono text-slate-400 shrink-0 bg-white px-1.5 py-0.5 rounded border border-slate-100">
+                             <span className="text-[9px] font-mono text-slate-400 block">
                                {progressText}
                              </span>
+                             <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight font-light h-6">
+                               {badge.desc}
+                             </p>
                            </div>
-                           <p className="text-[9.5px] text-slate-500 truncate leading-none mt-0.5 font-light">
-                             {badge.desc}
-                           </p>
-                           <p className="text-[8.5px] text-slate-400 font-light italic leading-none mt-1">
+                           <p className="text-[8px] text-slate-400 font-light italic leading-none border-t border-slate-200/40 pt-1.5 mt-1.5 truncate" title={`YC: ${badge.requirement}`}>
                              YC: {badge.requirement}
                            </p>
                          </div>
-                       </div>
+                       </motion.div>
                      );
                    })}
                  </div>
@@ -900,15 +959,16 @@ export default function Gamification() {
                    <Sparkles className="w-3 h-3 text-emerald-500" />
                    Thành tựu Cốt lõi
                  </h5>
-                 <div className="grid grid-cols-1 gap-2">
+                 <div className="flex gap-3 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-slate-200">
                    {CORE_ACHIEVEMENTS.map((ach) => {
                      const isUnlocked = isAchUnlocked(ach.id);
                      const progressText = getAchProgressText(ach.id);
 
                      return (
-                       <div
+                       <motion.div
+                         whileHover={{ y: -2 }}
                          key={ach.id}
-                         className={`p-2.5 rounded-xl border flex items-center gap-3 relative overflow-hidden transition-all ${
+                         className={`min-w-[145px] max-w-[145px] p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all shrink-0 ${
                            isUnlocked 
                              ? `${ach.bgLight} ${ach.borderColor} shadow-sm` 
                              : "bg-white/20 border-slate-100 opacity-60"
@@ -920,33 +980,33 @@ export default function Gamification() {
                            {isUnlocked ? ach.emoji : <Lock className="w-4 h-4 text-slate-300" />}
                          </div>
 
-                         <div className="flex-1 min-w-0">
-                           <div className="flex justify-between items-center gap-1.5">
-                             <h5 className="text-[11.5px] font-bold text-slate-800 truncate">
+                         <div className="mt-2 w-full flex-1 flex flex-col justify-between">
+                           <div className="space-y-0.5">
+                             <h5 className="text-[11px] font-bold text-slate-800 truncate" title={ach.title}>
                                {ach.title}
                              </h5>
-                             <span className="text-[9px] font-mono text-slate-400 shrink-0 bg-white px-1.5 py-0.5 rounded border border-slate-100">
+                             <span className="text-[9px] font-mono text-slate-400 block">
                                {progressText}
                              </span>
+                             <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight font-light h-6">
+                               {ach.desc}
+                             </p>
                            </div>
-                           <p className="text-[9.5px] text-slate-500 truncate leading-none mt-0.5 font-light">
-                             {ach.desc}
-                           </p>
-                           <p className="text-[8.5px] text-slate-400 font-light italic leading-none mt-1">
+                           <p className="text-[8px] text-slate-400 font-light italic leading-none border-t border-slate-200/40 pt-1.5 mt-1.5 truncate" title={`YC: ${ach.requirement}`}>
                              YC: {ach.requirement}
                            </p>
                          </div>
-                       </div>
+                       </motion.div>
                      );
                    })}
                  </div>
                </div>
              </div>
 
-            {/* Quick footer alert */}
-            <div className="pt-2 text-center text-[9px] text-slate-400 font-light border-t border-slate-150/40">
-              *Huy hiệu rèn luyện giúp khẳng định bản lĩnh thực tại và thói quen tích cực.
-            </div>
+             {/* Quick footer alert */}
+             <div className="pt-2 text-center text-[9px] text-slate-400 font-light border-t border-slate-150/40">
+               *Huy hiệu rèn luyện giúp khẳng định bản lĩnh thực tại và thói quen tích cực.
+             </div>
 
           </div>
 

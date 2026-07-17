@@ -1101,6 +1101,7 @@ export default function Space4D() {
                   Học sinh làm chủ công nghệ chứ không để công nghệ thao túng. Mạng xã hội không còn là "cơn sóng" chông chênh mà trở thành công cụ đắc lực để lan tỏa một "Bản ngã thực" tự tin, trách nhiệm.
                 </p>
               </div>
+
             </motion.div>
           )}
 
@@ -1139,58 +1140,58 @@ export default function Space4D() {
 
                 {/* 3D Flip Card Container */}
                 <div 
-                  className="w-full h-80 mx-auto [perspective:1000px] cursor-pointer my-4"
+                  className="w-full h-80 mx-auto [perspective:1000px] cursor-pointer my-4 no-dark-override"
                   onClick={() => setCardFlipped(!cardFlipped)}
                 >
-                  <div className={`relative w-full h-full transition-all duration-700 [transform-style:preserve-3d] ${cardFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
+                  <div className={`relative w-full h-full transition-all duration-700 [transform-style:preserve-3d] no-dark-override ${cardFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
                     
                     {/* FRONT SIDE */}
-                    <div className="absolute inset-0 w-full h-full rounded-2xl border border-amber-300/30 bg-gradient-to-br from-slate-800 to-slate-900 p-6 flex flex-col justify-between shadow-xl [backface-visibility:hidden] text-left">
-                      <div className="flex justify-between items-center text-[9px] font-mono text-amber-300/65 tracking-wider font-semibold">
-                        <span>MẶT TRƯỚC 🌌</span>
-                        <span>TRẠM ĐỊNH VỊ BẢN NGÃ</span>
+                    <div className="absolute inset-0 w-full h-full rounded-2xl border border-amber-300/30 bg-gradient-to-br from-slate-800 to-slate-900 p-6 flex flex-col justify-between shadow-xl [backface-visibility:hidden] text-left no-dark-override">
+                      <div className="flex justify-between items-center text-[9px] font-mono text-amber-300/65 tracking-wider font-semibold no-dark-override">
+                        <span className="no-dark-override">MẶT TRƯỚC 🌌</span>
+                        <span className="no-dark-override">TRẠM ĐỊNH VỊ BẢN NGÃ</span>
                       </div>
                       
-                      <div className="flex-1 flex flex-col justify-center items-center py-4 text-center">
-                        <span className="text-3xl mb-3 animate-pulse">🌟</span>
-                        <p className="text-slate-100 font-medium text-xs leading-relaxed italic px-2 font-serif">
+                      <div className="flex-1 flex flex-col justify-center items-center py-4 text-center no-dark-override">
+                        <span className="text-3xl mb-3 animate-pulse no-dark-override">🌟</span>
+                        <p className="text-slate-100 font-medium text-xs leading-relaxed italic px-2 font-serif no-dark-override">
                           "{selectedQuote.text}"
                         </p>
-                        <span className="text-[10px] text-amber-300/80 font-bold mt-3 block">
+                        <span className="text-[10px] text-amber-300/80 font-bold mt-3 block no-dark-override">
                           — {selectedQuote.author}
                         </span>
                       </div>
 
-                      <div className="text-center text-[9px] text-slate-400 font-mono tracking-widest animate-pulse">
+                      <div className="text-center text-[9px] text-slate-400 font-mono tracking-widest animate-pulse no-dark-override">
                         CHẠM ĐỂ LẬT NHẬN QUÀ AI 🔮
                       </div>
                     </div>
 
                     {/* BACK SIDE */}
-                    <div className="absolute inset-0 w-full h-full rounded-2xl border border-purple-400/30 bg-gradient-to-br from-slate-800 to-indigo-950 p-6 flex flex-col justify-between shadow-xl [backface-visibility:hidden] [transform:rotateY(180deg)] text-left">
-                      <div className="flex justify-between items-center text-[9px] font-mono text-purple-300/65 tracking-wider font-semibold">
-                        <span>MẶT SAU 💫</span>
-                        <span>AI ĐỒNG HÀNH CHỮA LÀNH</span>
+                    <div className="absolute inset-0 w-full h-full rounded-2xl border border-purple-400/30 bg-gradient-to-br from-slate-800 to-indigo-950 p-6 flex flex-col justify-between shadow-xl [backface-visibility:hidden] [transform:rotateY(180deg)] text-left no-dark-override">
+                      <div className="flex justify-between items-center text-[9px] font-mono text-purple-300/65 tracking-wider font-semibold no-dark-override">
+                        <span className="no-dark-override">MẶT SAU 💫</span>
+                        <span className="uppercase font-bold text-amber-200 no-dark-override">#COREZ ĐỒNG HÀNH CHỮA LÀNH, TÌM LẠI BẢN SẮC CÁ NHÂN</span>
                       </div>
 
-                      <div className="flex-1 flex flex-col justify-center items-center py-4 text-center">
+                      <div className="flex-1 flex flex-col justify-center items-center py-4 text-center no-dark-override">
                         {isLoadingGemini ? (
-                          <div className="space-y-3 flex flex-col items-center">
-                            <span className="text-2xl animate-spin text-purple-400">✨</span>
-                            <p className="text-purple-300 font-mono text-[11px] tracking-wider animate-pulse">
+                          <div className="space-y-3 flex flex-col items-center no-dark-override">
+                            <span className="text-2xl animate-spin text-purple-400 no-dark-override">✨</span>
+                            <p className="text-purple-300 font-mono text-[11px] tracking-wider animate-pulse no-dark-override">
                               Đang kết nối vũ trụ... ✨
                             </p>
                           </div>
                         ) : (
-                          <div className="space-y-2 overflow-y-auto max-h-48 pr-1 flex flex-col justify-center h-full">
-                            <p className="text-slate-100 text-[11px] leading-relaxed text-justify whitespace-pre-line px-1 font-sans">
+                          <div className="space-y-2 overflow-y-auto max-h-48 pr-1 flex flex-col justify-center h-full no-dark-override">
+                            <p className="text-slate-100 text-[11px] leading-relaxed text-justify whitespace-pre-line px-1 font-sans no-dark-override">
                               {geminiResponse}
                             </p>
                           </div>
                         )}
                       </div>
 
-                      <div className="text-center text-[9px] text-slate-400 font-mono tracking-widest">
+                      <div className="text-center text-[9px] text-slate-400 font-mono tracking-widest no-dark-override">
                         CHẠM ĐỂ QUAY LẠI MẶT TRƯỚC 🔄
                       </div>
                     </div>

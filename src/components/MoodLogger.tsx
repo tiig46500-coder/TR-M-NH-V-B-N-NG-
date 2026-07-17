@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Calendar, 
@@ -19,6 +19,7 @@ import {
 import { MoodLogEntry } from "../types";
 import BreathExercisePopup from "./BreathExercisePopup";
 import { useUserData } from "../context/UserContext";
+import { D3EnergyChart } from "./D3EnergyChart";
 
 // Seed data to make the UI beautiful and fully illustrated on first load
 const SEED_LOGS: MoodLogEntry[] = [
@@ -151,6 +152,211 @@ const ACTIVITIES: Record<string, ActivityConfig> = {
   sleep: { emoji: "💤", label: "Chăm sóc giấc ngủ", desc: "Ngủ sớm, thư thái đầu óc" }
 };
 
+interface SvgFlowerProps {
+  scale?: number;
+  isExpanded: boolean;
+  isClicked: boolean;
+  isWithered?: boolean;
+}
+
+const SvgPeachBlossom: React.FC<SvgFlowerProps & { isWatered?: boolean }> = ({ scale = 1, isExpanded, isClicked, isWithered = false, isWatered = false }) => {
+  const isGlowing = (isExpanded || isClicked) && !isWithered;
+  const isBloomed = (isExpanded || isClicked || isWatered) && !isWithered;
+  
+  return (
+    <g 
+      className={`origin-center transition-all duration-[1200ms] ease-out ${isGlowing ? "animate-flower-bloom" : ""}`}
+      style={{ 
+        transform: `scale(${scale * (isBloomed ? 1.25 : 0.85)})`
+      }}
+    >
+      {/* Thân cuống / Đế hoa (Stem & Sepals Layer) */}
+      {!isWithered && (
+        <g className="origin-bottom">
+          {/* Small curved stem */}
+          <path
+            d="M 0 0 Q -1.5 5, -3 10"
+            fill="none"
+            stroke="#451a03"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+          {/* 3 dark red sepals (đế hoa) - alternating with 3 petals */}
+          {[60, 180, 300].map((angle) => (
+            <path
+              key={`sepal-${angle}`}
+              d="M 0 0 C -1.5 -2, -2 -4, 0 -5 C 2 -4, 1.5 -2, 0 0"
+              fill="#991b1b"
+              stroke="#450a0a"
+              strokeWidth="0.25"
+              transform={`rotate(${angle}) scale(0.8)`}
+            />
+          ))}
+        </g>
+      )}
+
+      {/* Cánh hoa Layer (Petals) - EXACTLY 3 petals */}
+      <g className="origin-center">
+        {[0, 120, 240].map((angle, idx) => (
+          <path
+            key={`petal-${angle}`}
+            // A beautiful, wider petal shape for 3-petal design
+            d="M 0 0 C -7 -11, -11 -18, 0 -21 C 11 -18, 7 -11, 0 0"
+            fill={isWithered ? "#cbd5e1" : (idx % 2 === 0 ? "#f43f5e" : "#fbcfe8")}
+            stroke={isWithered ? "#94a3b8" : (idx % 2 === 0 ? "#e11d48" : "#fda4af")}
+            strokeWidth="0.5"
+            className="transition-all duration-[1200ms] ease-out"
+            style={{ 
+              transform: isBloomed 
+                ? `rotate(${angle}deg) scale(1.15)` 
+                : `rotate(${angle - 15}deg) scale(0.65)`,
+              transformOrigin: '0px 0px'
+            }}
+          />
+        ))}
+      </g>
+
+      {/* Nhị hoa Layer (Stamens & Center Core) */}
+      <g className={isBloomed ? "animate-stamen-pulse origin-center" : "origin-center"}>
+        {/* 6 beautiful stamens arranged symmetrically */}
+        {!isWithered && [30, 90, 150, 210, 270, 330].map((angle) => (
+          <g key={`stamen-group-${angle}`} transform={`rotate(${angle})`}>
+            <line
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="-8"
+              stroke="#fef08a"
+              strokeWidth="0.8"
+              className="transition-all duration-[1200ms] ease-out"
+              style={{ transform: isBloomed ? 'scaleY(1.25)' : 'scaleY(0.7)' }}
+            />
+            <circle
+              cx="0"
+              cy="-8.5"
+              r="0.9"
+              fill="#f59e0b"
+              className="transition-all duration-[1200ms] ease-out"
+              style={{ transform: isBloomed ? 'translateY(-1.5px) scale(1.3)' : 'scale(1)' }}
+            />
+          </g>
+        ))}
+
+        {/* Core Center */}
+        <circle cx="0" cy="0" r="3" fill={isWithered ? "#78716c" : "#be123c"} />
+        {!isWithered && (
+          <circle 
+            cx="0" 
+            cy="0" 
+            r="1.5" 
+            fill="#fef08a" 
+            className="animate-stamen-pulse"
+          />
+        )}
+      </g>
+    </g>
+  );
+};
+
+const SvgStarAnise: React.FC<SvgFlowerProps & { isWatered?: boolean }> = ({ scale = 1, isExpanded, isClicked, isWithered = false, isWatered = false }) => {
+  const isGlowing = (isExpanded || isClicked) && !isWithered;
+  const isBloomed = (isExpanded || isClicked || isWatered) && !isWithered;
+  
+  return (
+    <g 
+      className={`origin-center transition-all duration-[1200ms] ease-out ${isGlowing ? "animate-flower-bloom" : ""}`}
+      style={{ 
+        transform: `scale(${scale * (isBloomed ? 1.25 : 0.85)})`
+      }}
+    >
+      {/* Thân cuống Layer (Woody Stem) */}
+      {!isWithered && (
+        <path
+          d="M 0 0 Q -2.5 7, -5 14"
+          fill="none"
+          stroke="#451a03"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          className="origin-bottom"
+        />
+      )}
+
+      {/* Cánh hoa Layer (Carpels as Petals) - EXACTLY 5 carpels */}
+      <g className="origin-center">
+        {/* 5 Outer carpels */}
+        {[0, 72, 144, 216, 288].map((angle, idx) => (
+          <path
+            key={`back-${angle}`}
+            d="M 0 0 C -5 -9, -9 -18, 0 -22 C 9 -18, 5 -9, 0 0"
+            fill={isWithered ? "#78716c" : "#78350f"}
+            stroke={isWithered ? "#57534e" : "#451a03"}
+            strokeWidth="0.8"
+            className="transition-all duration-[1200ms] ease-out origin-bottom"
+            style={{ 
+              transform: isBloomed 
+                ? `rotate(${angle}deg) scale(1.1)` 
+                : `rotate(${angle - 10}deg) scale(0.6)`,
+              transformOrigin: '0px 0px'
+            }}
+          />
+        ))}
+
+        {/* 5 Inner carpels (slightly smaller/offset to add depth) */}
+        {[0, 72, 144, 216, 288].map((angle, idx) => (
+          <path
+            key={`front-${angle}`}
+            d="M 0 0 C -4 -8, -8 -16, 0 -20 C 8 -16, 4 -8, 0 0"
+            fill={isWithered ? "#a8a29e" : "#b45309"}
+            stroke={isWithered ? "#78716c" : "#78350f"}
+            strokeWidth="0.8"
+            className="transition-all duration-[1200ms] ease-out origin-bottom"
+            style={{ 
+              transform: isBloomed 
+                ? `rotate(${angle + 5}deg) scale(1.05)` 
+                : `rotate(${angle - 5}deg) scale(0.55)`,
+              transformOrigin: '0px 0px'
+            }}
+          />
+        ))}
+      </g>
+
+      {/* Nhị / Hạt bên trong (Seeds inside carpels & core center) */}
+      <g className={isBloomed ? "animate-stamen-pulse origin-center" : "origin-center"}>
+        {!isWithered && [0, 72, 144, 216, 288].map((angle) => (
+          <ellipse
+            key={`seed-${angle}`}
+            cx="0"
+            cy="-11"
+            rx="2.2"
+            ry="3.5"
+            fill="#fef08a"
+            stroke="#ca8a04"
+            strokeWidth="0.5"
+            className="transition-all duration-[1200ms] ease-out origin-bottom"
+            style={{ 
+              transform: isBloomed ? 'translateY(-2px) scale(1.2)' : 'scale(0.6)',
+              transformOrigin: '0px -11px',
+              filter: isBloomed ? 'drop-shadow(0 0 3px #fef08a)' : 'none'
+            }}
+          />
+        ))}
+
+        {/* Central core detail */}
+        <circle cx="0" cy="0" r="4.5" fill={isWithered ? "#57534e" : "#451a03"} />
+        {!isWithered && (
+          <circle 
+            cx="0" 
+            cy="0" 
+            r="2" 
+            fill="#ca8a04" 
+            className="animate-stamen-pulse"
+          />
+        )}
+      </g>
+    </g>
+  );
+};
+
 export default function MoodLogger() {
   const { userData, setMoodLogs, setPlantStage } = useUserData();
   const logs = userData.moodLogs;
@@ -165,6 +371,370 @@ export default function MoodLogger() {
   // Evolving Mood Garden Local States (Lạng Sơn Localization)
   const [isWatered, setIsWatered] = useState(false);
   const [gardenPlant, setGardenPlant] = useState<"dao" | "hoi">("dao");
+
+  // Karma points, wooden bottles and growth progress state sync
+  const [karmaPoints, setKarmaPoints] = useState(() => {
+    const stored = localStorage.getItem("corez_karma_points") || localStorage.getItem("remix_corez_xp");
+    return stored ? parseInt(stored, 10) : 0;
+  });
+
+  const [woodenBottles, setWoodenBottles] = useState(() => {
+    const stored = localStorage.getItem("corez_wooden_water_bottles");
+    return stored ? parseInt(stored, 10) : 0;
+  });
+
+  const [plantProgress, setPlantProgressState] = useState(() => {
+    const storedProgress = localStorage.getItem("corez_plant_progress");
+    if (storedProgress) {
+      return Math.min(100, Math.max(0, parseFloat(storedProgress)));
+    }
+    return 20; // default initial progress
+  });
+
+  const [isPlantGlowing, setIsPlantGlowing] = useState(false);
+  const [isFlowerClicked, setIsFlowerClicked] = useState(false);
+
+  // Canvas refs for watering effects and falling petals
+  const gardenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const particlesRef = useRef<any[]>([]);
+  const fallingPetalsRef = useRef<any[]>([]);
+
+  // Function to refresh state values from localStorage
+  const refreshStorageValues = () => {
+    const kp = localStorage.getItem("corez_karma_points") || localStorage.getItem("remix_corez_xp");
+    if (kp) setKarmaPoints(parseInt(kp, 10));
+    
+    const wb = localStorage.getItem("corez_wooden_water_bottles");
+    if (wb) setWoodenBottles(parseInt(wb, 10));
+
+    const prog = localStorage.getItem("corez_plant_progress");
+    if (prog) setPlantProgressState(parseFloat(prog));
+  };
+
+  useEffect(() => {
+    refreshStorageValues();
+    // Poll every 3 seconds to ensure real-time synchronization between sections (e.g. Community)
+    const interval = setInterval(refreshStorageValues, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Exchange Karma for Wooden Water Bottles
+  const handleExchangeWater = () => {
+    if (karmaPoints < 10) return;
+    
+    const newKarma = karmaPoints - 10;
+    const newBottles = woodenBottles + 1;
+    
+    setKarmaPoints(newKarma);
+    setWoodenBottles(newBottles);
+    
+    localStorage.setItem("corez_karma_points", newKarma.toString());
+    localStorage.setItem("remix_corez_xp", newKarma.toString());
+    localStorage.setItem("corez_wooden_water_bottles", newBottles.toString());
+  };
+
+  // Water the plant using a wooden bottle
+  const handleWaterWithWoodBottle = () => {
+    if (woodenBottles <= 0) return;
+    
+    const newBottles = woodenBottles - 1;
+    const newProgress = Math.min(100, plantProgress + 20);
+    
+    setWoodenBottles(newBottles);
+    setPlantProgressState(newProgress);
+    setIsWatered(true); // heals withered state too!
+    
+    localStorage.setItem("corez_wooden_water_bottles", newBottles.toString());
+    localStorage.setItem("corez_plant_progress", newProgress.toString());
+    
+    // Trigger canvas particles
+    triggerWateringParticles();
+  };
+
+  // Calculate Habits Streak
+  const calculateStreak = (): number => {
+    if (logs.length === 0) return 0;
+    
+    // Lấy danh sách các ngày đã ghi nhận duy nhất, sắp xếp giảm dần
+    const uniqueDates = Array.from(new Set(logs.map(l => l.date))) as string[];
+    uniqueDates.sort((a, b) => b.localeCompare(a));
+    
+    const todayStr = new Date().toLocaleDateString("en-CA");
+    const yesterdayStr = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString("en-CA");
+    
+    // Nếu ngày ghi nhận gần nhất không phải là hôm nay hoặc hôm qua thì streak đã bị gián đoạn (trả về 0)
+    const latestDate = uniqueDates[0];
+    if (latestDate !== todayStr && latestDate !== yesterdayStr) {
+      return 0;
+    }
+
+    let streak = 0;
+    let expectedDate = new Date(latestDate);
+
+    for (let i = 0; i < uniqueDates.length; i++) {
+      const currentStr = uniqueDates[i];
+      const expectedStr = expectedDate.toLocaleDateString("en-CA");
+
+      if (currentStr === expectedStr) {
+        streak++;
+        // Giảm đi 1 ngày để kiểm tra ngày kế tiếp trong chuỗi
+        expectedDate.setDate(expectedDate.getDate() - 1);
+      } else {
+        break; // Chuỗi liên tiếp bị đứt quãng
+      }
+    }
+
+    return streak;
+  };
+
+  const streakCount = calculateStreak();
+
+  // Check garden status helper
+  const getGardenStatus = () => {
+    const sortedLogs = [...logs].sort((a, b) => b.date.localeCompare(a.date));
+    
+    let streakLevel = 1;
+    const streak = streakCount;
+    if (streak >= 5) {
+      streakLevel = 5;
+    } else if (streak >= 4) {
+      streakLevel = 4;
+    } else if (streak >= 3) {
+      streakLevel = 3;
+    } else if (streak >= 2) {
+      streakLevel = 2;
+    } else {
+      streakLevel = 1;
+    }
+
+    // Determine derived level from the plantProgress percentage (0-100%)
+    const progressLevel = Math.min(5, Math.max(1, Math.floor(plantProgress / 20) + 1));
+    const level = Math.max(streakLevel, progressLevel);
+
+    if (sortedLogs.length === 0) {
+      return { 
+        isBlooming: false, 
+        isWithered: false, 
+        growthLevel: level,
+        reason: "Hãy ghi nhận nhật ký ngày đầu tiên để ươm mầm hạt giống nhé! 🌱" 
+      };
+    }
+
+    const last3 = sortedLogs.slice(0, 3);
+    const negativeMoodIds = ["sad", "tired", "anxious"];
+    const hasStress = last3.some(l => negativeMoodIds.includes(l.moodId) || l.energyLevel <= 2);
+    
+    // Determine bloom/wither status
+    let withered = hasStress && !isWatered;
+    let blooming = (level >= 3 || isWatered) && !withered;
+
+    let reasonStr = "";
+    if (withered) {
+      reasonStr = `[Cấp ${level}] Nhánh thảo mộc héo rũ do stress (Tiến trình: ${plantProgress}%). Cậu hãy tưới nước bằng Bình Nước Gỗ hoặc tập thở sâu Hộp 4D để phục hồi và nở hoa nhé! 🍂`;
+    } else if (level === 5) {
+      reasonStr = `[Cấp 5 - Rực rỡ nhất] Nhánh thảo mộc nở rộ viên mãn! Tiến trình chăm sóc đạt ${plantProgress}% giúp khu vườn ngát hương. Cậu làm tuyệt lắm! 🌸✨`;
+    } else if (level === 4) {
+      reasonStr = `[Cấp 4] Nhánh cây đã lớn mạnh và hé nở 2-3 bông hoa rực rỡ (Tiến trình: ${plantProgress}%). 🌱✨`;
+    } else if (level === 3) {
+      reasonStr = `[Cấp 3] Xuất hiện các nụ hoa chúm chím căng đầy nhựa sống (Tiến trình: ${plantProgress}%). Cố gắng duy trì nhé! 🌱`;
+    } else if (level === 2) {
+      reasonStr = `[Cấp 2] Nhánh cây mọc thêm các cành nhỏ và lá xanh mơn mởn (Tiến trình: ${plantProgress}%). Hãy tiếp tục phản tư để cây ra nụ nhé! 🌿`;
+    } else {
+      reasonStr = `[Cấp 1] Cành cây mộc mạc nguyên bản bắt đầu bén rễ (Tiến trình: ${plantProgress}%). Hãy đều đặn ghi nhận nhật ký để tưới tắm cho cây lớn nhé! 🌱`;
+    }
+
+    return { 
+      isBlooming: blooming, 
+      isWithered: withered, 
+      growthLevel: level, 
+      reason: reasonStr 
+    };
+  };
+
+  const { isBlooming, isWithered, growthLevel, reason: gardenReason } = getGardenStatus();
+
+  useEffect(() => {
+    if (growthLevel !== userData.plantStage) {
+      setPlantStage(growthLevel);
+    }
+  }, [growthLevel, userData.plantStage, setPlantStage]);
+
+  const handleFlowerClick = () => {
+    setIsFlowerClicked(true);
+    setIsPlantGlowing(true);
+    triggerWateringParticles();
+    setTimeout(() => {
+      setIsFlowerClicked(false);
+      setIsPlantGlowing(false);
+    }, 1500);
+  };
+
+  // Triggering the Canvas-based particle water stream
+  const triggerWateringParticles = () => {
+    const canvas = gardenCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const newParticles = [];
+    const count = 45;
+    
+    const targetX = canvas.width / 2;
+    const targetY = canvas.height * 0.55;
+
+    for (let i = 0; i < count; i++) {
+      const startFromLeft = Math.random() > 0.5;
+      const startX = startFromLeft ? 20 + Math.random() * 40 : canvas.width - 20 - Math.random() * 40;
+      const startY = canvas.height - 30;
+
+      const speed = 1.6 + Math.random() * 2.2;
+      const size = 2.5 + Math.random() * 4.5;
+      
+      newParticles.push({
+        x: startX,
+        y: startY,
+        targetX,
+        targetY,
+        size,
+        speed,
+        progress: 0,
+        angleOffset: Math.random() * Math.PI * 2,
+        waveFrequency: 2 + Math.random() * 3,
+        waveAmplitude: 15 + Math.random() * 25,
+        opacity: 0.85 + Math.random() * 0.15
+      });
+    }
+
+    particlesRef.current = [...particlesRef.current, ...newParticles];
+
+    // Trigger plant shake & glow after particles land
+    setTimeout(() => {
+      setIsPlantGlowing(true);
+      setTimeout(() => setIsPlantGlowing(false), 1200);
+    }, 900);
+  };
+
+  // Handle particle animation frames on canvas
+  useEffect(() => {
+    let animationFrameId: number;
+    
+    const updateAndDrawParticles = () => {
+      const canvas = gardenCanvasRef.current;
+      if (!canvas) {
+        animationFrameId = requestAnimationFrame(updateAndDrawParticles);
+        return;
+      }
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        animationFrameId = requestAnimationFrame(updateAndDrawParticles);
+        return;
+      }
+
+      if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const particles = particlesRef.current;
+      if (particles.length > 0) {
+        particlesRef.current = particles.filter((p) => {
+          p.progress += 0.014 * p.speed;
+          if (p.progress >= 1) return false;
+
+          const currentX = p.x + (p.targetX - p.x) * p.progress;
+          const currentY = p.y + (p.targetY - p.y) * p.progress;
+
+          const wave = Math.sin(p.progress * Math.PI * p.waveFrequency + p.angleOffset) * p.waveAmplitude * (1 - p.progress);
+          const finalX = currentX + wave;
+          const finalY = currentY;
+
+          ctx.beginPath();
+          if (gardenPlant === "dao") {
+            const hue = 325 + Math.random() * 25;
+            ctx.fillStyle = `hsla(${hue}, 100%, 78%, ${p.opacity * (1 - p.progress)})`;
+            ctx.shadowBlur = p.size * 2.5;
+            ctx.shadowColor = "rgba(244, 63, 94, 0.65)";
+          } else {
+            const goldHue = 35 + Math.random() * 20;
+            ctx.fillStyle = `hsla(${goldHue}, 100%, 62%, ${p.opacity * (1 - p.progress)})`;
+            ctx.shadowBlur = p.size * 2.5;
+            ctx.shadowColor = "rgba(217, 119, 6, 0.65)";
+          }
+
+          ctx.arc(finalX, finalY, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          return true;
+        });
+      }
+
+      // Maintain and update falling peach blossom petals (when flower is blooming)
+      if (isBlooming) {
+        if (fallingPetalsRef.current.length < 20) {
+          fallingPetalsRef.current.push({
+            x: Math.random() * canvas.width,
+            y: -10 - Math.random() * 50,
+            size: 3.5 + Math.random() * 4,
+            speedY: 0.35 + Math.random() * 0.5,
+            speedX: -0.25 + Math.random() * 0.5,
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: -0.015 + Math.random() * 0.03,
+            swingSpeed: 0.01 + Math.random() * 0.015,
+            swingRange: 4 + Math.random() * 8,
+            swingOffset: Math.random() * Math.PI * 2,
+            opacity: 0.75 + Math.random() * 0.25,
+          });
+        }
+
+        fallingPetalsRef.current.forEach((p) => {
+          p.y += p.speedY;
+          p.swingOffset += p.swingSpeed;
+          const currentX = p.x + p.speedX + Math.sin(p.swingOffset) * 0.3;
+          p.rotation += p.rotationSpeed;
+
+          if (p.y > canvas.height + 10) {
+            p.y = -10;
+            p.x = Math.random() * canvas.width;
+            p.speedY = 0.35 + Math.random() * 0.5;
+            p.speedX = -0.25 + Math.random() * 0.5;
+            p.opacity = 0.75 + Math.random() * 0.25;
+          }
+
+          ctx.save();
+          ctx.translate(currentX, p.y);
+          ctx.rotate(p.rotation);
+          
+          // Outer petal curve
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.bezierCurveTo(-p.size, -p.size * 0.5, -p.size * 1.2, p.size * 0.8, 0, p.size * 1.5);
+          ctx.bezierCurveTo(p.size * 1.2, p.size * 0.8, p.size, -p.size * 0.5, 0, 0);
+          ctx.fillStyle = `rgba(251, 207, 232, ${p.opacity * 0.85})`; // Light pink
+          ctx.fill();
+
+          // Darker center vein detail
+          ctx.beginPath();
+          ctx.moveTo(0, p.size * 0.25);
+          ctx.bezierCurveTo(-p.size * 0.4, p.size * 0.35, -p.size * 0.5, p.size * 0.8, 0, p.size * 1.2);
+          ctx.bezierCurveTo(p.size * 0.5, p.size * 0.8, p.size * 0.4, p.size * 0.35, 0, p.size * 0.25);
+          ctx.fillStyle = `rgba(244, 63, 94, ${p.opacity * 0.5})`; // Rose pink
+          ctx.fill();
+
+          ctx.restore();
+        });
+      } else {
+        fallingPetalsRef.current = [];
+      }
+
+      animationFrameId = requestAnimationFrame(updateAndDrawParticles);
+    };
+
+    animationFrameId = requestAnimationFrame(updateAndDrawParticles);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [gardenPlant, growthLevel, isBlooming]);
   
   // Logger Form State
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -178,7 +748,6 @@ export default function MoodLogger() {
   // UI Helpers
   const [successMsg, setSuccessMsg] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [hoveredLog, setHoveredLog] = useState<MoodLogEntry | null>(null);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
   // Do not auto-seed logs so that new users start with a clean slate
@@ -292,41 +861,7 @@ export default function MoodLogger() {
     setShowConfirmReset(false);
   };
 
-  // Calculate Habits Streak
-  const calculateStreak = (): number => {
-    if (logs.length === 0) return 0;
-    
-    // Lấy danh sách các ngày đã ghi nhận duy nhất, sắp xếp giảm dần
-    const uniqueDates = Array.from(new Set(logs.map(l => l.date))) as string[];
-    uniqueDates.sort((a, b) => b.localeCompare(a));
-    
-    const todayStr = new Date().toLocaleDateString("en-CA");
-    const yesterdayStr = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString("en-CA");
-    
-    // Nếu ngày ghi nhận gần nhất không phải là hôm nay hoặc hôm qua thì streak đã bị gián đoạn (trả về 0)
-    const latestDate = uniqueDates[0];
-    if (latestDate !== todayStr && latestDate !== yesterdayStr) {
-      return 0;
-    }
 
-    let streak = 0;
-    let expectedDate = new Date(latestDate);
-
-    for (let i = 0; i < uniqueDates.length; i++) {
-      const currentStr = uniqueDates[i];
-      const expectedStr = expectedDate.toLocaleDateString("en-CA");
-
-      if (currentStr === expectedStr) {
-        streak++;
-        // Giảm đi 1 ngày để kiểm tra ngày kế tiếp trong chuỗi
-        expectedDate.setDate(expectedDate.getDate() - 1);
-      } else {
-        break; // Chuỗi liên tiếp bị đứt quãng
-      }
-    }
-
-    return streak;
-  };
 
   // Get localized Day name
   const getFormattedDateLabel = (dateStr: string) => {
@@ -343,117 +878,6 @@ export default function MoodLogger() {
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(-7);
 
-  const streakCount = calculateStreak();
-
-  // Check garden status helper
-  const getGardenStatus = () => {
-    const sortedLogs = [...logs].sort((a, b) => b.date.localeCompare(a.date));
-    
-    if (sortedLogs.length === 0) {
-      return { 
-        isBlooming: false, 
-        isWithered: false, 
-        growthLevel: 1,
-        reason: "Hãy ghi nhận nhật ký ngày đầu tiên để ươm mầm hạt giống nhé! 🌱" 
-      };
-    }
-
-    const last3 = sortedLogs.slice(0, 3);
-    const negativeMoodIds = ["sad", "tired", "anxious"];
-    
-    const hasStress = last3.some(l => negativeMoodIds.includes(l.moodId) || l.energyLevel <= 2);
-    
-    const last5 = sortedLogs.slice(0, 5);
-    const avgEnergy = last5.reduce((sum, l) => sum + l.energyLevel, 0) / last5.length;
-    const streak = streakCount;
-
-    let level = 1;
-    if (streak >= 5 && avgEnergy >= 3.5) {
-      level = 5;
-    } else if (streak >= 4) {
-      level = 4;
-    } else if (streak >= 3) {
-      level = 3;
-    } else if (streak >= 2) {
-      level = 2;
-    } else {
-      level = 1;
-    }
-
-    // Determine bloom/wither status
-    let withered = hasStress && !isWatered;
-    let blooming = (level >= 3 || isWatered) && !withered;
-
-    let reasonStr = "";
-    if (withered) {
-      reasonStr = `[Cấp ${level}] Nhánh thảo mộc héo rũ do stress (Chuỗi: ${streak} ngày, Năng lượng TB: ${avgEnergy.toFixed(1)}/5). Cậu cần được xoa dịu bằng 1 phút thở sâu Hộp 4D để phục hồi! 🍂`;
-    } else if (level === 5) {
-      reasonStr = `[Cấp 5 - Rực rỡ nhất] Nhánh thảo mộc nở rộ viên mãn! Chuỗi thói quen ${streak} ngày và năng lượng dồi dào (${avgEnergy.toFixed(1)}/5) giúp khu vườn ngát hương. Cậu làm tuyệt lắm! 🌸✨`;
-    } else if (level === 4) {
-      reasonStr = `[Cấp 4] Nhánh cây đã lớn mạnh và hé nở 2-3 bông hoa rực rỡ (Chuỗi: ${streak} ngày, Năng lượng TB: ${avgEnergy.toFixed(1)}/5). 🌱✨`;
-    } else if (level === 3) {
-      reasonStr = `[Cấp 3] Xuất hiện các nụ hoa chúm chím căng đầy nhựa sống (Chuỗi: ${streak} ngày, Năng lượng TB: ${avgEnergy.toFixed(1)}/5). Cố gắng duy trì nhé! 🌱`;
-    } else if (level === 2) {
-      reasonStr = `[Cấp 2] Nhánh cây mọc thêm các cành nhỏ và lá xanh mơn mởn (Chuỗi: ${streak} ngày). Hãy tiếp tục phản tư để cây ra nụ nhé! 🌿`;
-    } else {
-      reasonStr = `[Cấp 1] Cành cây mộc mạc nguyên bản bắt đầu bén rễ. Hãy đều đặn ghi nhận nhật ký để tưới tắm cho cây lớn nhé! 🌱`;
-    }
-
-    return { 
-      isBlooming: blooming, 
-      isWithered: withered, 
-      growthLevel: level, 
-      reason: reasonStr 
-    };
-  };
-
-  const { isBlooming, isWithered, growthLevel, reason: gardenReason } = getGardenStatus();
-
-  useEffect(() => {
-    if (growthLevel !== userData.plantStage) {
-      setPlantStage(growthLevel);
-    }
-  }, [growthLevel, userData.plantStage, setPlantStage]);
-
-  // Helper to generate coordinates for SVG Line Chart based on 7 days of logs
-  const generateSvgPathAndPoints = () => {
-    if (sortedChronologicalLogs.length === 0) return { path: "", points: [] };
-    
-    const width = 500;
-    const height = 120;
-    const paddingX = 40;
-    const paddingY = 20;
-    
-    const chartWidth = width - paddingX * 2;
-    const chartHeight = height - paddingY * 2;
-    
-    const pointCount = sortedChronologicalLogs.length;
-    const stepX = pointCount > 1 ? chartWidth / (pointCount - 1) : chartWidth;
-    
-    const points = sortedChronologicalLogs.map((log, index) => {
-      // energy level is 1-5, map to Y axis (5: top, 1: bottom)
-      // Height coordinates are inverted in SVG (0 is top)
-      const x = paddingX + index * stepX;
-      const normalizedEnergy = (log.energyLevel - 1) / 4; // value from 0 to 1
-      const y = paddingY + chartHeight * (1 - normalizedEnergy);
-      return { x, y, log };
-    });
-    
-    if (points.length === 0) return { path: "", areaPath: "", points: [] };
-    
-    // Create quadratic curve / straight lines path
-    let linePath = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 1; i < points.length; i++) {
-      linePath += ` L ${points[i].x} ${points[i].y}`;
-    }
-    
-    // Create filled gradient area path
-    const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
-    
-    return { linePath, areaPath, points };
-  };
-
-  const { linePath, areaPath, points: chartPoints } = generateSvgPathAndPoints();
 
   return (
     <div className="w-full max-w-4xl mx-auto py-4 px-4 font-sans relative z-10" id="mood-logger-module">
@@ -701,74 +1125,42 @@ export default function MoodLogger() {
                 </p>
               </div>
             ) : (
-              <div className="relative pt-2">
-                <div className="absolute left-2 top-0 text-[9px] text-slate-400 flex flex-col justify-between h-20 pointer-events-none font-mono">
-                  <span>Sức khỏe đỉnh cao (5)</span>
-                  <span>Cạn kiệt (1)</span>
-                </div>
-                
-                <svg viewBox="0 0 500 120" className="w-full h-32 overflow-visible">
-                  <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-                  
-                  {/* Grid Lines */}
-                  <line x1="40" y1="20" x2="460" y2="20" stroke="#f1f5f9" strokeDasharray="3,3" />
-                  <line x1="40" y1="60" x2="460" y2="60" stroke="#f1f5f9" strokeDasharray="3,3" />
-                  <line x1="40" y1="100" x2="460" y2="100" stroke="#f1f5f9" strokeDasharray="3,3" />
-                  
-                  {/* Filled Area */}
-                  {areaPath && <path d={areaPath} fill="url(#chartGradient)" />}
-                  
-                  {/* Line */}
-                  {linePath && <path d={linePath} fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
-                  
-                  {/* Points */}
-                  {chartPoints.map((pt, i) => {
-                    const moodConf = MOODS[pt.log.moodId];
-                    return (
-                      <g key={pt.log.id} className="cursor-pointer" onMouseEnter={() => setHoveredLog(pt.log)} onMouseLeave={() => setHoveredLog(null)}>
-                        <circle 
-                          cx={pt.x} 
-                          cy={pt.y} 
-                          r="5" 
-                          fill="#ffffff" 
-                          stroke="#10B981" 
-                          strokeWidth="2.5" 
-                        />
-                        <text 
-                          x={pt.x} 
-                          y={pt.y - 12} 
-                          textAnchor="middle" 
-                          className="text-[11px] select-none"
-                        >
-                          {moodConf?.emoji || "🌟"}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-
-                {/* Tooltip on hovering point */}
-                <div className="min-h-[36px] flex items-center justify-center bg-white/40 p-1.5 rounded-xl border border-white/50 text-[10.5px] text-slate-500 text-center font-sans mt-1">
-                  {hoveredLog ? (
-                    <div>
-                      <span className="font-bold text-slate-700">{getFormattedDateLabel(hoveredLog.date).split(",")[1]}</span>:{" "}
-                      Tâm trạng <span className="font-bold text-emerald-600">{MOODS[hoveredLog.moodId]?.label}</span> (Năng lượng {hoveredLog.energyLevel}/5)
-                    </div>
-                  ) : (
-                    <span className="italic text-slate-400">Rê chuột lên các điểm tròn để xem thông tin</span>
-                  )}
-                </div>
-              </div>
+              <D3EnergyChart logs={sortedChronologicalLogs} moodsConfig={MOODS} />
             )}
           </div>
 
           {/* VISUAL B: EVOLVING MOOD GARDEN (LẠNG SƠN LOCALIZATION) */}
           <div className="bg-white/65 backdrop-blur-xl rounded-[28px] border border-white/40 p-5 shadow-sm space-y-4 relative overflow-hidden">
+            <style>{`
+              @keyframes plant-shake-glow {
+                0% { transform: scale(1) rotate(0deg); filter: brightness(1) drop-shadow(0 0 0px rgba(52, 211, 153, 0)); }
+                20% { transform: scale(1.08) rotate(-3deg); filter: brightness(1.45) drop-shadow(0 0 10px rgba(52, 211, 153, 0.7)); }
+                40% { transform: scale(1.08) rotate(3deg); filter: brightness(1.45) drop-shadow(0 0 10px rgba(52, 211, 153, 0.7)); }
+                60% { transform: scale(1.03) rotate(-1deg); filter: brightness(1.2) drop-shadow(0 0 5px rgba(52, 211, 153, 0.45)); }
+                80% { transform: scale(1.03) rotate(1deg); filter: brightness(1.2) drop-shadow(0 0 5px rgba(52, 211, 153, 0.45)); }
+                100% { transform: scale(1) rotate(0deg); filter: brightness(1) drop-shadow(0 0 0px rgba(52, 211, 153, 0)); }
+              }
+              .animate-plant-shake-glow {
+                animation: plant-shake-glow 1.2s ease-in-out;
+              }
+
+              @keyframes flower-bloom {
+                0% { transform: scale(0.4) rotate(-12deg); opacity: 0; filter: saturate(0.6) brightness(0.8); }
+                55% { transform: scale(1.15) rotate(4deg); opacity: 0.95; filter: saturate(1.2) brightness(1.15) drop-shadow(0 0 10px rgba(244, 63, 94, 0.5)); }
+                100% { transform: scale(1) rotate(0deg); opacity: 1; filter: saturate(1) brightness(1) drop-shadow(0 0 3px rgba(244, 63, 94, 0.15)); }
+              }
+              .animate-flower-bloom {
+                animation: flower-bloom 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+              }
+
+              @keyframes stamen-pulse {
+                0%, 100% { transform: scale(1); filter: brightness(1); }
+                50% { transform: scale(1.12); filter: brightness(1.35) drop-shadow(0 0 6px #fef08a); }
+              }
+              .animate-stamen-pulse {
+                animation: stamen-pulse 1.8s ease-in-out infinite;
+              }
+            `}</style>
             <div className="flex items-center justify-between border-b border-white/30 pb-2">
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-emerald-500 animate-spin-slow" />
@@ -778,26 +1170,38 @@ export default function MoodLogger() {
                 <button
                   type="button"
                   onClick={() => setGardenPlant("dao")}
-                  className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                  className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5 ${
                     gardenPlant === "dao" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
                   }`}
                 >
-                  Hoa Đào 🌸
+                  <span>Hoa Đào</span>
+                  <svg viewBox="-20 -20 40 40" className="w-3.5 h-3.5 origin-center select-none">
+                    <SvgPeachBlossom scale={0.8} isExpanded={true} isClicked={false} />
+                  </svg>
                 </button>
                 <button
                   type="button"
                   onClick={() => setGardenPlant("hoi")}
-                  className={`px-2 py-0.5 text-[9px] font-bold rounded-md transition-all ${
+                  className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5 ${
                     gardenPlant === "hoi" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
                   }`}
                 >
-                  Hoa Hồi 🌰
+                  <span>Hoa Hồi</span>
+                  <svg viewBox="-25 -25 50 50" className="w-3.5 h-3.5 origin-center select-none">
+                    <SvgStarAnise scale={0.85} isExpanded={true} isClicked={false} />
+                  </svg>
                 </button>
               </div>
             </div>
 
             {/* Visual Display Stage */}
             <div className="relative h-44 w-full bg-gradient-to-b from-sky-50/25 to-slate-50/50 rounded-2xl border border-slate-100 flex items-center justify-center overflow-hidden">
+              {/* Particle Effects Canvas */}
+              <canvas 
+                ref={gardenCanvasRef} 
+                className="absolute inset-0 pointer-events-none z-10 w-full h-full" 
+              />
+              
               {/* Particle Effects (Framer Motion) when blooming */}
               {isBlooming && (
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -830,10 +1234,14 @@ export default function MoodLogger() {
               )}
 
               {/* Plant SVG Container */}
-              <div className="relative w-36 h-36 flex items-center justify-center">
+              <div 
+                onClick={handleFlowerClick}
+                className="relative w-36 h-36 flex items-center justify-center cursor-pointer select-none group"
+                title="Bấm vào hoa để nở bung rực rỡ nhé! 🌸"
+              >
                 {gardenPlant === "dao" ? (
                   /* HOA ĐÀO XỨ LẠNG SVG (DYNAMICS) */
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                  <svg viewBox="0 0 100 100" className={`w-full h-full transition-all duration-300 ${isPlantGlowing ? "animate-plant-shake-glow" : ""}`}>
                     {/* Dirt/Pot base */}
                     <ellipse cx="50" cy="85" rx="35" ry="6" fill="#cbd5e1" opacity="0.3" />
                     
@@ -913,9 +1321,21 @@ export default function MoodLogger() {
                     {isWithered ? (
                       /* Withered/Closed Buds */
                       <>
-                        {growthLevel >= 3 && <circle cx="55" cy="30" r="2.5" fill="#f43f5e" opacity="0.4" />}
-                        {growthLevel >= 3 && <circle cx="30" cy="46" r="2.5" fill="#f43f5e" opacity="0.4" />}
-                        {growthLevel >= 3 && <circle cx="70" cy="34" r="2.5" fill="#f43f5e" opacity="0.4" />}
+                        {growthLevel >= 3 && (
+                          <g transform="translate(55, 30)">
+                            <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
+                          </g>
+                        )}
+                        {growthLevel >= 3 && (
+                          <g transform="translate(30, 46)">
+                            <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
+                          </g>
+                        )}
+                        {growthLevel >= 3 && (
+                          <g transform="translate(70, 34)">
+                            <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
+                          </g>
+                        )}
                       </>
                     ) : (
                       <>
@@ -923,16 +1343,13 @@ export default function MoodLogger() {
                         {growthLevel === 3 && (
                           <>
                             <g transform="translate(55, 30)">
-                              <circle r="3" fill="#f43f5e" />
-                              <circle r="1" fill="#fef08a" />
+                              <SvgPeachBlossom scale={0.45} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                             <g transform="translate(30, 46)">
-                              <circle r="3" fill="#f43f5e" />
-                              <circle r="1" fill="#fef08a" />
+                              <SvgPeachBlossom scale={0.45} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                             <g transform="translate(70, 34)">
-                              <circle r="3" fill="#f43f5e" />
-                              <circle r="1" fill="#fef08a" />
+                              <SvgPeachBlossom scale={0.45} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                           </>
                         )}
@@ -942,19 +1359,15 @@ export default function MoodLogger() {
                           <>
                             {/* Blossom 1 Left */}
                             <g transform="translate(30, 46)">
-                              <motion.circle r="6" fill="#fbcfe8" opacity="0.9" animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 4 }} />
-                              <circle r="3.5" fill="#f43f5e" />
-                              <circle r="1" fill="#fef08a" />
+                              <SvgPeachBlossom scale={0.9} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                             {/* Blossom 2 Right */}
                             <g transform="translate(70, 34)">
-                              <motion.circle r="6.5" fill="#fbcfe8" opacity="0.9" animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 3.5, delay: 1 }} />
-                              <circle r="4" fill="#f43f5e" />
-                              <circle r="1.2" fill="#fef08a" />
+                              <SvgPeachBlossom scale={0.95} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                             {/* Top is still a bud */}
                             <g transform="translate(55, 30)">
-                              <circle r="3" fill="#f43f5e" />
+                              <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                           </>
                         )}
@@ -964,33 +1377,23 @@ export default function MoodLogger() {
                           <>
                             {/* Blossom 1 Top */}
                             <g transform="translate(55, 30)">
-                              <motion.circle r="7.5" fill="#fbcfe8" opacity="0.95" animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 3 }} />
-                              <circle r="4.5" fill="#f43f5e" />
-                              <circle r="1.5" fill="#fef08a" />
+                              <SvgPeachBlossom scale={1.15} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                             {/* Blossom 2 Left */}
                             <g transform="translate(30, 46)">
-                              <motion.circle r="6.5" fill="#fbcfe8" opacity="0.95" animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 4, delay: 0.5 }} />
-                              <circle r="3.8" fill="#f43f5e" />
-                              <circle r="1" fill="#fef08a" />
+                              <SvgPeachBlossom scale={1.0} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                             {/* Blossom 3 Right */}
                             <g transform="translate(70, 34)">
-                              <motion.circle r="7" fill="#fbcfe8" opacity="0.95" animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 3.5, delay: 1 }} />
-                              <circle r="4" fill="#f43f5e" />
-                              <circle r="1.2" fill="#fef08a" />
+                              <SvgPeachBlossom scale={1.05} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                             {/* Blossom 4 Extra Lower Left */}
                             <g transform="translate(42, 38)">
-                              <motion.circle r="5.5" fill="#fbcfe8" opacity="0.9" animate={{ scale: [1, 1.07, 1] }} transition={{ repeat: Infinity, duration: 5, delay: 1.5 }} />
-                              <circle r="3" fill="#f43f5e" />
-                              <circle r="0.8" fill="#fef08a" />
+                              <SvgPeachBlossom scale={0.8} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                             {/* Blossom 5 Extra Upper Right */}
                             <g transform="translate(65, 26)">
-                              <motion.circle r="5.5" fill="#fbcfe8" opacity="0.9" animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 4.5, delay: 2 }} />
-                              <circle r="3" fill="#f43f5e" />
-                              <circle r="0.8" fill="#fef08a" />
+                              <SvgPeachBlossom scale={0.8} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                           </>
                         )}
@@ -999,11 +1402,11 @@ export default function MoodLogger() {
                   </svg>
                 ) : (
                   /* NHÁNH HOA HỒI SVG (DYNAMICS) */
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                  <svg viewBox="0 0 100 100" className={`w-full h-full transition-all duration-300 ${isPlantGlowing ? "animate-plant-shake-glow" : ""}`}>
                     {/* Ground base */}
                     <ellipse cx="50" cy="85" rx="30" ry="5" fill="#cbd5e1" opacity="0.3" />
 
-                    {/* Stem */}
+                    {/* Main Stem */}
                     <path
                       d="M 50 85 Q 50 65, 50 50"
                       fill="none"
@@ -1012,52 +1415,170 @@ export default function MoodLogger() {
                       strokeLinecap="round"
                     />
 
-                    {/* Star Anise Body (Growth-dependent petals structure) */}
-                    <g transform="translate(50, 50)" className="origin-center">
-                      {Array.from({ length: growthLevel === 1 ? 3 : growthLevel === 2 ? 5 : growthLevel === 3 ? 6 : 8 }).map((_, idx) => {
-                        const totalPetals = growthLevel === 1 ? 3 : growthLevel === 2 ? 5 : growthLevel === 3 ? 6 : 8;
-                        const angle = idx * (360 / totalPetals);
-                        const petalScale = growthLevel >= 4 ? 1.1 : growthLevel === 3 ? 0.9 : 0.75;
-                        return (
-                          <motion.path
-                            key={idx}
-                            d="M 0 0 C -4 -10, -8 -20, 0 -24 C 8 -20, 4 -10, 0 0"
-                            fill={isWithered ? "#a8a29e" : "#b45309"}
-                            stroke={isWithered ? "#78716c" : "#78350f"}
-                            strokeWidth="1"
-                            transform={`rotate(${angle}) scale(${petalScale})`}
-                            animate={isWithered ? {} : { scale: [petalScale, petalScale * 1.03, petalScale] }}
-                            transition={{ repeat: Infinity, duration: 4, delay: idx * 0.15 }}
-                          />
-                        );
-                      })}
-                      {/* Central Shiny Seed buds - level 4+ */}
-                      {!isWithered && growthLevel >= 4 && Array.from({ length: 8 }).map((_, idx) => {
-                        const angle = idx * 45;
-                        return (
-                          <circle
-                            key={`seed-${idx}`}
-                            cx="0"
-                            cy="-15"
-                            r={growthLevel === 5 ? "2.5" : "1.8"}
-                            fill="#fef08a"
-                            transform={`rotate(${angle})`}
-                          />
-                        );
-                      })}
-                      {/* Core center ring */}
-                      <circle cx="0" cy="0" r="3.5" fill={isWithered ? "#57534e" : "#451a03"} />
-                    </g>
+                    {/* Side stems - Level 2+ */}
+                    {growthLevel >= 2 && (
+                      <>
+                        {/* Left Side Stem */}
+                        <path
+                          d="M 50 70 Q 40 65, 32 58"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#065f46"}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                        />
+                        {/* Right Side Stem */}
+                        <path
+                          d="M 50 65 Q 60 60, 68 55"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#065f46"}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                        />
+                      </>
+                    )}
+
+                    {/* Leaves - Level 2+ */}
+                    {growthLevel >= 2 && (
+                      <>
+                        <path d="M 45 68 Q 36 62, 42 66" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 55 62 Q 64 56, 58 60" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 50 54 Q 48 46, 50 50" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                      </>
+                    )}
+
+                    {/* Star Anise Flowers */}
+                    {isWithered ? (
+                      /* Withered Star Anise */
+                      <g transform="translate(50, 50)">
+                        <SvgStarAnise scale={0.8} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
+                      </g>
+                    ) : (
+                      <>
+                        {/* Level 1: Just a tiny seedling center */}
+                        {growthLevel === 1 && (
+                          <g transform="translate(50, 50)">
+                            <SvgStarAnise scale={0.4} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                          </g>
+                        )}
+
+                        {/* Level 2: Small main flower */}
+                        {growthLevel === 2 && (
+                          <g transform="translate(50, 50)">
+                            <SvgStarAnise scale={0.7} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                          </g>
+                        )}
+
+                        {/* Level 3: Medium main flower */}
+                        {growthLevel === 3 && (
+                          <g transform="translate(50, 50)">
+                            <SvgStarAnise scale={0.9} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                          </g>
+                        )}
+
+                        {/* Level 4: Large main flower and side buds */}
+                        {growthLevel === 4 && (
+                          <>
+                            <g transform="translate(50, 50)">
+                              <SvgStarAnise scale={1.05} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(32, 58)">
+                              <circle r="3.5" fill="#78350f" />
+                            </g>
+                            <g transform="translate(68, 55)">
+                              <circle r="3.5" fill="#78350f" />
+                            </g>
+                          </>
+                        )}
+
+                        {/* Level 5: Fully blooming Star Anise group */}
+                        {growthLevel >= 5 && (
+                          <>
+                            {/* Main flower */}
+                            <g transform="translate(50, 50)">
+                              <SvgStarAnise scale={1.2} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            {/* Left side flower */}
+                            <g transform="translate(32, 58)">
+                              <SvgStarAnise scale={0.75} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            {/* Right side flower */}
+                            <g transform="translate(68, 55)">
+                              <SvgStarAnise scale={0.8} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                          </>
+                        )}
+                      </>
+                    )}
                   </svg>
                 )}
               </div>
             </div>
 
             {/* Watering Interaction Action */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <p className="text-[11px] text-slate-500 leading-relaxed text-center font-light px-2">
                 {gardenReason}
               </p>
+
+              {/* Progress Bar of the plant */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                  <span className="flex items-center gap-1">🌱 Tiến trình sinh trưởng: {plantProgress}%</span>
+                  <span>Cấp {growthLevel}/5</span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/30 shadow-inner">
+                  <div 
+                    className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full transition-all duration-500"
+                    style={{ width: `${plantProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Karma & Wood Bottles Exchange Panel */}
+              <div className="p-3 bg-slate-50/70 rounded-2xl border border-slate-100 flex flex-col gap-2">
+                <div className="flex items-center justify-between text-[11px]">
+                  <div className="flex items-center gap-1 text-slate-600 font-medium">
+                    <span>Karma của cậu:</span>
+                    <span className="font-bold text-amber-600 font-mono flex items-center gap-0.5">🌟 {karmaPoints}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-slate-600 font-medium">
+                    <span>Bình nước gỗ:</span>
+                    <span className="font-bold text-sky-600 font-mono flex items-center gap-0.5">🧪 {woodenBottles}</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  {/* Exchange button */}
+                  <button
+                    type="button"
+                    disabled={karmaPoints < 10}
+                    onClick={handleExchangeWater}
+                    className={`py-2 px-2 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
+                      karmaPoints >= 10 
+                        ? "bg-amber-100/90 text-amber-800 hover:bg-amber-200/90 border border-amber-200/50 shadow-sm" 
+                        : "bg-slate-100 text-slate-400 border border-slate-200/20 cursor-not-allowed"
+                    }`}
+                  >
+                    <span>🪵 Đổi Nước Chữa Lành</span>
+                    <span className="text-[8px] font-normal opacity-75">(10 Karma)</span>
+                  </button>
+
+                  {/* Water button */}
+                  <button
+                    type="button"
+                    disabled={woodenBottles <= 0}
+                    onClick={handleWaterWithWoodBottle}
+                    className={`py-2 px-2 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
+                      woodenBottles > 0 
+                        ? "bg-sky-100/90 text-sky-800 hover:bg-sky-200/90 border border-sky-200/50 shadow-sm" 
+                        : "bg-slate-100 text-slate-400 border border-slate-200/20 cursor-not-allowed"
+                    }`}
+                  >
+                    <span>💧 Tưới nước gỗ</span>
+                    <span className="text-[8px] font-normal opacity-75">(+20%)</span>
+                  </button>
+                </div>
+              </div>
 
               {isWithered && (
                 <div className="flex justify-center pt-1.5">

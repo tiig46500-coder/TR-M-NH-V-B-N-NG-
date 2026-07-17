@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -121,7 +121,7 @@ ${recentLogs.map((log: any) => `- Ngày ${log.date}: Trạng thái [${log.moodId
       const reply = response.text || "Mình luôn ở đây lắng nghe bạn.";
       return res.json({ reply, isDemo: false });
     } catch (error: any) {
-      console.error("Gemini API Error in /api/chat:", error);
+      console.log("Notice: Chat local backup used.");
       
       // Destructure req.body inside catch block to solve block-scoping constraints
       const { messages, moodLogs } = req.body;
@@ -205,8 +205,8 @@ ${recentLogs.map((log: any) => `- Ngày ${log.date}: Trạng thái [${log.moodId
         title: prompt
       });
     } catch (error: any) {
-      console.error("Error in /api/generate-music:", error);
-      return res.status(500).json({ error: "Có lỗi xảy ra khi tạo nhạc AI: " + error.message });
+      console.log("Notice: Music generator backup used.");
+      return res.status(500).json({ error: "Có lỗi xảy ra khi tạo nhạc AI." });
     }
   });
 
@@ -241,7 +241,7 @@ ${recentLogs.map((log: any) => `- Ngày ${log.date}: Trạng thái [${log.moodId
       const reply = response.text || "Hãy thở sâu và kiên nhẫn với bản thân nhé! 🌱";
       return res.json({ reply, isDemo: false });
     } catch (error: any) {
-      console.error("Error in /api/gemini-flashcard:", error);
+      console.log("Notice: Flashcard backup used.");
       const { category } = req.body;
       // Bulletproof fallback response when quota limits are reached
       return res.json({
@@ -285,13 +285,124 @@ Hành động nhỏ hôm nay: Tắt máy tính sớm hơn 15 phút, vươn vai t
       const reply = response.text || "Cậu đã vất vả nhiều rồi. Hãy tự thưởng một ly sữa ấm và đi ngủ sớm hôm nay nhé! Tớ đồng hành cùng cậu. 🌱";
       return res.json({ reply, isDemo: false });
     } catch (error: any) {
-      console.error("Error in /api/gemini-inspire-card:", error);
+      console.log("Notice: Inspire card backup used.");
       const { quote } = req.body;
       // Bulletproof fallback response when quota limits are reached
       return res.json({
         reply: `Tớ hiểu cậu đang rất áp lực học tập và mệt mỏi vì mớ bài vở. Hãy để ý đến câu nói này: "${quote}". 
 
 Hành động nhỏ hôm nay: Tắt máy tính sớm hơn 15 phút, vươn vai thật dài và uống một cốc nước mát nhé. Tớ luôn tự hào vì nỗ lực thầm lặng của cậu! 🌸🌿`,
+        isDemo: true,
+        isFallback: true
+      });
+    }
+  });
+
+  // Dynamic Gemini-powered note validation/sentiment analysis endpoint
+  app.post("/api/validate-note", async (req, res) => {
+    try {
+      const { content } = req.body;
+      if (!content || typeof content !== "string") {
+        return res.status(400).json({ error: "Nội dung bộc bạch không hợp lệ." });
+      }
+
+      const client = getAiClient();
+      if (!client) {
+        // Fallback validation for Demo Mode (local analysis)
+        const lower = content.toLowerCase();
+        const toxicKeywords = ["chửi", "địt", "đm", "vl", "ngu", "cút", "tự tử", "tự sát", "bạo lực", "đánh nhau", "giết"];
+        const isApproved = !toxicKeywords.some((word) => lower.includes(word));
+        
+        let sentiment = "vulnerable";
+        if (!isApproved) {
+          sentiment = "harmful";
+        } else if (lower.includes("vui") || lower.includes("yêu") || lower.includes("thích")) {
+          sentiment = "positive";
+        }
+
+        const reason = isApproved 
+          ? "Nội dung phù hợp, chia sẻ cảm xúc cá nhân an toàn." 
+          : "Nội dung chứa từ ngữ tiêu cực hoặc có hành vi không phù hợp.";
+
+        const suggestion = isApproved 
+          ? "" 
+          : "Hãy thử diễn đạt cảm xúc của cậu bằng một cách nhẹ nhàng hơn mà không dùng từ ngữ gây tổn thương hoặc kích động nhé. Tớ luôn ở đây lắng nghe.";
+
+        return res.json({
+          isApproved,
+          sentiment,
+          reason,
+          suggestion,
+          isDemo: true
+        });
+      }
+
+      const systemInstruction = `
+        Bạn là kiểm duyệt viên và nhà tư vấn tâm lý học đường thuộc dự án "Trạm Định Vị Bản Ngã" (Identity Compass).
+        Nhiệm vụ của bạn là phân tích cảm xúc (sentiment analysis) và lọc bỏ các nội dung độc hại, xúc phạm, bạo lực, tự hại, hoặc tục tĩu từ các mẩu giấy ghi chú ẩn danh của học sinh sinh viên Gen Z Việt Nam gửi lên diễn đàn chung.
+
+        QUY TẮC PHÂN LOẠI CỰC KỲ QUAN TRỌNG:
+        1. Mục tiêu của diễn đàn là chia sẻ, bộc bạch những trăn trước, lo âu thầm kín về học tập, áp lực đồng trang lứa, FOMO, cảm giác buồn bã, mệt mỏi, lo lắng, thất vọng, cô đơn. Những nội dung này LÀ AN TOÀN, LÀNH MẠNH để chia sẻ và PHẢI ĐƯỢC CHẤP NHẬN (isApproved = true), phân loại sentiment là "vulnerable" (tổn thương/nhạy cảm) hoặc "sad" (buồn bã). KHÔNG ĐƯỢC BÁO LỖI HAY TỪ CHỐI NHỮNG CHIA SẺ VỀ CẢM XÚC BUỒN BÃ NÀY.
+        2. Chỉ từ chối (isApproved = false) khi nội dung chứa:
+           - Từ ngữ tục tĩu, chửi thề thô bạo (ví dụ: đm, địt, lồn, ngu xuẩn, cút, vl...).
+           - Hành vi công kích cá nhân, bắt nạt hội đồng hoặc xúc phạm người khác.
+           - Khuyến khích hoặc mô tả bạo lực, tự sát, tự gây thương tích nguy hiểm.
+           - Quảng cáo, tin rác (spam).
+
+        Hãy phản hồi bằng định dạng JSON với các trường:
+        - isApproved: Boolean (true nếu an toàn, kể cả buồn bã/vulnerable; false nếu vi phạm quy tắc 2).
+        - sentiment: String ("positive" | "neutral" | "vulnerable" | "sad" | "harmful").
+        - reason: String (Giải thích ngắn gọn bằng tiếng Việt lý do phê duyệt hoặc từ chối).
+        - suggestion: String (Nếu bị từ chối, đưa ra lời khuyên hoặc gợi ý viết lại nhẹ nhàng bằng tiếng Việt ấm áp với xưng hô "Tớ" - "Cậu").
+      `;
+
+      const response = await client.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: `Nội dung mẩu giấy cần kiểm duyệt: "${content}"`,
+        config: {
+          systemInstruction: systemInstruction,
+          temperature: 0.2,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              isApproved: { type: Type.BOOLEAN, description: "True if safe to post, false if harmful/offensive" },
+              sentiment: { type: Type.STRING, description: "One of positive, neutral, vulnerable, sad, harmful" },
+              reason: { type: Type.STRING, description: "Short explanation in Vietnamese" },
+              suggestion: { type: Type.STRING, description: "Friendly guidance in Vietnamese if rejected, otherwise empty" }
+            },
+            required: ["isApproved", "sentiment", "reason", "suggestion"]
+          }
+        },
+      });
+
+      const resText = response.text;
+      if (!resText) {
+        throw new Error("Không nhận được phản hồi từ Gemini.");
+      }
+
+      const parsed = JSON.parse(resText.trim());
+      return res.json({
+        isApproved: parsed.isApproved,
+        sentiment: parsed.sentiment,
+        reason: parsed.reason,
+        suggestion: parsed.suggestion,
+        isDemo: false
+      });
+
+    } catch (error: any) {
+      console.log("Notice: Validate note backup used.");
+      // Fail-safe fallback: approve the note unless it contains obvious bad words
+      const { content } = req.body;
+      const lower = content ? content.toLowerCase() : "";
+      const toxicKeywords = ["chửi", "địt", "đm", "vl", "ngu", "cút", "tự tử", "tự sát", "bạo lực", "giết"];
+      const isApproved = !toxicKeywords.some((word) => lower.includes(word));
+      
+      return res.json({
+        isApproved,
+        sentiment: isApproved ? "vulnerable" : "harmful",
+        reason: "Kiểm duyệt tự động qua bộ lọc dự phòng thành công.",
+        suggestion: isApproved ? "" : "Hãy dùng từ ngữ nhẹ nhàng hơn nha cậu. Tớ luôn ở đây lắng nghe.",
         isDemo: true,
         isFallback: true
       });

@@ -243,20 +243,20 @@ export default function App() {
         }
 
         /* Glassmorphism card & button overrides for Indigo */
-        .dark-theme-indigo .bg-white,
-        .dark-theme-indigo .bg-white\\/40,
-        .dark-theme-indigo .bg-white\\/50,
-        .dark-theme-indigo .bg-white\\/60,
-        .dark-theme-indigo .bg-white\\/65, 
-        .dark-theme-indigo .bg-white\\/70,
-        .dark-theme-indigo .bg-white\\/75,
-        .dark-theme-indigo .bg-white\\/80,
-        .dark-theme-indigo .bg-white\\/85,
-        .dark-theme-indigo .bg-white\\/90,
-        .dark-theme-indigo .bg-white\\/95,
-        .dark-theme-indigo .bg-amber-50\\/90,
-        .dark-theme-indigo .card,
-        .dark-theme-indigo .bg-slate-50,
+        .dark-theme-indigo .bg-white:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-white\\/40:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-white\\/50:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-white\\/60:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-white\\/65:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo .bg-white\\/70:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-white\\/75:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-white\\/80:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-white\\/85:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-white\\/90:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-white\\/95:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-amber-50\\/90:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .card:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo .bg-slate-50:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-indigo button:not(.no-dark-override):not(.bg-gradient-to-r) {
           background: rgba(255, 255, 255, 0.05) !important;
           backdrop-filter: blur(10px) !important;
@@ -273,17 +273,17 @@ export default function App() {
         }
 
         /* Typography optimizations for Indigo mode to ensure absolute clarity and zero blur */
-        .dark-theme-indigo p, 
-        .dark-theme-indigo span:not(.no-dark-override),
-        .dark-theme-indigo div:not(.no-dark-override), 
-        .dark-theme-indigo h1, 
-        .dark-theme-indigo h2, 
-        .dark-theme-indigo h3, 
-        .dark-theme-indigo h4,
-        .dark-theme-indigo h5,
-        .dark-theme-indigo label,
-        .dark-theme-indigo li,
-        .dark-theme-indigo strong {
+        .dark-theme-indigo p:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo span:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo div:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo h1:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo h2:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo h3:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo h4:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo h5:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo label:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo li:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo strong:not(.no-dark-override):not(.no-dark-override *) {
           color: #f8f9fa !important;
           text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.15), 0px 1px 4px rgba(0, 0, 0, 0.6) !important;
           font-weight: 500 !important;
@@ -343,20 +343,20 @@ export default function App() {
         }
 
         /* Glassmorphism card & button overrides for Moss */
-        .dark-theme-moss .bg-white,
-        .dark-theme-moss .bg-white\\/40,
-        .dark-theme-moss .bg-white\\/50,
-        .dark-theme-moss .bg-white\\/60,
-        .dark-theme-moss .bg-white\\/65, 
-        .dark-theme-moss .bg-white\\/70,
-        .dark-theme-moss .bg-white\\/75,
-        .dark-theme-moss .bg-white\\/80,
-        .dark-theme-moss .bg-white\\/85,
-        .dark-theme-moss .bg-white\\/90,
-        .dark-theme-moss .bg-white\\/95,
-        .dark-theme-moss .bg-amber-50\\/90,
-        .dark-theme-moss .card,
-        .dark-theme-moss .bg-slate-50,
+        .dark-theme-moss .bg-white:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-white\\/40:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-white\\/50:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-white\\/60:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-white\\/65:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-moss .bg-white\\/70:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-white\\/75:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-white\\/80:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-white\\/85:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-white\\/90:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-white\\/95:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-amber-50\\/90:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .card:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss .bg-slate-50:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-moss button:not(.no-dark-override):not(.bg-gradient-to-r) {
           background: rgba(255, 255, 255, 0.05) !important;
           backdrop-filter: blur(10px) !important;
@@ -373,17 +373,17 @@ export default function App() {
         }
 
         /* Typography optimizations for Moss mode to ensure absolute clarity and zero blur */
-        .dark-theme-moss p, 
-        .dark-theme-moss span:not(.no-dark-override),
-        .dark-theme-moss div:not(.no-dark-override), 
-        .dark-theme-moss h1, 
-        .dark-theme-moss h2, 
-        .dark-theme-moss h3, 
-        .dark-theme-moss h4,
-        .dark-theme-moss h5,
-        .dark-theme-moss label,
-        .dark-theme-moss li,
-        .dark-theme-moss strong {
+        .dark-theme-moss p:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-moss span:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss div:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-moss h1:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-moss h2:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-moss h3:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-moss h4:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss h5:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss label:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss li:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-moss strong:not(.no-dark-override):not(.no-dark-override *) {
           color: #f8f9fa !important;
           text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.15), 0px 1px 4px rgba(0, 0, 0, 0.6) !important;
           font-weight: 500 !important;
@@ -906,7 +906,7 @@ export default function App() {
             {/* Aesthetic Footer */}
             <footer className="text-center text-[11px] text-slate-400/80 mt-12 space-y-1 font-light tracking-wide">
               <p>© 2026 Trạm Định Vị Bản Ngã Cho Gen Z (Identity Compass) • Nghiên cứu hành vi học đường Việt Nam</p>
-              <p>Phòng thí nghiệm Phát triển Hành vi Thượng đẳng & Tâm lý học Thực nghiệm Xứ Lạng</p>
+              <p>Phòng Nghiên cứu Tâm lí học Ứng dụng&Phát triển Hành vi Xứ Lạng</p>
             </footer>
           </motion.div>
         )}

@@ -22,6 +22,7 @@ interface Track {
   audioBase64?: string;
   mimeType?: string;
   synthType: "lofi" | "acoustic" | "rain" | "custom";
+  url?: string;
 }
 
 // ==========================================
@@ -35,6 +36,7 @@ class AmbientSynth {
   private mainGain: GainNode | null = null;
   private volume: number = 0.5;
   private currentTrack: Track | null = null;
+  private audioEl: HTMLAudioElement | null = null;
 
   constructor() {}
 
@@ -56,6 +58,9 @@ class AmbientSynth {
     if (this.mainGain && this.ctx) {
       this.mainGain.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 0.1);
     }
+    if (this.audioEl) {
+      this.audioEl.volume = vol;
+    }
   }
 
   public start(track: Track) {
@@ -64,6 +69,25 @@ class AmbientSynth {
     this.currentTrack = track;
     this.isPlaying = true;
 
+    if (track.url) {
+      try {
+        this.audioEl = new Audio(track.url);
+        this.audioEl.loop = true;
+        this.audioEl.volume = this.volume;
+        this.audioEl.play().catch((err) => {
+          console.warn("Failed to play track URL, falling back to synthesizer:", err);
+          this.playSynthesizedFallback(track);
+        });
+      } catch (e) {
+        console.error("Error instantiating Audio element:", e);
+        this.playSynthesizedFallback(track);
+      }
+    } else {
+      this.playSynthesizedFallback(track);
+    }
+  }
+
+  private playSynthesizedFallback(track: Track) {
     if (!this.ctx) return;
     if (this.ctx.state === "suspended") {
       this.ctx.resume();
@@ -92,6 +116,14 @@ class AmbientSynth {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+    // Stop HTML5 audio element
+    if (this.audioEl) {
+      try {
+        this.audioEl.pause();
+        this.audioEl.currentTime = 0;
+      } catch (e) {}
+      this.audioEl = null;
     }
     // Stop all active audio nodes safely
     this.activeNodes.forEach((node) => {
@@ -299,23 +331,26 @@ export default function HealingAudioPlayer() {
     {
       id: "track-1",
       title: "Đại lộ mặt trời - Chillies (Lofi Ver)",
-      artist: "Chillies & Lofi Studio",
+      artist: "Chillies",
       duration: 180,
       synthType: "lofi",
+      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     },
     {
       id: "track-2",
-      title: "Vùng Ký Ức - Acoustic",
-      artist: "Chillies & Acoustic Trio",
+      title: "lofi thư giãn",
+      artist: "CoreZ Chill Beats",
       duration: 210,
-      synthType: "acoustic",
+      synthType: "lofi",
+      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
     },
     {
       id: "track-3",
-      title: "Nhịp điệu chữa lành (Tiếng mưa)",
-      artist: "Nature Healing Sounds",
+      title: "tiếng mưa",
+      artist: "Thiên Nhiên Chữa Lành",
       duration: 300,
       synthType: "rain",
+      url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
     }
   ]);
 
@@ -460,78 +495,39 @@ export default function HealingAudioPlayer() {
       {/* 2. AUDIO PLAYER BAR */}
       <div 
         id="healing-audio-player-wrapper"
-        className="fixed bottom-4 left-4 z-40 max-w-[90vw] md:max-w-md w-full font-sans antialiased"
+        className={`fixed bottom-8 left-8 z-[100] font-sans antialiased transition-all duration-300 ${
+          isExpanded ? "max-w-[90vw] md:max-w-md w-full" : "w-auto"
+        }`}
       >
         <AnimatePresence mode="wait">
           {!isExpanded ? (
             
-            // COLLAPSED VIEW
-            <motion.div
+            // COLLAPSED COMPACT FLOATING CIRCLE BUTTON
+            <motion.button
               key="collapsed-player"
               layoutId="player-container"
               onClick={() => setIsExpanded(true)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setIsExpanded(true);
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              className="w-full h-14 bg-slate-950/85 hover:bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-2xl px-4 flex items-center justify-between shadow-2xl transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              title="Mở Trình Phát Nhạc Chữa Lành"
+              className="w-14 h-14 bg-slate-900/90 hover:bg-slate-800/95 text-white rounded-full flex items-center justify-center shadow-2xl border border-white/10 transition-all cursor-pointer relative group focus:outline-none focus:ring-2 focus:ring-emerald-500/50 hover:scale-105 active:scale-95"
+              title="Mở trình phát nhạc chữa lành 🌌"
             >
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div className="relative">
-                  <div className={`p-2 rounded-xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center ${isPlaying ? 'animate-spin-slow' : ''}`}>
-                    <Music className="w-4.5 h-4.5" />
-                  </div>
-                  {isPlaying && (
-                    <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                    </span>
-                  )}
-                </div>
-                <div className="text-left overflow-hidden">
-                  <p className="text-xs font-bold text-slate-100 truncate group-hover:text-emerald-400 transition-colors">
-                    {activeTrack.title}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-light truncate">
-                    {isPlaying ? "Đang phát nhạc thảnh thơi..." : "Đang tạm dừng"}
-                  </p>
-                </div>
+              {/* Vinyl center rotating representation if playing */}
+              <div className={`p-3 rounded-full bg-slate-950 border border-white/10 text-emerald-400 flex items-center justify-center ${isPlaying ? 'animate-spin-slow' : ''}`}>
+                <Music className="w-5 h-5" />
               </div>
+              
+              {/* Live pulsing dot indicator */}
+              {isPlaying && (
+                <span className="absolute top-1 right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+              )}
 
-              <div className="flex items-center gap-3 shrink-0">
-                {/* Collapsed play/pause */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePlay();
-                  }}
-                  className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-all border border-emerald-500/20 cursor-pointer"
-                >
-                  {isPlaying ? (
-                    <Pause className="w-3.5 h-3.5 fill-current" />
-                  ) : (
-                    <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
-                  )}
-                </button>
-
-                {/* Animated Wave Visualizer */}
-                {isPlaying && (
-                  <div className="flex items-end gap-0.5 h-3.5 px-1 shrink-0">
-                    <span className="w-0.5 bg-emerald-400 animate-pulse h-2.5" style={{ animationDelay: '0.1s' }} />
-                    <span className="w-0.5 bg-emerald-400 animate-pulse h-3.5" style={{ animationDelay: '0.3s' }} />
-                    <span className="w-0.5 bg-emerald-400 animate-pulse h-1.5" style={{ animationDelay: '0.5s' }} />
-                    <span className="w-0.5 bg-emerald-400 animate-pulse h-3" style={{ animationDelay: '0.2s' }} />
-                  </div>
-                )}
-
-                <ChevronUp className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
-              </div>
-            </motion.div>
+              {/* Hover label tool-tip */}
+              <span className="absolute left-16 bg-slate-900/90 text-[10px] text-slate-100 font-medium px-2.5 py-1 rounded-md border border-white/5 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap shadow-lg">
+                Nhạc chữa lành 🎧
+              </span>
+            </motion.button>
 
           ) : (
 
