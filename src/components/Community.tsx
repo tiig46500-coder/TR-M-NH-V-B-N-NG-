@@ -198,7 +198,7 @@ export default function Community() {
               <textarea
                 maxLength={250}
                 rows={5}
-                placeholder="Ví dụ: 'Tớ cảm thấy mệt mỏi khi lướt TikTok thấy các bạn giỏi giang, tớ lo sợ mình tụt hậu ở Chuyên Lạng Sơn...' (Tối đa 250 ký tự)"
+                placeholder="Ví dụ: 'Tớ cảm thấy mệt mỏi khi lướt TikTok thấy các bạn giỏi giang, các video đăng lên nhận được quả ngọt, tớ lo sợ mình tụt hậu so với các bạn...' (Tối đa 250 ký tự)"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 className="w-full p-4 rounded-2xl border border-white/40 focus:outline-none focus:border-[#34D399] text-xs sm:text-sm bg-white/50 placeholder:text-slate-400 shadow-inner resize-none flex-1 min-h-[140px]"

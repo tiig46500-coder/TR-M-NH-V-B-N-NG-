@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Heart, Check, Sparkles } from "lucide-react";
+import CuteStar from "./CuteStar";
 import { ONBOARDING_LETTER } from "../data";
 
 interface LandingPageProps {
@@ -28,14 +29,14 @@ export default function LandingPage({ onStart }: LandingPageProps) {
           <motion.div
             animate={{ y: [0, -6, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="p-3.5 rounded-2xl bg-white/80 text-emerald-500 mb-4 inline-block border border-white/40 shadow-sm"
+            className="p-1 rounded-3xl bg-white/40 mb-4 inline-block border border-white/30 shadow-sm"
           >
-            <Heart className="w-8 h-8 fill-emerald-500/10" />
+            <CuteStar size={84} />
           </motion.div>
           <span className="text-xs font-semibold tracking-wider text-emerald-600 uppercase bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100/50 mb-2">
             Identity Compass
           </span>
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-slate-800 tracking-tight leading-snug">
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-slate-800 tracking-tight leading-snug flex items-center justify-center gap-2">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-emerald-500">Trạm Định Vị Bản Ngã</span>
           </h1>
           <p className="text-sm text-slate-500 mt-1 max-w-md">

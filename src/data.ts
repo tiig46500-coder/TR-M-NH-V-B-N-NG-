@@ -1,14 +1,29 @@
 import { QuizQuestion, LạngSơnPlace, FlashcardItem, Confession } from "./types";
 
 export const ONBOARDING_LETTER = {
-  title: "Gửi cậu, người bạn đang cảm thấy ngợp giữa thế giới ảo...",
-  content: `Cậu có bao giờ tắt màn hình điện thoại và cảm nhận một khoảng trống rỗng vô hình ập đến?
-  
-Nhìn quanh Instagram hay TikTok, ai cũng có vẻ thành công, xinh đẹp, và ngập tràn niềm vui. Những thông báo lấp lánh liên tục đòi hỏi sự chú ý của cậu, tạo nên một nỗi sợ vô hình: sợ bị bỏ lại phía sau (FOMO), áp lực phải hoàn hảo, và áp lực đồng trang lứa đè nặng lên vai.
+  title: 'THƯ NGỎ: GỬI CẬU - NGƯỜI ĐANG ĐI TÌM "LA BÀN" GIỮA KỶ NGUYÊN THUẬT TOÁN 🧭',
+  content: `Chào cậu, người đang dừng chân tại Trạm định vị bản ngã, 👋
 
-Trạm Định Vị Bản Ngã (Identity Compass) không phải là nơi phán xét hay khuyên nhủ. Đây là góc nhỏ bình yên nâng niu cảm xúc của cậu. Nơi cậu có thể đo lường sức khỏe tinh thần, trút bỏ những gánh nặng ẩn danh, bắt đầu hành trình thải độc số, và bước chân ra thế giới thực tại đầy nắng gió của Xứ Lạng.
+Cậu có đang cảm thấy kiệt sức sau hàng giờ lướt smartphone? 📱
 
-Cảm ơn cậu vì đã ở đây. Cậu không hề cô đơn trên hành trình định vị chính mình. 🌱`,
+Chúng mình hiểu, trưởng thành trong thời đại số chưa bao giờ là điều dễ dàng. Đằng sau những màn hình phát sáng là vô vàn áp lực không tên: Cảm giác chông chênh khi thấy bạn bè liên tục khoe thành tích (Peer pressure) 📈, nỗi sợ bị bỏ lỡ các trào lưu (FOMO) ⏳, và cả sự mệt mỏi khi phải liên tục đắp nặn một "nhân dạng ảo" hoàn hảo để đổi lấy những lượt thả tim vô thưởng vô phạt. 💔
+
+Đôi khi, giữa những tiếng "ting ting" của thông báo, cậu bỗng giật mình tự hỏi: "Rốt cuộc, mình thực sự là ai ngoài đời thực?" 🤔
+
+Cậu không cô đơn, và sự chông chênh ấy hoàn toàn có cơ sở khoa học. 🧪
+
+Dưới góc nhìn của Tâm lý học phát triển, tuổi vị thành niên vốn đã là giai đoạn nhạy cảm của quá trình Định hình bản sắc (Identity Formation). Thế nhưng, sự can thiệp của các thuật toán mạng xã hội đã vô tình đẩy nhanh và khuếch đại những khủng hoảng tâm lý. Thay vì khám phá bản thân qua các trải nghiệm thực tế, chúng ta đang bị cuốn vào vòng lặp của sự "so sánh xã hội" (Social Comparison), khiến chiếc la bàn nội tâm bị nhiễu loạn. 🌪️
+
+Đó chính là lý do La Bàn Bản Ngã (Identity Compass) ra đời. 🧭
+
+Đây không phải là một trang web giáo điều, cũng không phải một phòng khám tâm lý khô khan. Đây là một Hệ sinh thái can thiệp số 4D – một không gian an toàn, hoàn toàn ẩn danh, được thiết kế riêng để giúp cậu:
+✨ Đo lường mức độ "chông chênh" của bản thân qua các thang đo chuẩn khoa học.
+🌿 Thải độc khỏi những áp lực ảo và sự so sánh độc hại.
+🌱 Khám phá lại những giá trị thật và thế mạnh độc bản của chính mình.
+
+Cam kết của chúng mình: Mọi thao tác, chia sẻ và kết quả bài test của cậu tại Trạm định vị này đều được mã hóa và bảo mật ẩn danh 100%. Dữ liệu chỉ phục vụ cho mục đích nghiên cứu khoa học, vì sự an toàn tâm lý của cậu là ưu tiên tối thượng. 🔒
+
+Thế giới ảo có thể làm cậu lạc bước, nhưng la bàn nội tâm sẽ đưa cậu về nhà. Cậu đã sẵn sàng gác lại những bộ lọc (filter) trên mạng để bắt đầu hành trình tìm kiếm phiên bản nguyên bản nhất của chính mình chưa? 💚`,
 };
 
 export const QUIZ_QUESTIONS: QuizQuestion[] = [
@@ -65,28 +80,28 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
 export const INITIAL_CONFESSIONS: Confession[] = [
   {
     id: "conf-1",
-    content: "Nhìn stories các bạn đi du lịch, đạt học bổng xuất sắc, tớ thấy mình như một kẻ vô dụng tụt hậu phía sau... Áp lực đồng trang lứa thực sự quá lớn.",
+    content: "Nhìn những mảng màu rực rỡ trên story của bạn bè – người đi du lịch, kẻ nhận học bổng... tớ bỗng thấy chênh vênh. Giữa thanh xuân rực rỡ của mọi người, tớ thấy mình như một nốt lặng mờ nhạt, cứ mãi loay hoay phía sau.",
     timestamp: "10 phút trước",
     color: "bg-amber-50 text-slate-700 border-amber-200",
     rotation: "rotate-1",
   },
   {
     id: "conf-2",
-    content: "Sợ nhất là cảm giác tắt điện thoại lúc 2h sáng sau hàng tiếng lướt Reels vô thức. Căn phòng tối om, lồng ngực trống rỗng và lo âu ngập tràn.",
+    content: "Sợ nhất là khoảnh khắc buông điện thoại xuống lúc 2h sáng. Ánh sáng màn hình vụt tắt, chỉ còn lại căn phòng tối om. Những video lướt vô thức không thể lấp đầy khoảng trống và sự lo âu đang ngập tràn trong lồng ngực.",
     timestamp: "1 giờ trước",
     color: "bg-sky-50 text-slate-700 border-sky-200",
     rotation: "-rotate-2",
   },
   {
     id: "conf-3",
-    content: "Tớ ước gì bố mẹ ngừng so sánh tớ với 'con nhà người ta'. Điểm số không nói lên tất cả, nhưng ở nhà tớ không bao giờ cảm thấy mình đủ tốt.",
+    content: "Chỉ mong một lần bố mẹ nhìn nhận sự nỗ lực của tớ, thay vì cái bóng của 'con nhà người ta'. Những con số vô tri trên bài thi đâu thể gói ghém hết những giọt nước mắt tớ đã giấu kín vùi vào gối mỗi đêm.",
     timestamp: "3 giờ trước",
     color: "bg-emerald-50 text-slate-700 border-emerald-200",
     rotation: "rotate-3",
   },
   {
     id: "conf-4",
-    content: "Có ai giống mình không, mỗi lần đăng ảnh là ngồi canh tim từng phút một. Nếu ít tương tác là mình lại muốn xóa bài ngay lập tức...",
+    content: "Học ở trường Chuyên áp lực thật sự. Xung quanh ai cũng giỏi giang, năng động và luôn tiến về phía trước. Đôi lúc, tớ thấy mình kiệt sức vì phải gồng gánh những kỳ vọng vô hình, chỉ muốn tìm một góc nhỏ để được khóc cho nhẹ lòng.",
     timestamp: "Hôm qua",
     color: "bg-amber-50 text-slate-700 border-amber-100",
     rotation: "-rotate-1",

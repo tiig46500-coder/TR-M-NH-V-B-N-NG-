@@ -2,12 +2,32 @@ import { useState } from "react";
 import { Phone, Heart, X, MessageCircle, Clock, Eye, Sparkles, Check, ArrowRight, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
+const SOOTHING_QUOTES = [
+  // Nhóm 1: Lời an ủi nhẹ nhàng, vỗ về
+  "Cậu đã vất vả nhiều rồi. Hãy tạm đặt gánh nặng xuống, hít một hơi thật sâu. Ở đây có tớ và mọi người luôn sẵn sàng lắng nghe cậu. 🫂",
+  "Hôm nay cậu đã gồng gánh đủ rồi! Giờ thì cho phép bản thân nghỉ ngơi một chút nhé, thế giới ngoài kia lộn xộn quá thì cứ để mai tính. 🌱",
+  "Không sao đâu nếu hôm nay cậu cảm thấy không ổn. Bất cứ ai cũng có quyền được yếu đuối mà. Tớ gửi cậu một cái ôm thật chặt từ xa nhé! ✨",
+  // Nhóm 2: Giải tỏa áp lực đồng trang lứa & học tập
+  "Mỗi bông hoa có một mùa nở riêng, và cậu cũng có 'múi giờ' tỏa sáng của chính mình. Cậu không hề tụt hậu, cậu chỉ đang đi trên con đường của riêng cậu thôi. 🌸",
+  "Điểm số hay thành tích chưa bao giờ định nghĩa được trọn vẹn con người cậu. Trái tim lương thiện và sự nỗ lực thầm lặng của cậu mới là điều đáng tự hào nhất. ✨",
+  // Nhóm 3: Xoa dịu sự cô đơn
+  "Màn đêm có thể tĩnh lặng và mịt mù, nhưng cậu không hề đơn độc đâu. Nơi góc nhỏ này luôn sáng đèn và có người chờ cậu ghé qua trút bầu tâm sự. 🫂",
+  "If the room feels too dark right now, let these lines be a tiny warm light for you. Remember that you are always worthy of being loved. 💚",
+  // Nhóm 4: Thông điệp "Sơ cứu" tức thì
+  "Nhắm mắt lại và cùng tớ đếm ngược từ 5 nhé: 5... 4... 3... 2... 1. Tốt lắm. Mọi giông bão đều dừng lại ngoài kia rồi. Ở đây cậu rất an toàn. ✨",
+  "Ngay lúc này, hãy thử đứng lên uống một ngụm nước ấm, thả lỏng hai vai và bật một bản nhạc lofi nhé. Chuyện gì rồi cũng sẽ có cách giải quyết thôi. 🌱"
+];
+
 export default function SosButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1); // Steps 1 to 5, and Step 6 is the final Hotline page
+  const [isSoothed, setIsSoothed] = useState(false);
+  const [sootheQuote, setSootheQuote] = useState("");
 
   const handleOpen = () => {
     setCurrentStep(1);
+    setIsSoothed(false);
+    setSootheQuote("");
     setIsOpen(true);
   };
 
@@ -17,6 +37,20 @@ export default function SosButton() {
 
   const handleClose = () => {
     setIsOpen(false);
+  };
+
+  const triggerSoothe = () => {
+    const randomQuote = SOOTHING_QUOTES[Math.floor(Math.random() * SOOTHING_QUOTES.length)];
+    setSootheQuote(randomQuote);
+    setIsSoothed(true);
+  };
+
+  const handleNextQuote = () => {
+    let nextQuote = sootheQuote;
+    while (nextQuote === sootheQuote && SOOTHING_QUOTES.length > 1) {
+      nextQuote = SOOTHING_QUOTES[Math.floor(Math.random() * SOOTHING_QUOTES.length)];
+    }
+    setSootheQuote(nextQuote);
   };
 
   // 5-4-3-2-1 Steps Configuration
@@ -172,12 +206,13 @@ export default function SosButton() {
                       </button>
                     </div>
                   </motion.div>
-                ) : (
-                  // Step 6: Post-centering screen (closure)
+                ) : !isSoothed ? (
+                  // Step 6: Post-centering screen (closure) asking if they are okay
                   <motion.div
-                    key="step-complete"
+                    key="step-complete-question"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
                     className="flex-1 flex flex-col justify-center items-center space-y-6 my-6 text-center"
                   >
                     <div className="space-y-3">
@@ -185,20 +220,67 @@ export default function SosButton() {
                         <Sparkles className="w-8 h-8 animate-spin-slow" />
                       </div>
                       <h3 className="font-serif text-2xl font-bold text-emerald-300">
-                        Cậu thấy dễ chịu hơn chút nào chưa?
+                        Cậu đã thấy ổn hơn chút nào chưa? 🌿
                       </h3>
                       <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed font-light">
                         Cảm ơn cậu đã kiên nhẫn đồng hành cùng cơ thể qua kỹ thuật Sơ cứu cảm xúc 5-4-3-2-1. Hãy giữ nhịp hít thở chậm rãi này nhé.
                       </p>
                     </div>
 
-                    <div className="pt-4 w-full max-w-xs">
+                    <div className="pt-4 w-full max-w-md flex flex-col sm:flex-row gap-3 justify-center">
                       <button
                         onClick={handleClose}
-                        className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-950/40 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                        className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-950/40 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                       >
                         <Check className="w-4.5 h-4.5 text-white" />
-                        <span>Tớ đã ổn hơn</span>
+                        <span>Tớ ổn hơn rồi</span>
+                      </button>
+                      <button
+                        onClick={triggerSoothe}
+                        className="flex-1 py-3.5 px-6 rounded-2xl bg-slate-800 hover:bg-slate-750 border border-white/10 text-slate-200 font-bold text-sm transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <span>Tớ vẫn thấy chênh vênh...</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  // Advanced soothing feature: Random calming quote
+                  <motion.div
+                    key="soothe-quote-screen"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -15 }}
+                    className="flex-1 flex flex-col justify-center items-center space-y-6 my-6 text-center"
+                  >
+                    <div className="space-y-4 max-w-lg mx-auto">
+                      <div className="flex justify-center gap-2.5 text-emerald-400">
+                        <span className="text-2xl animate-pulse">✨</span>
+                        <span className="text-2xl">🫂</span>
+                        <span className="text-2xl animate-pulse">🌱</span>
+                      </div>
+                      <h4 className="text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase">
+                        Góc vỗ về của Trạm Bản Ngã
+                      </h4>
+                      <div className="min-h-[100px] flex items-center justify-center">
+                        <p className="font-serif text-lg sm:text-xl italic leading-relaxed text-emerald-100 font-light select-none transition-all duration-500">
+                          “ {sootheQuote} ”
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 w-full max-w-md flex flex-col sm:flex-row gap-3 justify-center">
+                      <button
+                        onClick={handleNextQuote}
+                        className="flex-1 py-3.5 px-6 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-emerald-500/25 text-emerald-300 font-bold text-sm transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <span>Tớ muốn nghe thêm</span>
+                      </button>
+                      <button
+                        onClick={handleClose}
+                        className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-950/40 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <Check className="w-4.5 h-4.5 text-white" />
+                        <span>Tớ thấy nhẹ lòng rồi</span>
                       </button>
                     </div>
                   </motion.div>

@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 import { FLASHCARDS } from "../data";
 import { ChatMessage } from "../types";
+import { useUserData } from "../context/UserContext";
 
 export default function FlashcardsAndAi() {
+  const { userData } = useUserData();
   // ==========================================
   // Section 1: Flashcards State & Logic
   // ==========================================
@@ -129,7 +131,10 @@ export default function FlashcardsAndAi() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ messages: payloadMessages })
+        body: JSON.stringify({ 
+          messages: payloadMessages,
+          moodLogs: userData.moodLogs
+        })
       });
 
       if (!res.ok) {

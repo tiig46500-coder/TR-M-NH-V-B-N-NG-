@@ -28,6 +28,25 @@ import {
 import { INITIAL_CONFESSIONS, LẠNG_SƠN_PLACES } from "../data";
 import { Confession, HabitChallenge, LạngSơnPlace } from "../types";
 
+const INSPIRE_QUOTES = [
+  {
+    text: "Được sống làm người quý giá thật. Nhưng được sống là chính mình với những giá trị mình theo đuổi và vốn có càng quý giá hơn. Con người phải biết luôn luôn vượt qua những nghịch cảnh với chính bản thân mình để hoàn thiện nhân cách và hướng tới những giá trị cao cả trong tâm hồn.",
+    author: "MC Khánh Vy (Trích thông điệp \"Hồn Trương Ba, da hàng thịt\")"
+  },
+  {
+    text: "Ở đời này không có con đường cùng, chỉ có những ranh giới, điều cốt yếu là phải có sức mạnh để bước qua ranh giới ấy.",
+    author: "Nhà văn Nguyễn Khải (Trích \"Mùa lạc\")"
+  },
+  {
+    text: "Một con người có thể bị hủy diệt, nhưng không thể bị đánh bại.",
+    author: "Nhà văn Ernest Hemingway (Trích \"Ông già và biển cả\")"
+  },
+  {
+    text: "Điều kỳ diệu sẽ xảy ra nếu chúng ta không bao giờ bỏ cuộc bởi vì vũ trụ luôn biết lắng nghe một trái tim ngoan cường.",
+    author: "Á hậu Madison Anderson"
+  }
+];
+
 export default function Space4D() {
   const [activeSubTab, setActiveSubTab] = useState<"define" | "devirtualize" | "detox" | "do">("define");
 
@@ -142,25 +161,173 @@ export default function Space4D() {
   // ==========================================
   // Tab 3: Detox (Thanh lọc số) State & Logic
   // ==========================================
-  const [detoxTasks, setDetoxTasks] = useState({
-    unfollowedToxic: false,       // D3-1
-    interactedPositive: false,    // D3-2
-    grayscaleChallenge: false,    // D3-3
-    disableNotifications: false,  // D3-4
-    bedtimeCurfew: false,         // D3-5
-    activatedLimit: false,        // D3-6
+  const [detoxTasks, setDetoxTasks] = useState(() => {
+    const saved = localStorage.getItem("remix_corez_detox_tasks");
+    return saved ? JSON.parse(saved) : {
+      unfollowedToxic: false,       // D3-1
+      interactedPositive: false,    // D3-2
+      grayscaleChallenge: false,    // D3-3
+      disableNotifications: false,  // D3-4
+      bedtimeCurfew: false,         // D3-5
+      activatedLimit: false,        // D3-6
+    };
   });
-  const [dailyOnlineLimit, setDailyOnlineLimit] = useState<number>(1.5); // hours/day, default 1.5
+  const [dailyOnlineLimit, setDailyOnlineLimit] = useState<number>(() => {
+    const saved = localStorage.getItem("remix_corez_daily_online_limit");
+    return saved ? parseFloat(saved) : 1.5;
+  });
+
+  const [isInspireModalOpen, setIsInspireModalOpen] = useState(false);
+  const [hasAutoPopped, setHasAutoPopped] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState(INSPIRE_QUOTES[0]);
+  const [cardFlipped, setCardFlipped] = useState(false);
+  const [geminiResponse, setGeminiResponse] = useState("");
+  const [isLoadingGemini, setIsLoadingGemini] = useState(false);
+
+  const fetchInspireMessage = async (quoteText: string) => {
+    setIsLoadingGemini(true);
+    setGeminiResponse("");
+    try {
+      const res = await fetch("/api/gemini-inspire-card", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ quote: quoteText }),
+      });
+      if (!res.ok) throw new Error("API call failed");
+      const data = await res.json();
+      setGeminiResponse(data.reply);
+    } catch (err) {
+      console.error(err);
+      setGeminiResponse("Tớ biết con đường cậu đi không hề dễ dàng, nhưng từng bước chân kiên trì của cậu đều lấp lánh như ngàn tinh tú. Hôm nay hãy dành 10 phút tĩnh lặng để tri ân nỗ lực của chính mình nhé! Tớ luôn tin ở cậu. 🌌✨");
+    } finally {
+      setIsLoadingGemini(false);
+    }
+  };
+
+  const openInspireModalManually = () => {
+    const randomQuote = INSPIRE_QUOTES[Math.floor(Math.random() * INSPIRE_QUOTES.length)];
+    setSelectedQuote(randomQuote);
+    setCardFlipped(false);
+    setIsInspireModalOpen(true);
+    fetchInspireMessage(`"${randomQuote.text}" - ${randomQuote.author}`);
+  };
 
   const toggleDetoxTask = (key: keyof typeof detoxTasks) => {
-    setDetoxTasks(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setDetoxTasks(prev => {
+      const updated = {
+        ...prev,
+        [key]: !prev[key]
+      };
+      localStorage.setItem("remix_corez_detox_tasks", JSON.stringify(updated));
+      return updated;
+    });
   };
+
+  React.useEffect(() => {
+    localStorage.setItem("remix_corez_daily_online_limit", dailyOnlineLimit.toString());
+  }, [dailyOnlineLimit]);
 
   const completedDetoxCount = Object.values(detoxTasks).filter(Boolean).length;
   const detoxProgressPercent = Math.round((completedDetoxCount / 6) * 100);
+
+  // Streak & Date persistence logic for D3 actions
+  React.useEffect(() => {
+    const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local format
+    let savedDates: string[] = [];
+    try {
+      const stored = localStorage.getItem("remix_corez_d3_dates");
+      if (stored) {
+        savedDates = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    if (completedDetoxCount >= 5) {
+      if (!savedDates.includes(todayStr)) {
+        savedDates.push(todayStr);
+        localStorage.setItem("remix_corez_d3_dates", JSON.stringify(savedDates));
+      }
+    } else {
+      if (savedDates.includes(todayStr)) {
+        savedDates = savedDates.filter(d => d !== todayStr);
+        localStorage.setItem("remix_corez_d3_dates", JSON.stringify(savedDates));
+      }
+    }
+  }, [detoxTasks, completedDetoxCount]);
+
+  // Auto-trigger Inspiring Card Modal on reaching >= 5/6 completed tasks (>= 80%)
+  React.useEffect(() => {
+    if (completedDetoxCount >= 5) {
+      if (!hasAutoPopped) {
+        const randomQuote = INSPIRE_QUOTES[Math.floor(Math.random() * INSPIRE_QUOTES.length)];
+        setSelectedQuote(randomQuote);
+        setCardFlipped(false);
+        setIsInspireModalOpen(true);
+        setHasAutoPopped(true);
+        fetchInspireMessage(`"${randomQuote.text}" - ${randomQuote.author}`);
+      }
+    } else {
+      // If completed tasks drop below 5, allow auto-popping again when they reach 5
+      setHasAutoPopped(false);
+    }
+  }, [completedDetoxCount, hasAutoPopped]);
+
+  // Streak calculator helper
+  const calculateD3Streak = (): number => {
+    let savedDates: string[] = [];
+    try {
+      const stored = localStorage.getItem("remix_corez_d3_dates");
+      if (stored) {
+        savedDates = JSON.parse(stored);
+      }
+    } catch (e) {
+      return 0;
+    }
+
+    if (!Array.isArray(savedDates) || savedDates.length === 0) return 0;
+
+    let streak = 0;
+    const today = new Date();
+    let currentCheck = new Date();
+
+    const todayStr = today.toLocaleDateString("en-CA");
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString("en-CA");
+
+    // If neither today nor yesterday is completed, streak is 0
+    if (!savedDates.includes(todayStr) && !savedDates.includes(yesterdayStr)) {
+      return 0;
+    }
+
+    // Start with the latest completed day (either today or yesterday)
+    if (savedDates.includes(todayStr)) {
+      currentCheck = today;
+    } else {
+      currentCheck = yesterday;
+    }
+
+    // Guard against infinite loop in case of date errors
+    let maxTries = 1000;
+    while (maxTries > 0) {
+      const checkStr = currentCheck.toLocaleDateString("en-CA");
+      if (savedDates.includes(checkStr)) {
+        streak++;
+        // Go back 1 day
+        currentCheck.setDate(currentCheck.getDate() - 1);
+        maxTries--;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  };
+
+  const currentD3Streak = calculateD3Streak();
 
   const resetDetox = () => {
     setDetoxTasks({
@@ -171,6 +338,8 @@ export default function Space4D() {
       bedtimeCurfew: false,
       activatedLimit: false,
     });
+    localStorage.removeItem("remix_corez_detox_tasks");
+    localStorage.removeItem("remix_corez_d3_dates");
     setDailyOnlineLimit(1.5);
   };
 
@@ -466,6 +635,27 @@ export default function Space4D() {
                   <p className="text-xs text-slate-500 mt-4 font-medium text-center leading-snug">
                     Đạt <span className="text-[#34D399] font-bold">{completedDetoxCount}/6</span> thói quen thanh lọc hôm nay
                   </p>
+
+                  {currentD3Streak > 0 ? (
+                    <div className="mt-3.5 flex items-center gap-1.5 bg-purple-50 text-purple-600 px-3.5 py-2 rounded-full border border-purple-100 text-[11px] font-bold shadow-sm">
+                      <span className="text-xs animate-bounce">🔥</span>
+                      <span>Chuỗi {currentD3Streak} ngày Digital Minimalist 🕶️</span>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-400 mt-2.5 text-center italic leading-relaxed">
+                      Hoàn thành 5/6 thói quen hôm nay để kích hoạt chuỗi Digital Minimalist 🕶️
+                    </p>
+                  )}
+
+                  {completedDetoxCount >= 5 && (
+                    <button
+                      onClick={openInspireModalManually}
+                      className="mt-3 w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-purple-600 hover:from-amber-500 hover:via-orange-600 hover:to-purple-700 text-white px-4 py-2.5 rounded-full font-bold text-xs shadow-md border border-amber-300/30 transition-all transform hover:scale-[1.03] active:scale-95 cursor-pointer"
+                    >
+                      <span className="animate-pulse">🔮</span>
+                      <span>Mở Quà Vũ Trụ</span>
+                    </button>
+                  )}
                 </div>
 
                 {/* 6 Interactive Detox Tasks */}
@@ -914,6 +1104,111 @@ export default function Space4D() {
             </motion.div>
           )}
 
+        </AnimatePresence>
+
+        {/* Inspiring Card Modal Pop-up */}
+        <AnimatePresence>
+          {isInspireModalOpen && (
+            <div 
+              className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto"
+              onClick={() => setIsInspireModalOpen(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className="bg-slate-900/95 border border-amber-300/30 text-white rounded-[32px] p-6 text-center max-w-sm w-full shadow-2xl relative overflow-hidden space-y-5"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Decorative particles background */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.08),transparent_50%)] pointer-events-none" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(139,92,246,0.08),transparent_50%)] pointer-events-none" />
+
+                <div className="relative z-10 space-y-1">
+                  <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-400/20 flex items-center justify-center mx-auto mb-2 animate-bounce">
+                    <span className="text-2xl">✨</span>
+                  </div>
+                  <h3 className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-orange-300 to-purple-300 font-sans uppercase tracking-wider">
+                    Bảo Vệ Tâm Trí Hoàn Hảo!
+                  </h3>
+                  <p className="text-[11px] text-slate-300 font-light leading-relaxed max-w-[280px] mx-auto">
+                    Chúc mừng cậu đã hoàn thành xuất sắc việc bảo vệ tâm trí hôm nay! Đây là món quà vũ trụ gửi đến cậu ✨
+                  </p>
+                </div>
+
+                {/* 3D Flip Card Container */}
+                <div 
+                  className="w-full h-80 mx-auto [perspective:1000px] cursor-pointer my-4"
+                  onClick={() => setCardFlipped(!cardFlipped)}
+                >
+                  <div className={`relative w-full h-full transition-all duration-700 [transform-style:preserve-3d] ${cardFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
+                    
+                    {/* FRONT SIDE */}
+                    <div className="absolute inset-0 w-full h-full rounded-2xl border border-amber-300/30 bg-gradient-to-br from-slate-800 to-slate-900 p-6 flex flex-col justify-between shadow-xl [backface-visibility:hidden] text-left">
+                      <div className="flex justify-between items-center text-[9px] font-mono text-amber-300/65 tracking-wider font-semibold">
+                        <span>MẶT TRƯỚC 🌌</span>
+                        <span>TRẠM ĐỊNH VỊ BẢN NGÃ</span>
+                      </div>
+                      
+                      <div className="flex-1 flex flex-col justify-center items-center py-4 text-center">
+                        <span className="text-3xl mb-3 animate-pulse">🌟</span>
+                        <p className="text-slate-100 font-medium text-xs leading-relaxed italic px-2 font-serif">
+                          "{selectedQuote.text}"
+                        </p>
+                        <span className="text-[10px] text-amber-300/80 font-bold mt-3 block">
+                          — {selectedQuote.author}
+                        </span>
+                      </div>
+
+                      <div className="text-center text-[9px] text-slate-400 font-mono tracking-widest animate-pulse">
+                        CHẠM ĐỂ LẬT NHẬN QUÀ AI 🔮
+                      </div>
+                    </div>
+
+                    {/* BACK SIDE */}
+                    <div className="absolute inset-0 w-full h-full rounded-2xl border border-purple-400/30 bg-gradient-to-br from-slate-800 to-indigo-950 p-6 flex flex-col justify-between shadow-xl [backface-visibility:hidden] [transform:rotateY(180deg)] text-left">
+                      <div className="flex justify-between items-center text-[9px] font-mono text-purple-300/65 tracking-wider font-semibold">
+                        <span>MẶT SAU 💫</span>
+                        <span>AI ĐỒNG HÀNH CHỮA LÀNH</span>
+                      </div>
+
+                      <div className="flex-1 flex flex-col justify-center items-center py-4 text-center">
+                        {isLoadingGemini ? (
+                          <div className="space-y-3 flex flex-col items-center">
+                            <span className="text-2xl animate-spin text-purple-400">✨</span>
+                            <p className="text-purple-300 font-mono text-[11px] tracking-wider animate-pulse">
+                              Đang kết nối vũ trụ... ✨
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2 overflow-y-auto max-h-48 pr-1 flex flex-col justify-center h-full">
+                            <p className="text-slate-100 text-[11px] leading-relaxed text-justify whitespace-pre-line px-1 font-sans">
+                              {geminiResponse}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="text-center text-[9px] text-slate-400 font-mono tracking-widest">
+                        CHẠM ĐỂ QUAY LẠI MẶT TRƯỚC 🔄
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="flex justify-center pt-1">
+                  <button
+                    onClick={() => setIsInspireModalOpen(false)}
+                    className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl font-bold text-xs border border-slate-700 transition-all cursor-pointer active:scale-95"
+                  >
+                    Đóng quà tặng
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
         </AnimatePresence>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Compass, 
@@ -31,8 +31,104 @@ import Community from "./components/Community";
 import PanicButton from "./components/PanicButton";
 import SosButton from "./components/SosButton";
 import HealingAudioPlayer from "./components/HealingAudioPlayer";
+import CuteStar from "./components/CuteStar";
 import { useUserData } from "./context/UserContext";
 import { RiskLevel } from "./types";
+
+const StarryBackground = ({ theme }: { theme: "dark-indigo" | "dark-moss" }) => {
+  const [standingStars] = useState(() =>
+    Array.from({ length: 30 }).map((_, i) => ({
+      id: i,
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      size: Math.random() * 1.5 + 0.8,
+      delay: `${Math.random() * 5}s`,
+      duration: `${4 + Math.random() * 4}s`,
+    }))
+  );
+
+  const [driftingStars] = useState(() =>
+    Array.from({ length: 25 }).map((_, i) => ({
+      id: i,
+      top: `${Math.random() * 80 + 10}%`,
+      left: `${Math.random() * 100}%`,
+      size: Math.random() * 2.2 + 1.2,
+      delay: `${Math.random() * 6}s`,
+      duration: `${8 + Math.random() * 8}s`,
+      driftY: -(120 + Math.random() * 100),
+    }))
+  );
+
+  // Tiny twinkle particles overlay (twinkle 3s infinite) with different opacities
+  const [particles] = useState(() =>
+    Array.from({ length: 40 }).map((_, i) => ({
+      id: i,
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      size: Math.random() * 1.2 + 0.5,
+      opacity: Math.random() * 0.5 + 0.25,
+      delay: `${Math.random() * 3}s`,
+    }))
+  );
+
+  const starColorClass = theme === "dark-indigo" 
+    ? "bg-sky-100 shadow-[0_0_6px_rgba(125,211,252,0.8)]" 
+    : "bg-amber-100 shadow-[0_0_6px_rgba(253,230,138,0.8)]";
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-[-1]">
+      {/* 1. Standing/twinkling stars */}
+      {standingStars.map((star) => (
+        <div
+          key={`stand-${star.id}`}
+          className={`absolute rounded-full animate-twinkle ${starColorClass}`}
+          style={{
+            top: star.top,
+            left: star.left,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            animationDelay: star.delay,
+            animationDuration: star.duration,
+          }}
+        />
+      ))}
+
+      {/* 2. Tiny gentle twinkle particles (twinkle 3s infinite) */}
+      {particles.map((p) => (
+        <div
+          key={`part-${p.id}`}
+          className={`absolute rounded-full bg-white/95 shadow-[0_0_3px_rgba(255,255,255,0.7)]`}
+          style={{
+            top: p.top,
+            left: p.left,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            opacity: p.opacity,
+            animation: `twinkle 3s ease-in-out infinite`,
+            animationDelay: p.delay,
+          }}
+        />
+      ))}
+
+      {/* 3. Drifting/flying upward stars */}
+      {driftingStars.map((star) => (
+        <div
+          key={`drift-${star.id}`}
+          className={`absolute rounded-full animate-star-drift ${starColorClass}`}
+          style={{
+            top: star.top,
+            left: star.left,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            animationDelay: star.delay,
+            animationDuration: star.duration,
+            "--drift-y": `${star.driftY}px`,
+          } as React.CSSProperties}
+        />
+      ))}
+    </div>
+  );
+};
 
 export default function App() {
   const { userData, updateDiiScore, resetAllData } = useUserData();
@@ -50,6 +146,26 @@ export default function App() {
 
   // Healing Themes: 'light' | 'dark-indigo' | 'dark-moss'
   const [theme, setTheme] = useState<"light" | "dark-indigo" | "dark-moss">("light");
+
+  // Sync theme to document.body class list
+  useEffect(() => {
+    document.body.classList.remove(
+      "theme-light",
+      "theme-indigo",
+      "theme-moss",
+      "dark-theme-indigo",
+      "dark-theme-moss",
+      "theme-dark-indigo",
+      "theme-dark-moss"
+    );
+    if (theme === "dark-indigo") {
+      document.body.classList.add("theme-indigo", "dark-theme-indigo", "theme-dark-indigo");
+    } else if (theme === "dark-moss") {
+      document.body.classList.add("theme-moss", "dark-theme-moss", "theme-dark-moss");
+    } else {
+      document.body.classList.add("theme-light");
+    }
+  }, [theme]);
 
   // Empathetic AI Mentor Trigger state
   const [showMentorToast, setShowMentorToast] = useState(false);
@@ -103,32 +219,60 @@ export default function App() {
   const getThemeClasses = () => {
     switch (theme) {
       case "dark-indigo":
-        return "min-h-screen text-slate-100 font-sans antialiased selection:bg-indigo-900 selection:text-indigo-100 transition-colors duration-500 pb-16 relative overflow-hidden dark-theme-indigo";
+        return "min-h-screen text-slate-100 font-sans antialiased selection:bg-indigo-900 selection:text-indigo-100 transition-colors duration-500 pb-16 relative overflow-hidden dark-theme-indigo theme-indigo";
       case "dark-moss":
-        return "min-h-screen text-slate-100 font-sans antialiased selection:bg-emerald-950 selection:text-emerald-100 transition-colors duration-500 pb-16 relative overflow-hidden dark-theme-moss";
+        return "min-h-screen text-slate-100 font-sans antialiased selection:bg-emerald-950 selection:text-emerald-100 transition-colors duration-500 pb-16 relative overflow-hidden dark-theme-moss theme-moss";
       default:
-        return "min-h-screen bg-[#F8FAFC] text-[#334155] font-sans antialiased selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-500 pb-16 relative overflow-hidden";
+        return "min-h-screen bg-[#F8FAFC] text-[#334155] font-sans antialiased selection:bg-emerald-100 selection:text-emerald-900 transition-colors duration-500 pb-16 relative overflow-hidden theme-light";
     }
   };
 
   return (
-    <div id="app-root" className={getThemeClasses()}>
+    <div id="app-root" key={theme} className={getThemeClasses()}>
       {/* CSS overrides for dark-indigo & dark-moss therapeutic modes */}
       <style>{`
         /* Deep Dark Indigo overrides */
         .dark-theme-indigo {
-          --card-bg: rgba(21, 23, 35, 0.85);
-          --card-border: rgba(255, 255, 255, 0.08);
-          background-color: #0b0c12;
-          color: #f1f5f9;
+          --card-bg: rgba(255, 255, 255, 0.05);
+          --card-border: rgba(255, 255, 255, 0.12);
+          background: linear-gradient(135deg, #050515 0%, #0c0b24 45%, #180d3d 100%) !important;
+          color: #ffffff !important;
+          text-rendering: optimizeLegibility !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
         }
+
+        /* Glassmorphism card & button overrides for Indigo */
+        .dark-theme-indigo .bg-white,
+        .dark-theme-indigo .bg-white\\/40,
+        .dark-theme-indigo .bg-white\\/50,
+        .dark-theme-indigo .bg-white\\/60,
         .dark-theme-indigo .bg-white\\/65, 
         .dark-theme-indigo .bg-white\\/70,
+        .dark-theme-indigo .bg-white\\/75,
         .dark-theme-indigo .bg-white\\/80,
-        .dark-theme-indigo .bg-white\\/90 {
-          background-color: rgba(21, 23, 35, 0.85) !important;
-          border-color: rgba(255, 255, 255, 0.08) !important;
+        .dark-theme-indigo .bg-white\\/85,
+        .dark-theme-indigo .bg-white\\/90,
+        .dark-theme-indigo .bg-white\\/95,
+        .dark-theme-indigo .bg-amber-50\\/90,
+        .dark-theme-indigo .card,
+        .dark-theme-indigo .bg-slate-50,
+        .dark-theme-indigo button:not(.no-dark-override):not(.bg-gradient-to-r) {
+          background: rgba(255, 255, 255, 0.05) !important;
+          backdrop-filter: blur(10px) !important;
+          -webkit-backdrop-filter: blur(10px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+          transform: translate3d(0, 0, 0) !important;
         }
+
+        /* Active active tab button glassmorphism override */
+        .dark-theme-indigo .bg-white\\/85 {
+          background: rgba(255, 255, 255, 0.15) !important;
+          border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        }
+
+        /* Typography optimizations for Indigo mode to ensure absolute clarity and zero blur */
         .dark-theme-indigo p, 
         .dark-theme-indigo span:not(.no-dark-override),
         .dark-theme-indigo div:not(.no-dark-override), 
@@ -136,18 +280,49 @@ export default function App() {
         .dark-theme-indigo h2, 
         .dark-theme-indigo h3, 
         .dark-theme-indigo h4,
-        .dark-theme-indigo label {
-          color: #f1f5f9 !important;
+        .dark-theme-indigo h5,
+        .dark-theme-indigo label,
+        .dark-theme-indigo li,
+        .dark-theme-indigo strong {
+          color: #f8f9fa !important;
+          text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.15), 0px 1px 4px rgba(0, 0, 0, 0.6) !important;
+          font-weight: 500 !important;
+          text-rendering: optimizeLegibility !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          transform: translate3d(0, 0, 0) !important;
         }
+
+        /* Bold elements for maximum punch and crispness in cards */
+        .dark-theme-indigo h1,
+        .dark-theme-indigo h2,
+        .dark-theme-indigo h3,
+        .dark-theme-indigo h4,
+        .dark-theme-indigo h5,
+        .dark-theme-indigo strong,
+        .dark-theme-indigo .font-bold,
+        .dark-theme-indigo .font-extrabold,
+        .dark-theme-indigo .font-semibold {
+          font-weight: 700 !important;
+          color: #ffffff !important;
+          text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.2), 0px 1px 6px rgba(0, 0, 0, 0.7) !important;
+        }
+
         .dark-theme-indigo .text-slate-800,
         .dark-theme-indigo .text-slate-700,
         .dark-theme-indigo .text-slate-600,
-        .dark-theme-indigo .text-slate-500 {
-          color: #cbd5e1 !important;
-        }
+        .dark-theme-indigo .text-slate-500,
         .dark-theme-indigo .text-slate-400 {
-          color: #94a3b8 !important;
+          color: #f8f9fa !important;
         }
+
+        /* Brightness & contrast boost for images and icons in Indigo */
+        .dark-theme-indigo img,
+        .dark-theme-indigo svg {
+          filter: brightness(1.15) contrast(1.15) saturate(1.15) !important;
+          transform: translate3d(0, 0, 0) !important;
+        }
+
         .dark-theme-indigo input,
         .dark-theme-indigo textarea,
         .dark-theme-indigo select {
@@ -155,24 +330,49 @@ export default function App() {
           border-color: rgba(255, 255, 255, 0.15) !important;
           color: #ffffff !important;
         }
-        .dark-theme-indigo .bg-slate-50 {
-          background-color: rgba(15, 17, 26, 0.7) !important;
-        }
 
         /* Deep Dark Moss Green overrides */
         .dark-theme-moss {
-          --card-bg: rgba(14, 22, 18, 0.85);
-          --card-border: rgba(255, 255, 255, 0.08);
-          background-color: #060907;
-          color: #f0f7f3;
+          --card-bg: rgba(255, 255, 255, 0.05);
+          --card-border: rgba(255, 255, 255, 0.12);
+          background: linear-gradient(135deg, #020b08 0%, #051a14 45%, #0f2c22 100%) !important;
+          color: #ffffff !important;
+          text-rendering: optimizeLegibility !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
         }
+
+        /* Glassmorphism card & button overrides for Moss */
+        .dark-theme-moss .bg-white,
+        .dark-theme-moss .bg-white\\/40,
+        .dark-theme-moss .bg-white\\/50,
+        .dark-theme-moss .bg-white\\/60,
         .dark-theme-moss .bg-white\\/65, 
         .dark-theme-moss .bg-white\\/70,
+        .dark-theme-moss .bg-white\\/75,
         .dark-theme-moss .bg-white\\/80,
-        .dark-theme-moss .bg-white\\/90 {
-          background-color: rgba(14, 22, 18, 0.85) !important;
-          border-color: rgba(255, 255, 255, 0.08) !important;
+        .dark-theme-moss .bg-white\\/85,
+        .dark-theme-moss .bg-white\\/90,
+        .dark-theme-moss .bg-white\\/95,
+        .dark-theme-moss .bg-amber-50\\/90,
+        .dark-theme-moss .card,
+        .dark-theme-moss .bg-slate-50,
+        .dark-theme-moss button:not(.no-dark-override):not(.bg-gradient-to-r) {
+          background: rgba(255, 255, 255, 0.05) !important;
+          backdrop-filter: blur(10px) !important;
+          -webkit-backdrop-filter: blur(10px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+          transform: translate3d(0, 0, 0) !important;
         }
+
+        /* Active active tab button glassmorphism override */
+        .dark-theme-moss .bg-white\\/85 {
+          background: rgba(255, 255, 255, 0.15) !important;
+          border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        }
+
+        /* Typography optimizations for Moss mode to ensure absolute clarity and zero blur */
         .dark-theme-moss p, 
         .dark-theme-moss span:not(.no-dark-override),
         .dark-theme-moss div:not(.no-dark-override), 
@@ -180,18 +380,49 @@ export default function App() {
         .dark-theme-moss h2, 
         .dark-theme-moss h3, 
         .dark-theme-moss h4,
-        .dark-theme-moss label {
-          color: #f0f7f3 !important;
+        .dark-theme-moss h5,
+        .dark-theme-moss label,
+        .dark-theme-moss li,
+        .dark-theme-moss strong {
+          color: #f8f9fa !important;
+          text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.15), 0px 1px 4px rgba(0, 0, 0, 0.6) !important;
+          font-weight: 500 !important;
+          text-rendering: optimizeLegibility !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          transform: translate3d(0, 0, 0) !important;
         }
+
+        /* Bold elements for maximum punch and crispness in Moss cards */
+        .dark-theme-moss h1,
+        .dark-theme-moss h2,
+        .dark-theme-moss h3,
+        .dark-theme-moss h4,
+        .dark-theme-moss h5,
+        .dark-theme-moss strong,
+        .dark-theme-moss .font-bold,
+        .dark-theme-moss .font-extrabold,
+        .dark-theme-moss .font-semibold {
+          font-weight: 700 !important;
+          color: #ffffff !important;
+          text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.2), 0px 1px 6px rgba(0, 0, 0, 0.7) !important;
+        }
+
         .dark-theme-moss .text-slate-800,
         .dark-theme-moss .text-slate-700,
         .dark-theme-moss .text-slate-600,
-        .dark-theme-moss .text-slate-500 {
-          color: #d1e2d8 !important;
-        }
+        .dark-theme-moss .text-slate-500,
         .dark-theme-moss .text-slate-400 {
-          color: #a2b7aa !important;
+          color: #f8f9fa !important;
         }
+
+        /* Brightness & contrast boost for images and icons in Moss */
+        .dark-theme-moss img,
+        .dark-theme-moss svg {
+          filter: brightness(1.15) contrast(1.15) saturate(1.15) !important;
+          transform: translate3d(0, 0, 0) !important;
+        }
+
         .dark-theme-moss input,
         .dark-theme-moss textarea,
         .dark-theme-moss select {
@@ -199,24 +430,71 @@ export default function App() {
           border-color: rgba(255, 255, 255, 0.15) !important;
           color: #ffffff !important;
         }
-        .dark-theme-moss .bg-slate-50 {
-          background-color: rgba(10, 16, 13, 0.7) !important;
-        }
 
         .animate-spin-slow {
-          animation: spin 10s linear infinite;
+          animation: spin 12s linear infinite;
         }
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
+
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.2; transform: scale(0.85); }
+          50% { opacity: 0.95; transform: scale(1.15); }
+        }
+        .animate-twinkle {
+          animation: twinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes starryDriftUp {
+          0% {
+            transform: translateY(0) scale(0.6);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.85;
+          }
+          85% {
+            opacity: 0.85;
+          }
+          100% {
+            transform: translateY(var(--drift-y, -150px)) scale(1.3);
+            opacity: 0;
+          }
+        }
+        .animate-star-drift {
+          animation: starryDriftUp 10s linear infinite;
+        }
       `}</style>
 
       {/* Dynamic Glowing Backdrops for Frosted Glass Theme */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#7DD3FC] opacity-20 blur-[100px] rounded-full"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#34D399] opacity-15 blur-[120px] rounded-full"></div>
-        <div className="absolute top-[40%] left-[30%] w-[400px] h-[400px] bg-amber-200/10 blur-[90px] rounded-full"></div>
+        {theme === "light" && (
+          <>
+            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#7DD3FC] opacity-20 blur-[100px] rounded-full"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#34D399] opacity-15 blur-[120px] rounded-full"></div>
+            <div className="absolute top-[40%] left-[30%] w-[400px] h-[400px] bg-amber-200/10 blur-[90px] rounded-full"></div>
+          </>
+        )}
+        {theme === "dark-indigo" && (
+          <>
+            {/* Left side cosmic purples / blues as shown in user's image */}
+            <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#4338ca] opacity-40 blur-[140px] rounded-full animate-pulse" style={{ animationDuration: '8s' }}></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[700px] h-[700px] bg-[#6d28d9] opacity-35 blur-[150px] rounded-full animate-pulse" style={{ animationDuration: '12s' }}></div>
+            <div className="absolute top-[30%] left-[20%] w-[500px] h-[500px] bg-[#db2777] opacity-20 blur-[120px] rounded-full animate-pulse" style={{ animationDuration: '10s' }}></div>
+            <StarryBackground theme="dark-indigo" />
+          </>
+        )}
+        {theme === "dark-moss" && (
+          <>
+            {/* Right side serene deep moss greens as shown in user's image */}
+            <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#064e3b] opacity-45 blur-[140px] rounded-full animate-pulse" style={{ animationDuration: '8s' }}></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[700px] h-[700px] bg-[#022c22] opacity-45 blur-[150px] rounded-full animate-pulse" style={{ animationDuration: '12s' }}></div>
+            <div className="absolute top-[30%] left-[25%] w-[500px] h-[500px] bg-[#10b981] opacity-25 blur-[120px] rounded-full animate-pulse" style={{ animationDuration: '10s' }}></div>
+            <StarryBackground theme="dark-moss" />
+          </>
+        )}
       </div>
 
       {/* 1. Global Floating Panic Button (Top-Left) */}
@@ -320,12 +598,16 @@ export default function App() {
                   <Compass className="w-6.5 h-6.5" />
                 </div>
                 <div>
-                  <h1 className="font-serif text-2xl font-bold text-slate-800 tracking-tight flex items-center justify-center sm:justify-start gap-1.5">
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-emerald-500">Trạm Định Vị Bản Ngã</span>
-                    <span className="text-emerald-500 text-sm italic font-sans font-light">v1.0</span>
+                  <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center justify-center sm:justify-start gap-2 leading-tight">
+                    <CuteStar size={36} className="shrink-0 animate-float" />
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-emerald-800 to-emerald-500">
+                      CoreZ - Kết nối giá trị, định hình tương lai
+                    </span>
                   </h1>
-                  <p className="text-xs text-slate-400 font-light mt-0.5">
-                    Identity Compass • Bản đồ định vị thế giới thực cho Gen Z
+                  <p className="text-xs sm:text-sm text-slate-400 font-medium italic mt-1 text-center sm:text-left flex items-center justify-center sm:justify-start gap-1.5">
+                    <span>Trạm Định Vị Bản Ngã Cho Gen Z</span>
+                    <span className="text-slate-300 dark:text-slate-500">•</span>
+                    <span className="text-emerald-500 dark:text-emerald-400 font-semibold not-italic">Identity Compass</span>
                   </p>
                 </div>
               </div>
@@ -333,42 +615,42 @@ export default function App() {
               {/* Theme Toggle & Psychological Indicators & Reset */}
               <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-end">
                 {/* Advanced Theme Selectors */}
-                <div className="flex items-center bg-slate-200/55 dark:bg-slate-900/40 p-1 rounded-2xl border border-white/10 shadow-inner">
+                <div className="flex items-center bg-slate-500/10 backdrop-blur-md p-1 rounded-full border border-white/20 shadow-md gap-1">
                   <button
                     onClick={() => setTheme("light")}
-                    className={`p-1.5 rounded-xl text-xs transition-all flex items-center gap-1 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-full text-xs transition-all flex items-center gap-1.5 cursor-pointer font-sans select-none ${
                       theme === "light"
-                        ? "bg-white text-emerald-600 shadow-sm font-bold"
-                        : "text-slate-400 hover:text-slate-600"
+                        ? "bg-white text-slate-700 shadow-sm font-bold"
+                        : "text-slate-400 hover:text-slate-300"
                     }`}
                     title="Giao diện Sáng"
                   >
                     <Sun className="w-3.5 h-3.5" />
-                    <span className="text-[10px] hidden md:inline">Sáng</span>
+                    <span className="text-[11px]">Sáng</span>
                   </button>
                   <button
                     onClick={() => setTheme("dark-indigo")}
-                    className={`p-1.5 rounded-xl text-xs transition-all flex items-center gap-1 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-full text-xs transition-all flex items-center gap-1.5 cursor-pointer font-sans select-none ${
                       theme === "dark-indigo"
-                        ? "bg-[#1e1b4b] text-indigo-300 shadow-sm font-bold border border-indigo-900/30"
-                        : "text-slate-400 hover:text-indigo-400"
+                        ? "bg-indigo-950/70 text-indigo-200 shadow-md font-bold border border-indigo-500/40"
+                        : "text-indigo-300/80 hover:text-indigo-200"
                     }`}
                     title="Giao diện Chàm Dịu Mắt"
                   >
-                    <Moon className="w-3.5 h-3.5 text-indigo-400" />
-                    <span className="text-[10px] hidden md:inline">Tối Chàm</span>
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <span className="text-[11px]">Tối Chàm</span>
                   </button>
                   <button
                     onClick={() => setTheme("dark-moss")}
-                    className={`p-1.5 rounded-xl text-xs transition-all flex items-center gap-1 cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-full text-xs transition-all flex items-center gap-1.5 cursor-pointer font-sans select-none ${
                       theme === "dark-moss"
-                        ? "bg-[#064e3b] text-emerald-300 shadow-sm font-bold border border-emerald-900/30"
-                        : "text-slate-400 hover:text-emerald-400"
+                        ? "bg-emerald-950/70 text-emerald-200 shadow-md font-bold border border-emerald-500/40"
+                        : "text-emerald-300/80 hover:text-emerald-200"
                     }`}
                     title="Giao diện Rêu Trầm"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-[10px] hidden md:inline">Tối Rêu</span>
+                    <span className="text-[11px]">Tối Rêu</span>
                   </button>
                 </div>
 
@@ -528,7 +810,18 @@ export default function App() {
             </div>
 
             {/* Inner Tabs View Render */}
-            <main className="py-2">
+            <main className="py-2 relative">
+              {/* Soft decorative blurred stars on left/right edges to float around the section headings and content */}
+              <div className="absolute top-[-40px] left-[-30px] pointer-events-none z-0 select-none opacity-40 animate-float" style={{ animationDuration: "6s" }}>
+                <CuteStar variant="blur" size={120} showSurroundings={false} />
+              </div>
+              <div className="absolute top-[160px] right-[-40px] pointer-events-none z-0 select-none opacity-30 animate-float" style={{ animationDuration: "8s", animationDelay: "1s" }}>
+                <CuteStar variant="blur" size={90} showSurroundings={false} />
+              </div>
+              <div className="absolute bottom-[20px] left-[15%] pointer-events-none z-0 select-none opacity-25 animate-float" style={{ animationDuration: "7s", animationDelay: "2s" }}>
+                <CuteStar variant="blur" size={80} showSurroundings={false} />
+              </div>
+
               <AnimatePresence mode="wait">
                 {activeTab === "space4d" && (
                   <motion.div
@@ -612,7 +905,7 @@ export default function App() {
 
             {/* Aesthetic Footer */}
             <footer className="text-center text-[11px] text-slate-400/80 mt-12 space-y-1 font-light tracking-wide">
-              <p>© 2026 Trạm Định Vị Bản Ngã (Identity Compass) • Nghiên cứu hành vi học đường Việt Nam</p>
+              <p>© 2026 Trạm Định Vị Bản Ngã Cho Gen Z (Identity Compass) • Nghiên cứu hành vi học đường Việt Nam</p>
               <p>Phòng thí nghiệm Phát triển Hành vi Thượng đẳng & Tâm lý học Thực nghiệm Xứ Lạng</p>
             </footer>
           </motion.div>

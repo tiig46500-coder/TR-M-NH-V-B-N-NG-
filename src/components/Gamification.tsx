@@ -122,6 +122,16 @@ const BADGES: BadgeConfig[] = [
     color: "text-blue-600 bg-blue-100",
     borderColor: "border-blue-200",
     bgLight: "bg-blue-50/50"
+  },
+  {
+    id: "badge-digital-minimalist",
+    title: "Digital Minimalist",
+    desc: "Làm chủ không gian số, thiết lập thành công lối sống công nghệ tối giản lành mạnh.",
+    requirement: "Duy trì chuỗi hoàn thành ít nhất 5/6 thói quen thanh lọc D3 liên tiếp trong 3 ngày.",
+    emoji: "🕶️",
+    color: "text-purple-600 bg-purple-100",
+    borderColor: "border-purple-200",
+    bgLight: "bg-purple-50/50"
   }
 ];
 
@@ -338,6 +348,60 @@ export default function Gamification() {
     }
   };
 
+  // Streak calculator helper for D3 actions
+  const calculateD3Streak = (): number => {
+    let savedDates: string[] = [];
+    try {
+      const stored = localStorage.getItem("remix_corez_d3_dates");
+      if (stored) {
+        savedDates = JSON.parse(stored);
+      }
+    } catch (e) {
+      return 0;
+    }
+
+    if (!Array.isArray(savedDates) || savedDates.length === 0) return 0;
+
+    let streak = 0;
+    const today = new Date();
+    let currentCheck = new Date();
+
+    const todayStr = today.toLocaleDateString("en-CA");
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString("en-CA");
+
+    // If neither today nor yesterday is completed, streak is 0
+    if (!savedDates.includes(todayStr) && !savedDates.includes(yesterdayStr)) {
+      return 0;
+    }
+
+    // Start with the latest completed day (either today or yesterday)
+    if (savedDates.includes(todayStr)) {
+      currentCheck = today;
+    } else {
+      currentCheck = yesterday;
+    }
+
+    // Guard against infinite loop in case of date errors
+    let maxTries = 1000;
+    while (maxTries > 0) {
+      const checkStr = currentCheck.toLocaleDateString("en-CA");
+      if (savedDates.includes(checkStr)) {
+        streak++;
+        // Go back 1 day
+        currentCheck.setDate(currentCheck.getDate() - 1);
+        maxTries--;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  };
+
+  const d3Streak = calculateD3Streak();
+
   // Calculate Level and XP progres
   // Level formula: level = Math.floor(totalXp / 100) + 1
   const currentLevel = Math.floor(totalXp / 100) + 1;
@@ -351,6 +415,9 @@ export default function Gamification() {
     if (badgeId === "badge-physical") return (taskHistory["task-physical"] || 0) >= 3;
     if (badgeId === "badge-connect") return (taskHistory["task-connect"] || 0) >= 3;
     if (badgeId === "badge-conqueror") return totalTasksDone >= 12;
+    if (badgeId === "badge-digital-minimalist") {
+      return calculateD3Streak() >= 3;
+    }
     return false;
   };
 
@@ -524,6 +591,40 @@ export default function Gamification() {
             </div>
           </div>
 
+          {/* D3 Digital Minimalist Streak Panel */}
+          <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 rounded-[24px] p-4.5 space-y-3.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-lg shadow-sm border border-purple-200/30">
+                  <span className="text-xl animate-bounce">🔥</span>
+                </div>
+                <div>
+                  <h5 className="text-xs font-bold text-slate-700 font-sans tracking-wide">Chuỗi Thanh Lọc Số (D3)</h5>
+                  <p className="text-[10px] text-slate-400 leading-tight font-light mt-0.5">Hoàn thành ít nhất 5/6 thói quen hàng ngày</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-black text-purple-700 font-mono flex items-center gap-1">
+                  {d3Streak} <span className="text-xs font-normal text-slate-500">ngày</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Progress bar towards Digital Minimalist badge */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-[9.5px] text-slate-500 font-mono">
+                <span>Tiến trình nhận huy hiệu "Digital Minimalist"</span>
+                <span>{d3Streak} / 3 ngày</span>
+              </div>
+              <div className="w-full h-2.5 bg-slate-100/60 rounded-full overflow-hidden p-0.5 border border-purple-500/10 shadow-inner">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.round((d3Streak / 3) * 100))}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* DIGITAL BADGES WALL */}
           <div className="bg-white/65 backdrop-blur-xl rounded-[28px] border border-white/40 p-5 shadow-sm space-y-3.5 flex-1 flex flex-col justify-between">
             <div className="flex items-center justify-between border-b border-white/30 pb-2">
@@ -549,6 +650,7 @@ export default function Gamification() {
                      if (badge.id === "badge-physical") progressText = `${Math.min(3, taskHistory["task-physical"] || 0)}/3`;
                      if (badge.id === "badge-connect") progressText = `${Math.min(3, taskHistory["task-connect"] || 0)}/3`;
                      if (badge.id === "badge-conqueror") progressText = `${Math.min(12, totalTasksDone)}/12`;
+                     if (badge.id === "badge-digital-minimalist") progressText = `${Math.min(3, d3Streak)}/3`;
 
                      return (
                        <div
