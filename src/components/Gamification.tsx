@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Award, 
@@ -178,6 +178,119 @@ const CORE_ACHIEVEMENTS: BadgeConfig[] = [
   }
 ];
 
+interface FireworksProps {
+  isTriggered: boolean;
+  onComplete?: () => void;
+}
+
+const Fireworks: React.FC<FireworksProps> = ({ isTriggered, onComplete }) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (!isTriggered) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let particles: Array<{
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      alpha: number;
+      color: string;
+      size: number;
+    }> = [];
+
+    // Set canvas dimensions to cover full viewport
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const handleResize = () => {
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    };
+    window.addEventListener("resize", handleResize);
+
+    const createFireworks = (x: number, y: number) => {
+      for (let i = 0; i < 100; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 7 + 3;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          alpha: 1,
+          size: Math.random() * 2.5 + 1.5,
+          color: `hsl(${Math.random() * 360}, 100%, 60%)`
+        });
+      }
+    };
+
+    // Animation Loop
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.vy += p.vy * 0.02 + 0.07; // Gravity
+        p.alpha -= 0.012; // fade
+        
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+
+      if (particles.length > 0) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        if (onComplete) onComplete();
+      }
+    };
+
+    // Launch initial central blast
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 3;
+    createFireworks(centerX, centerY);
+
+    // Delayed beautiful extra blasts
+    const t1 = setTimeout(() => createFireworks(centerX - 180, centerY + 60), 250);
+    const t2 = setTimeout(() => createFireworks(centerX + 180, centerY + 60), 500);
+    const t3 = setTimeout(() => createFireworks(centerX, centerY - 80), 750);
+
+    animate();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animationFrameId);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [isTriggered, onComplete]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 pointer-events-none z-[9999]"
+      style={{ display: isTriggered ? "block" : "none" }}
+    />
+  );
+};
+
 export default function Gamification() {
   const { userData, addXP, setXP } = useUserData();
   const totalXp = userData.karmaXP;
@@ -195,6 +308,7 @@ export default function Gamification() {
   
   // Confetti / Alert effects
   const [unlockedBadge, setUnlockedBadge] = useState<string | null>(null);
+  const [showFireworks, setShowFireworks] = useState(false);
 
   // Load from local storage
   useEffect(() => {
@@ -275,12 +389,47 @@ export default function Gamification() {
       updatedXp = Math.max(0, totalXp - task.xpAward);
       updatedHistory[task.id] = Math.max(0, (updatedHistory[task.id] || 1) - 1);
       updatedDone = Math.max(0, totalTasksDone - 1);
+
+      // Sync streak dates
+      try {
+        const todayStr = new Date().toLocaleDateString("en-CA");
+        const stored = localStorage.getItem("remix_corez_d3_dates");
+        if (stored) {
+          let savedDates: string[] = JSON.parse(stored);
+          if (savedDates.includes(todayStr)) {
+            savedDates = savedDates.filter(d => d !== todayStr);
+            localStorage.setItem("remix_corez_d3_dates", JSON.stringify(savedDates));
+          }
+        }
+      } catch (e) {
+        console.error("Error syncing streak dates:", e);
+      }
     } else {
       // Check task
       updatedCompleted.push(task.id);
       updatedXp = totalXp + task.xpAward;
       updatedHistory[task.id] = (updatedHistory[task.id] || 0) + 1;
       updatedDone = totalTasksDone + 1;
+
+      // Trigger fireworks when completing the 5th D3 habit of the day
+      if (updatedCompleted.length === 5) {
+        setShowFireworks(true);
+        // Sync to remix_corez_d3_dates to trigger/advance streak
+        try {
+          const todayStr = new Date().toLocaleDateString("en-CA");
+          let savedDates: string[] = [];
+          const stored = localStorage.getItem("remix_corez_d3_dates");
+          if (stored) {
+            savedDates = JSON.parse(stored);
+          }
+          if (!savedDates.includes(todayStr)) {
+            savedDates.push(todayStr);
+            localStorage.setItem("remix_corez_d3_dates", JSON.stringify(savedDates));
+          }
+        } catch (e) {
+          console.error("Error saving completed D3 date:", e);
+        }
+      }
 
       // Check for badge unlocks!
       checkBadgeUnlocks(task.id, updatedHistory, updatedDone);
@@ -591,37 +740,93 @@ export default function Gamification() {
             </div>
           </div>
 
-          {/* D3 Digital Minimalist Streak Panel */}
-          <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 rounded-[24px] p-4.5 space-y-3.5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-lg shadow-sm border border-purple-200/30">
-                  <span className="text-xl animate-bounce">🔥</span>
+          {/* D3 Digital Minimalist Streak Panel with Daily Goal Progress Ring */}
+          <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 rounded-[24px] p-4.5 space-y-4 shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+              
+              {/* Left Column: Streak details (7/12 cols) */}
+              <div className="sm:col-span-7 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-lg shadow-sm border border-purple-200/30 shrink-0">
+                    <span className="text-xl animate-bounce">🔥</span>
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-700 dark:text-slate-200 font-sans tracking-wide">Chuỗi Thanh Lọc Số (D3)</h5>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-400 leading-tight font-light mt-0.5">Hoàn thành ít nhất 5/6 thói quen hàng ngày</p>
+                  </div>
                 </div>
-                <div>
-                  <h5 className="text-xs font-bold text-slate-700 font-sans tracking-wide">Chuỗi Thanh Lọc Số (D3)</h5>
-                  <p className="text-[10px] text-slate-400 leading-tight font-light mt-0.5">Hoàn thành ít nhất 5/6 thói quen hàng ngày</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-end">
-                <span className="text-xl font-black text-purple-700 font-mono flex items-center gap-1">
-                  {d3Streak} <span className="text-xs font-normal text-slate-500">ngày</span>
-                </span>
-              </div>
-            </div>
 
-            {/* Progress bar towards Digital Minimalist badge */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-[9.5px] text-slate-500 font-mono">
-                <span>Tiến trình nhận huy hiệu "Digital Minimalist"</span>
-                <span>{d3Streak} / 3 ngày</span>
+                <div className="flex items-baseline gap-1.5 pl-1">
+                  <span className="text-2xl font-black text-purple-700 dark:text-purple-400 font-mono">
+                    {d3Streak}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">ngày liên tiếp</span>
+                </div>
+
+                {/* Progress bar towards Digital Minimalist badge */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[9px] text-slate-500 dark:text-slate-400 font-mono">
+                    <span>Huy hiệu "Digital Minimalist"</span>
+                    <span>{d3Streak} / 3 ngày</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-100/60 dark:bg-slate-800/60 rounded-full overflow-hidden p-0.5 border border-purple-500/10 shadow-inner">
+                    <div
+                      className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, Math.round((d3Streak / 3) * 100))}%` }}
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="w-full h-2.5 bg-slate-100/60 rounded-full overflow-hidden p-0.5 border border-purple-500/10 shadow-inner">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, Math.round((d3Streak / 3) * 100))}%` }}
-                />
+
+              {/* Vertical divider for larger screens */}
+              <div className="hidden sm:block sm:col-span-1 h-12 w-[1px] bg-purple-500/20 mx-auto" />
+
+              {/* Right Column: Daily Goal Circular Progress Ring (4/12 cols) */}
+              <div className="sm:col-span-4 flex items-center gap-3 bg-white/20 dark:bg-white/5 p-2.5 rounded-xl border border-purple-500/10">
+                {/* SVG Progress Ring */}
+                <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+                  <svg className="w-full h-full transform -rotate-90">
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      className="stroke-purple-100 dark:stroke-purple-950/40"
+                      strokeWidth="3.5"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      className="stroke-purple-600 transition-all duration-500"
+                      strokeWidth="4"
+                      fill="transparent"
+                      strokeDasharray={2 * Math.PI * 20}
+                      strokeDashoffset={2 * Math.PI * 20 - (completedTaskIds.length / DAILY_TASKS.length) * (2 * Math.PI * 20)}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  {/* Text inside Ring */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-xs font-black text-purple-700 dark:text-purple-300 font-mono leading-none">
+                      {completedTaskIds.length}
+                    </span>
+                    <span className="text-[8px] text-slate-400 font-mono leading-none mt-0.5">
+                      /{DAILY_TASKS.length}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="min-w-0">
+                  <h6 className="text-[11px] font-bold text-slate-700 dark:text-slate-200 leading-none">Mục Tiêu Ngày</h6>
+                  <p className="text-[9px] text-slate-400 dark:text-slate-400 leading-tight mt-1.5">
+                    {completedTaskIds.length === DAILY_TASKS.length 
+                      ? "Đã đạt 5/5! 🌟" 
+                      : `Còn ${DAILY_TASKS.length - completedTaskIds.length} thói quen`}
+                  </p>
+                </div>
               </div>
+
             </div>
           </div>
 
