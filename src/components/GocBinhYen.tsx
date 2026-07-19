@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Heart, Trash2, Quote } from "lucide-react";
+import { Heart, Trash2, Quote, Sparkles } from "lucide-react";
 
 // Định nghĩa kiểu dữ liệu cho bài viết
 export interface FavoritePost {
@@ -43,15 +43,40 @@ export const saveFavoritePost = (post: any) => {
   return false;
 };
 
+const AFFIRMATIONS = [
+  "Cậu đang làm rất tốt, hãy hít vào sự bình an và thở ra mọi lo lắng. 🍃",
+  "Tâm trí cậu là một khu vườn xinh đẹp, hãy gieo những hạt mầm yêu thương thay vì những âu lo vô cớ. 🌸",
+  "Hôm nay, tớ chọn trân trọng từng khoảnh khắc đời thực và cho phép bản thân được thả lỏng hoàn toàn. ☀️",
+  "Cậu là độc bản rực rỡ và quý giá, không cần phải so sánh bản thân với bất kỳ ai trên thế giới ảo. ✨",
+  "Mỗi bước đi nhỏ hay những nỗ lực thầm lặng của cậu hôm nay đều vô cùng đáng quý. Hãy kiên nhẫn với chính mình nhé. 🌱",
+  "Hít thật sâu, thở thật chậm. Thế giới thực tại luôn ôm ấp, nâng niu và chào đón cậu trở về. 🧘",
+  "Mọi giông bão ngoài kia rồi sẽ qua đi, chỉ có sự bình yên và sức mạnh nội lực bên trong cậu là còn mãi. 🏔️",
+  "Cậu xứng đáng được yêu thương, trân trọng và hạnh phúc vì chính con người thật của mình. 💛"
+];
+
 export default function GocBinhYen() {
   // Khai báo state chứa danh sách dữ liệu riêng tư của người dùng
   const [myFavoritePosts, setMyFavoritePosts] = useState<FavoritePost[]>([]);
+  const [dailyAffirmation, setDailyAffirmation] = useState("");
 
   // useEffect tự động chạy khi tab này được mở để lấy dữ liệu từ máy
   useEffect(() => {
     const storedPosts = JSON.parse(localStorage.getItem('corez_favorite_posts') || '[]');
     setMyFavoritePosts(storedPosts);
+
+    // Seed the daily affirmation based on the day of the month
+    const dayIndex = new Date().getDate() % AFFIRMATIONS.length;
+    setDailyAffirmation(AFFIRMATIONS[dayIndex]);
   }, []);
+
+  const handleRefreshAffirmation = () => {
+    let newAff = dailyAffirmation;
+    while (newAff === dailyAffirmation) {
+      const randIdx = Math.floor(Math.random() * AFFIRMATIONS.length);
+      newAff = AFFIRMATIONS[randIdx];
+    }
+    setDailyAffirmation(newAff);
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto py-2 px-4 font-sans space-y-6 relative z-10">
@@ -72,6 +97,49 @@ export default function GocBinhYen() {
           </span>
         )}
       </div>
+
+      {/* Daily Positive Affirmation Card */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        id="daily-affirmation-card"
+        className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-[28px] p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-5 relative overflow-hidden backdrop-blur-xl"
+      >
+        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+        
+        <div className="flex items-start gap-4 flex-1">
+          <div className="p-3 rounded-2xl bg-white dark:bg-slate-900/85 shadow-md border border-emerald-100 dark:border-emerald-900/30 text-emerald-500 shrink-0 animate-pulse">
+            <Sparkles className="w-6 h-6 text-emerald-500" />
+          </div>
+          <div className="space-y-1 text-left flex-1 min-w-0">
+            <h4 className="font-serif text-sm font-bold text-emerald-800 dark:text-emerald-300">
+              Lời Khẳng Định Tích Cực Mỗi Ngày ✨
+            </h4>
+            <div className="min-h-[40px] flex items-center">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={dailyAffirmation}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="text-xs sm:text-[13px] text-slate-700 dark:text-slate-200 leading-relaxed font-sans italic font-semibold [text-shadow:_0_1px_1px_rgba(255,255,255,0.4)] dark:[text-shadow:_0_1px_3px_rgba(0,0,0,0.8)] filter drop-shadow-xs"
+                >
+                  “ {dailyAffirmation} ”
+                </motion.p>
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        <button
+          id="refresh-affirmation-btn"
+          onClick={handleRefreshAffirmation}
+          className="px-4 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-900/80 hover:bg-emerald-50 dark:hover:bg-slate-800/80 border border-emerald-200 dark:border-emerald-800 rounded-xl shadow-xs transition-all duration-300 active:scale-95 cursor-pointer shrink-0"
+        >
+          Nhận thông điệp mới 🔄
+        </button>
+      </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <AnimatePresence mode="popLayout">

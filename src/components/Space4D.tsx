@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import confetti from "canvas-confetti";
 import { 
   Compass, 
   MessageSquare, 
@@ -47,6 +48,42 @@ const INSPIRE_QUOTES = [
   }
 ];
 
+const GEMINI_API_KEY = "ĐIỀN_KEY_CỦA_BẠN_VÀO_ĐÂY";
+
+const playSparklingChime = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    
+    const playNote = (freq: number, delay: number, duration: number, vol: number) => {
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+      
+      gainNode.gain.setValueAtTime(0, ctx.currentTime + delay);
+      gainNode.gain.linearRampToValueAtTime(vol, ctx.currentTime + delay + 0.03);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + delay + duration);
+      
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + duration);
+    };
+
+    // A beautiful, sparkling upward arpeggio
+    const notes = [1046.50, 1318.51, 1567.98, 2093.00, 2637.02, 3135.96]; // C6, E6, G6, C7, E7, G7
+    notes.forEach((freq, index) => {
+      playNote(freq, index * 0.06, 0.6, 0.12 - (index * 0.01));
+    });
+  } catch (error) {
+    console.error("Failed to play sparkling chime sound:", error);
+  }
+};
+
 export default function Space4D() {
   const [activeSubTab, setActiveSubTab] = useState<"define" | "devirtualize" | "detox" | "do">("define");
 
@@ -54,69 +91,103 @@ export default function Space4D() {
   // Tab 1: Define (Định vị) State & Logic
   // ==========================================
   const [defineStep, setDefineStep] = useState(0);
-  const [defineAnswers, setDefineAnswers] = useState<string[]>([]);
+  const [defineAnswers, setDefineAnswers] = useState<number[]>([]);
   const [defineResult, setDefineResult] = useState<{ title: string; icon: string; desc: string } | null>(null);
 
-  const defineQuestions = [
+  const quizData = [
+    // Chặng 1: Khán giả tưởng tượng
     {
-      q: "Cậu thường chọn làm gì khi cảm thấy quá tải thông tin?",
+      stage: "Chặng 1: Khán giả tưởng tượng",
+      question: "Khi đăng một story/video lên mạng nhưng sau 1 tiếng chỉ lác đác vài người xem, phản xạ chân thực nhất của cậu là gì?",
       options: [
-        { key: "A", text: "Vẽ vời, viết nhật ký hoặc nghe nhạc mộc mạc" },
-        { key: "B", text: "Tìm người bạn đáng tin cậy để tâm sự trực tiếp" },
-        { key: "C", text: "Đi bộ một mình ngoài trời, im lặng hít thở" }
+        { text: "Lập tức xóa hoặc ẩn đi vì thấy 'quê' và sợ người khác đánh giá.", value: 1 },
+        { text: "Cảm thấy hơi buồn và bứt rứt, liên tục vào check lại xem có tăng view không.", value: 2 },
+        { text: "Bình thường. Đăng vì muốn lưu lại khoảnh khắc của mình thôi.", value: 3 }
       ]
     },
     {
-      q: "Đối với cậu, một ngày bình yên thật sự là ngày...",
+      stage: "Chặng 1: Khán giả tưởng tượng",
+      question: "Cậu có thường xuyên xem lại trang cá nhân của mình và 'đóng vai' người khác để tự đánh giá xem profile của mình trông có ngầu không?",
       options: [
-        { key: "A", text: "Làm được điều gì đó mới mẻ, tự do sáng tạo" },
-        { key: "B", text: "Giúp đỡ ai đó mỉm cười hoặc cảm thấy ấm áp" },
-        { key: "C", text: "Kế hoạch đề ra được hoàn thành trọn vẹn, ngăn nắp" }
+        { text: "Rất thường xuyên, mình luôn muốn kiểm soát hình ảnh hoàn hảo nhất.", value: 1 },
+        { text: "Thỉnh thoảng, nhất là sau khi vừa kết bạn với một người mới.", value: 2 },
+        { text: "Hầu như không, mình sao thì trên mạng vậy.", value: 3 }
+      ]
+    },
+    // Chặng 2: Mảnh ghép đứt gãy
+    {
+      stage: "Chặng 2: Mảnh ghép đứt gãy",
+      question: "Khi kết thúc một đợt 'lướt vô thức' (vuốt điện thoại liên tục hàng giờ liền), cậu thường đối diện với cảm giác nào?",
+      options: [
+        { text: "Trống rỗng, hối hận vì mất thời gian nhưng lần sau vẫn lặp lại.", value: 1 },
+        { text: "Chóng mặt, mỏi mắt và cảm thấy bản thân đang bị thụ động.", value: 2 },
+        { text: "Ít khi bị lướt vô thức, mình thường lên mạng có chủ đích rồi thoát.", value: 3 }
       ]
     },
     {
-      q: "Cậu thấy mình có xu hướng kết nối tốt nhất qua...",
+      stage: "Chặng 2: Mảnh ghép đứt gãy",
+      question: "Nếu ngày mai toàn bộ MXH biến mất, cậu nghĩ 'cái tôi' ngoài đời thực của cậu còn lại gì?",
       options: [
-        { key: "A", text: "Các bức ảnh nghệ thuật, bài viết cảm xúc" },
-        { key: "B", text: "Những cuộc trò chuyện sâu sắc, thấu hiểu tâm lý" },
-        { key: "C", text: "Những hành động thiết thực, giúp đỡ âm thầm" }
+        { text: "Hoang mang cực độ, cảm thấy như mất đi danh tính và kết nối xã hội.", value: 1 },
+        { text: "Hụt hẫng một chút nhưng sẽ từ từ tìm lại các sở thích cũ bị bỏ quên.", value: 2 },
+        { text: "Thấy nhẹ nhõm vì được quay lại sống trọn vẹn với hiện tại.", value: 3 }
+      ]
+    },
+    // Chặng 3: Chạm vào "Gốc rễ"
+    {
+      stage: "Chặng 3: Chạm vào Gốc rễ",
+      question: "Có một nét văn hóa mộc mạc của quê hương (VD: ăn phở chua quán vỉa hè, đi chợ phiên xứ Lạng) mà cậu rất thích, cậu có dám chia sẻ nó lên mạng không?",
+      options: [
+        { text: "Không dám, sợ phá hỏng hình tượng 'sang chảnh' hoặc sợ không ai quan tâm.", value: 1 },
+        { text: "Sẽ đăng nhưng phải dùng filter chỉnh sửa thật kỹ hoặc lồng nhạc đang trend.", value: 2 },
+        { text: "Tự hào chia sẻ luôn, đó là một phần bản sắc thật của mình.", value: 3 }
+      ]
+    },
+    {
+      stage: "Chặng 3: Chạm vào Gốc rễ",
+      question: "Khi thấy bạn bè đồng trang lứa khoe đồ hiệu, check-in sang chảnh, cậu có xu hướng giấu đi hoàn cảnh thực tế của mình không?",
+      options: [
+        { text: "Có, mình luôn cố gắng thể hiện trên mạng rằng mình cũng không thua kém ai.", value: 1 },
+        { text: "Cảm thấy hơi áp lực đồng trang lứa (peer pressure) và tự ti đôi chút.", value: 2 },
+        { text: "Không quan tâm lắm, mỗi người một xuất phát điểm và giá trị riêng.", value: 3 }
       ]
     }
   ];
 
-  const handleDefineAnswer = (key: string) => {
-    const nextAnswers = [...defineAnswers, key];
+  const handleDefineAnswer = (val: number) => {
+    const nextAnswers = [...defineAnswers, val];
     setDefineAnswers(nextAnswers);
 
-    if (defineStep < 2) {
+    if (defineStep < 5) {
       setDefineStep(defineStep + 1);
     } else {
-      // Calculate Personality Strength Result
-      const countA = nextAnswers.filter((x) => x === "A").length;
-      const countB = nextAnswers.filter((x) => x === "B").length;
-      
+      // Calculate scores based on the new 1-2-3 values
+      const count1 = nextAnswers.filter((x) => x === 1).length;
+      const count2 = nextAnswers.filter((x) => x === 2).length;
+      const count3 = nextAnswers.filter((x) => x === 3).length;
+
       let res = {
-        title: "Sức Mạnh Sáng Tạo Độc Bản 🎨",
-        icon: "🎨",
-        desc: "Cậu sở hữu trí tưởng tượng phong phú và khả năng tự chữa lành bằng nghệ thuật. Khi gặp áp lực, việc sáng tạo (viết, vẽ, làm đồ thủ công) sẽ giúp cậu cân bằng lại bản ngã tuyệt vời nhất."
+        title: "Lệ thuộc lớn vào 'Cái tôi ảo' 📱",
+        icon: "📱",
+        desc: "Cậu đang có xu hướng phụ thuộc nhiều vào hình ảnh ảo trên mạng xã hội, dễ lo lắng và bất an trước sự đánh giá của người khác. Hãy nhớ rằng các con số ảo không bao giờ định nghĩa được giá trị tuyệt vời và độc bản của cậu ở đời thực!"
       };
 
-      if (countB > countA) {
+      if (count2 >= count1 && count2 >= count3) {
         res = {
-          title: "Sức Mạnh Thấu Cảm Tri Kỷ 🌸",
-          icon: "🌸",
-          desc: "Trái tim cậu tràn ngập sự thấu cảm và lắng nghe sâu sắc. Cậu là chỗ dựa tinh thần tuyệt vời cho bạn bè. Hãy nhớ bảo vệ năng lượng của bản thân bằng cách chia sẻ với 'Người Lắng Nghe' khi mỏi mệt nhé."
+          title: "Trạng thái 'Chông chênh' ⚖️",
+          icon: "⚖️",
+          desc: "Cậu đang ở trạng thái chông chênh, thỉnh thoảng chịu áp lực từ mạng xã hội nhưng vẫn có ý thức muốn tìm lại chính mình. Đây là bước đệm tuyệt vời để cậu thiết lập các ranh giới số lành mạnh hơn."
         };
-      } else if (nextAnswers.filter((x) => x === "C").length >= 2) {
+      } else if (count3 >= count1 && count3 >= count2) {
         res = {
-          title: "Sức Mạnh Kiên Cường Thầm Lặng 🏔️",
-          icon: "🏔️",
-          desc: "Cậu có nội lực vững vàng, điềm tĩnh và vô cùng thực tế. Cậu thích giải quyết vấn đề bằng hành động và rất phù hợp với các trải nghiệm leo núi Phai Vệ hay cắm trại Mẫu Sơn để tiếp đất phục hồi sức khỏe."
+          title: "Nhận thức tốt về 'Cái tôi thực' 🌿",
+          icon: "🌿",
+          desc: "Tuyệt vời lắm! Cậu sở hữu nhận thức sâu sắc về giá trị thực của bản thân và ít chịu ảnh hưởng từ thế giới ảo. Cậu biết trân trọng những nét đẹp mộc mạc xung quanh và kiên định với lối sống lành mạnh."
         };
       }
 
       setDefineResult(res);
-      setDefineStep(3);
+      setDefineStep(6);
     }
   };
 
@@ -184,6 +255,78 @@ export default function Space4D() {
   const [geminiResponse, setGeminiResponse] = useState("");
   const [isLoadingGemini, setIsLoadingGemini] = useState(false);
 
+  // New states for the requested dynamic quote and gift open tracking
+  const [isGiftOpen, setIsGiftOpen] = useState(false);
+  const [dynamicQuote, setDynamicQuote] = useState("");
+  const [isLoadingQuote, setIsLoadingQuote] = useState(false);
+
+  // useEffect to fetch dynamic quotes when isGiftOpen is true
+  React.useEffect(() => {
+    if (isGiftOpen) {
+      const fetchDynamicQuote = async () => {
+        setIsLoadingQuote(true);
+        setDynamicQuote("");
+        
+        const apiKey = GEMINI_API_KEY !== "ĐIỀN_KEY_CỦA_BẠN_VÀO_ĐÂY" && GEMINI_API_KEY ? GEMINI_API_KEY : "";
+        const promptText = 'Hãy viết một câu trích dẫn ngắn gọn (dưới 40 từ), truyền cảm hứng, chữa lành và tạo động lực cho Gen Z đang bị áp lực học tập. Định dạng: "Câu trích dẫn" - Tên tác giả (nếu có, hoặc ghi - Thông điệp từ Vũ trụ)';
+
+        try {
+          if (apiKey) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const response = await fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }],
+              }),
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (textResult) {
+                setDynamicQuote(textResult.trim());
+                return;
+              }
+            }
+          }
+          
+          // Fallback to Express backend if no direct API key is set or if Direct API call failed
+          const res = await fetch("/api/gemini-inspire-card", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ quote: promptText }),
+          });
+          
+          if (!res.ok) throw new Error("Fallback API call failed");
+          const data = await res.json();
+          setDynamicQuote(data.reply);
+        } catch (err) {
+          console.error("Gemini call error:", err);
+          const fallbacks = [
+            "“ Đừng so sánh chương 1 của mình với chương 20 của người khác. Mỗi người đều có một múi giờ và lộ trình rực rỡ của riêng mình. ” — Thông điệp từ Vũ trụ ✨",
+            "“ Cậu không cần phải gánh cả thế giới trên vai hôm nay. Hãy cứ bước từng bước nhỏ, vũ trụ sẽ luôn ôm lấy nỗ lực của cậu. ” — Thông điệp từ Vũ trụ ✨",
+            "“ Áp lực tạo nên kim cương, nhưng kim cương cũng cần được bảo vệ để không vỡ vụn. Cho phép bản thân nghỉ ngơi là một sự dũng cảm. ” — Thông điệp từ Vũ trụ ✨",
+            "“ Hãy kiên nhẫn với chính mình. Những bông hoa đẹp nhất thường cần thời gian lâu nhất để nở rộ rực rỡ. ” — Thông điệp từ Vũ trụ ✨"
+          ];
+          const randFallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+          setDynamicQuote(randFallback);
+        } finally {
+          setIsLoadingQuote(false);
+        }
+      };
+      
+      fetchDynamicQuote();
+    } else {
+      setIsLoadingQuote(false);
+      setDynamicQuote("");
+    }
+  }, [isGiftOpen]);
+
   const fetchInspireMessage = async (quoteText: string) => {
     setIsLoadingGemini(true);
     setGeminiResponse("");
@@ -207,10 +350,12 @@ export default function Space4D() {
   };
 
   const openInspireModalManually = () => {
+    playSparklingChime();
     const randomQuote = INSPIRE_QUOTES[Math.floor(Math.random() * INSPIRE_QUOTES.length)];
     setSelectedQuote(randomQuote);
     setCardFlipped(false);
     setIsInspireModalOpen(true);
+    setIsGiftOpen(true);
     fetchInspireMessage(`"${randomQuote.text}" - ${randomQuote.author}`);
   };
 
@@ -258,22 +403,39 @@ export default function Space4D() {
     }
   }, [detoxTasks, completedDetoxCount]);
 
-  // Auto-trigger Inspiring Card Modal on reaching >= 5/6 completed tasks (>= 80%)
+  // Auto-trigger Inspiring Card Modal on reaching 100% completed tasks (6/6)
   React.useEffect(() => {
-    if (completedDetoxCount >= 5) {
+    if (completedDetoxCount === 6) {
       if (!hasAutoPopped) {
+        playSparklingChime();
+        try {
+          confetti({
+            particleCount: 150,
+            spread: 90,
+            origin: { y: 0.5 }
+          });
+        } catch (err) {
+          console.error("Confetti error:", err);
+        }
         const randomQuote = INSPIRE_QUOTES[Math.floor(Math.random() * INSPIRE_QUOTES.length)];
         setSelectedQuote(randomQuote);
         setCardFlipped(false);
         setIsInspireModalOpen(true);
+        setIsGiftOpen(true);
         setHasAutoPopped(true);
         fetchInspireMessage(`"${randomQuote.text}" - ${randomQuote.author}`);
       }
     } else {
-      // If completed tasks drop below 5, allow auto-popping again when they reach 5
+      // If completed tasks drop below 6, allow auto-popping again when they reach 6
       setHasAutoPopped(false);
     }
   }, [completedDetoxCount, hasAutoPopped]);
+
+  // Reset logic: close the gift modal when changing tabs/sections
+  React.useEffect(() => {
+    setIsInspireModalOpen(false);
+    setIsGiftOpen(false);
+  }, [activeSubTab]);
 
   // Streak calculator helper
   const calculateD3Streak = (): number => {
@@ -424,30 +586,32 @@ export default function Space4D() {
                   Định vị Sức Mạnh Nội Tại
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Trả lời nhanh 3 câu hỏi trực giác để tìm ra thế mạnh tiềm ẩn giúp cậu kiềm chế lo âu và làm chủ bản ngã.
+                  Trả lời nhanh 6 câu hỏi soi chiếu tâm lý chia làm 3 chặng để định vị mối quan hệ giữa cậu và không gian số.
                 </p>
               </div>
 
-              {defineStep < 3 ? (
+              {defineStep < 6 ? (
                 <div className="max-w-xl mx-auto py-2">
                   <div className="flex justify-between items-center text-xs text-slate-400 mb-3 font-mono">
-                    <span>Trắc nghiệm nhanh</span>
-                    <span>Bước {defineStep + 1} / 3</span>
+                    <span className="text-emerald-600 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100/40 uppercase text-[9px] tracking-wide">
+                      {quizData[defineStep].stage}
+                    </span>
+                    <span>Bước {defineStep + 1} / 6</span>
                   </div>
 
                   <h4 className="font-serif text-base sm:text-lg font-medium text-slate-700 leading-relaxed mb-6">
-                    “ {defineQuestions[defineStep].q} ”
+                    “ {quizData[defineStep].question} ”
                   </h4>
 
                   <div className="space-y-3">
-                    {defineQuestions[defineStep].options.map((opt) => (
+                    {quizData[defineStep].options.map((opt, optIdx) => (
                       <button
-                        key={opt.key}
-                        onClick={() => handleDefineAnswer(opt.key)}
-                        className="w-full text-left p-4 rounded-2xl border border-white/40 bg-white/40 backdrop-blur-sm hover:border-[#34D399] hover:bg-[#34D399]/10 text-slate-600 text-sm sm:text-base transition-all flex items-center gap-3.5 hover:translate-x-1 hover:shadow-sm"
+                        key={optIdx}
+                        onClick={() => handleDefineAnswer(opt.value)}
+                        className="w-full text-left p-4 rounded-2xl border border-white/40 bg-white/40 backdrop-blur-sm hover:border-[#34D399] hover:bg-[#34D399]/10 text-slate-600 text-sm sm:text-base transition-all flex items-center gap-3.5 hover:translate-x-1 hover:shadow-sm cursor-pointer"
                       >
                         <span className="w-6.5 h-6.5 rounded-full bg-white/85 text-slate-500 text-xs font-bold flex items-center justify-center shrink-0 border border-slate-150">
-                          {opt.key}
+                          {String.fromCharCode(65 + optIdx)}
                         </span>
                         <span>{opt.text}</span>
                       </button>
@@ -460,24 +624,46 @@ export default function Space4D() {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="max-w-xl mx-auto text-center py-6"
+                    className="max-w-xl mx-auto text-center py-6 space-y-5"
                   >
-                    <div className="text-5xl mb-4 animate-bounce">{defineResult.icon}</div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full mb-2 inline-block border border-emerald-100/50">
-                      Thế mạnh của cậu là
-                    </span>
-                    <h4 className="font-serif text-xl font-bold text-slate-800 mb-3.5">
-                      {defineResult.title}
+                    <div className="text-5xl mb-2 animate-bounce">{defineResult.icon}</div>
+                    
+                    <h4 className="font-serif text-2xl font-bold text-slate-800 mb-1">
+                      Hoàn tất soi chiếu D1!
                     </h4>
-                    <p className="text-sm text-slate-600 leading-relaxed bg-white/40 backdrop-blur-sm p-4 rounded-2xl border border-white/40 mb-6 text-justify shadow-sm">
-                      {defineResult.desc}
-                    </p>
-                    <button
-                      onClick={resetDefine}
-                      className="px-6 py-2 rounded-xl border border-slate-200 bg-white hover:text-slate-800 hover:bg-slate-50 text-sm transition-all shadow-sm"
-                    >
-                      Thực hiện lại
-                    </button>
+
+                    <div className="bg-emerald-50/70 border border-emerald-100/50 rounded-2xl p-4 text-center">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block mb-1">
+                        KẾT QUẢ SOI CHIẾU
+                      </span>
+                      <p className="text-base font-bold text-slate-800">
+                        {defineResult.title}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                        {defineResult.desc}
+                      </p>
+                    </div>
+
+                    <div className="bg-white/40 backdrop-blur-sm p-4.5 rounded-2xl border border-white/40 shadow-sm text-justify">
+                      <p className="text-sm text-slate-700 leading-relaxed font-sans">
+                        Cảm ơn cậu đã dũng cảm đối diện với chiếc gương tâm lý. Những con số trên mạng có thể bị thuật toán thao túng, nhưng sự chân thực của cậu ở đây là duy nhất. Dữ liệu Định Vị đã được lưu trữ.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-center">
+                      <button
+                        onClick={resetDefine}
+                        className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:text-slate-800 hover:bg-slate-50 text-xs font-semibold text-slate-500 transition-all cursor-pointer"
+                      >
+                        Thực hiện lại
+                      </button>
+                      <button
+                        onClick={() => setActiveSubTab("devirtualize")}
+                        className="px-6 py-2.5 rounded-xl bg-[#34D399] hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md hover:scale-[1.02] cursor-pointer"
+                      >
+                        Sẵn sàng bước sang Vòng 2: Chấp Nhận
+                      </button>
+                    </div>
                   </motion.div>
                 )
               )}
@@ -647,7 +833,7 @@ export default function Space4D() {
                     </p>
                   )}
 
-                  {completedDetoxCount >= 5 && (
+                  {completedDetoxCount === 6 && (
                     <button
                       onClick={openInspireModalManually}
                       className="mt-3 w-full flex items-center justify-center gap-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-purple-600 hover:from-amber-500 hover:via-orange-600 hover:to-purple-700 text-white px-4 py-2.5 rounded-full font-bold text-xs shadow-md border border-amber-300/30 transition-all transform hover:scale-[1.03] active:scale-95 cursor-pointer"
@@ -1109,10 +1295,10 @@ export default function Space4D() {
 
         {/* Inspiring Card Modal Pop-up */}
         <AnimatePresence>
-          {isInspireModalOpen && (
+          {activeSubTab === "detox" && isInspireModalOpen && (
             <div 
               className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[100] flex items-center justify-center p-4 overflow-y-auto"
-              onClick={() => setIsInspireModalOpen(false)}
+              onClick={() => { setIsInspireModalOpen(false); setIsGiftOpen(false); }}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -1141,7 +1327,20 @@ export default function Space4D() {
                 {/* 3D Flip Card Container */}
                 <div 
                   className="w-full h-80 mx-auto [perspective:1000px] cursor-pointer my-4 no-dark-override"
-                  onClick={() => setCardFlipped(!cardFlipped)}
+                  onClick={() => {
+                    if (!cardFlipped) {
+                      try {
+                        confetti({
+                          particleCount: 120,
+                          spread: 80,
+                          origin: { y: 0.6 }
+                        });
+                      } catch (err) {
+                        console.error("Confetti error:", err);
+                      }
+                    }
+                    setCardFlipped(!cardFlipped);
+                  }}
                 >
                   <div className={`relative w-full h-full transition-all duration-700 [transform-style:preserve-3d] no-dark-override ${cardFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
                     
@@ -1163,7 +1362,7 @@ export default function Space4D() {
                       </div>
 
                       <div className="text-center text-[9px] text-slate-400 font-mono tracking-widest animate-pulse no-dark-override">
-                        CHẠM ĐỂ LẬT NHẬN QUÀ AI 🔮
+                        CHẠM ĐỂ NHẬN QUÀ COREZ 🔮
                       </div>
                     </div>
 
@@ -1175,17 +1374,17 @@ export default function Space4D() {
                       </div>
 
                       <div className="flex-1 flex flex-col justify-center items-center py-4 text-center no-dark-override">
-                        {isLoadingGemini ? (
+                        {isLoadingQuote ? (
                           <div className="space-y-3 flex flex-col items-center no-dark-override">
                             <span className="text-2xl animate-spin text-purple-400 no-dark-override">✨</span>
                             <p className="text-purple-300 font-mono text-[11px] tracking-wider animate-pulse no-dark-override">
-                              Đang kết nối vũ trụ... ✨
+                              Vũ trụ đang gửi thông điệp đến cậu... ✨
                             </p>
                           </div>
                         ) : (
                           <div className="space-y-2 overflow-y-auto max-h-48 pr-1 flex flex-col justify-center h-full no-dark-override">
                             <p className="text-slate-100 text-[11px] leading-relaxed text-justify whitespace-pre-line px-1 font-sans no-dark-override">
-                              {geminiResponse}
+                              {dynamicQuote || "Chúc cậu một ngày bình yên và tràn ngập năng lượng tích cực! ✨"}
                             </p>
                           </div>
                         )}
@@ -1201,7 +1400,7 @@ export default function Space4D() {
 
                 <div className="flex justify-center pt-1">
                   <button
-                    onClick={() => setIsInspireModalOpen(false)}
+                    onClick={() => { setIsInspireModalOpen(false); setIsGiftOpen(false); }}
                     className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl font-bold text-xs border border-slate-700 transition-all cursor-pointer active:scale-95"
                   >
                     Đóng quà tặng

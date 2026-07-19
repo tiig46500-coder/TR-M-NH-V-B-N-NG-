@@ -95,14 +95,16 @@ export default function SosButton() {
   return (
     <>
       {/* SOS Floating Action Button */}
-      <button
-        id="sos-button"
-        onClick={handleOpen}
-        className="fixed bottom-8 right-8 z-[100] px-5 py-3.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs sm:text-sm flex items-center gap-2 border border-rose-400 shadow-xl shadow-rose-200 dark:shadow-none transition-all duration-300 hover:scale-105 active:scale-95 animate-pulse cursor-pointer"
-      >
-        <Phone className="w-4 h-4 fill-current animate-bounce" />
-        <span>Sơ Cứu Cảm Xúc SOS</span>
-      </button>
+      {!isOpen && (
+        <button
+          id="sos-button"
+          onClick={handleOpen}
+          className="fixed bottom-8 right-8 z-[100] px-5 py-3.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs sm:text-sm flex items-center gap-2 border border-rose-400 shadow-xl shadow-rose-200 dark:shadow-none transition-all duration-300 hover:scale-105 active:scale-95 animate-pulse cursor-pointer"
+        >
+          <Phone className="w-4 h-4 fill-current animate-bounce" />
+          <span>Sơ Cứu Cảm Xúc SOS</span>
+        </button>
+      )}
 
       {/* SOS Dialog - Full Screen */}
       <AnimatePresence>

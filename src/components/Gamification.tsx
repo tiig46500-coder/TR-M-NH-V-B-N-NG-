@@ -15,10 +15,12 @@ import {
   Compass,
   Trophy,
   Coffee,
-  Info
+  Info,
+  X
 } from "lucide-react";
 import { useUserData } from "../context/UserContext";
 import confetti from "canvas-confetti";
+import { DigitalDetoxChart } from "./DigitalDetoxChart";
 
 interface DailyChallengeTask {
   id: string;
@@ -29,7 +31,7 @@ interface DailyChallengeTask {
   emoji: string;
 }
 
-const DAILY_TASKS: DailyChallengeTask[] = [
+const ALL_TASKS_POOL: DailyChallengeTask[] = [
   {
     id: "task-detox",
     title: "Ngắt kết nối mạng xã hội 1 giờ",
@@ -69,8 +71,69 @@ const DAILY_TASKS: DailyChallengeTask[] = [
     xpAward: 15,
     category: "breath",
     emoji: "🧘"
+  },
+  {
+    id: "task-no-screen-meal",
+    title: "Thưởng thức một bữa ăn 'Không Màn Hình'",
+    desc: "Cảm nhận trọn vẹn hương vị món ăn và sự hiện diện của gia đình, tuyệt đối không vừa ăn vừa lướt TikTok/Reels.",
+    xpAward: 20,
+    category: "detox",
+    emoji: "🍽️"
+  },
+  {
+    id: "task-clean-digital",
+    title: "Dọn dẹp 'Không gian số'",
+    desc: "Hủy theo dõi (unfollow) hoặc ẩn ít nhất 3 tài khoản/fanpage thường xuyên đăng tin tiêu cực, drama độc hại.",
+    xpAward: 15,
+    category: "detox",
+    emoji: "🧹"
+  },
+  {
+    id: "task-gratitude-journal",
+    title: "Viết 3 điều khiến cậu mỉm cười hôm nay",
+    desc: "Viết vào sổ tay đời thực hoặc mục 'Nhật ký cảm xúc' để nuôi dưỡng lòng biết ơn và xoa dịu tâm trí.",
+    xpAward: 20,
+    category: "mental",
+    emoji: "✍️"
+  },
+  {
+    id: "task-nature-touch",
+    title: "15 phút quang hợp và chạm vào thiên nhiên",
+    desc: "Bước ra ban công phơi nắng sớm, tưới một chậu cây hoặc ngắm nhìn bầu trời để mắt được nghỉ ngơi khỏi ánh sáng xanh.",
+    xpAward: 15,
+    category: "physical",
+    emoji: "🌱"
+  },
+  {
+    id: "task-offline-passion",
+    title: "Đánh thức một đam mê 'Offline'",
+    desc: "Dành 20 phút để vẽ tranh, chơi đàn, lắp lego, đọc truyện tranh giấy... những sở thích cậu đã lỡ bỏ quên vì bận lướt web.",
+    xpAward: 30,
+    category: "mental",
+    emoji: "🎨"
+  },
+  {
+    id: "task-bed-no-phone",
+    title: "Quy tắc 'Giường ngủ là Vùng Cấm Số'",
+    desc: "Cắm sạc điện thoại ở xa tầm tay với và không mang lên giường trước khi ngủ 30 phút để có một giấc ngủ chữa lành.",
+    xpAward: 25,
+    category: "detox",
+    emoji: "🛌"
+  },
+  {
+    id: "task-real-sounds",
+    title: "Lắng nghe thanh âm thực tại",
+    desc: "Tháo tai nghe ra khi đang đi bộ hoặc ngồi quán nước, lắng nghe âm thanh của xe cộ, tiếng chim, tiếng nói chuyện xung quanh.",
+    xpAward: 15,
+    category: "connect",
+    emoji: "🎧"
   }
 ];
+
+function getRandomTasks(pool: DailyChallengeTask[], count: number): DailyChallengeTask[] {
+  const shuffled = [...pool].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
 
 interface BadgeConfig {
   id: string;
@@ -87,52 +150,62 @@ const BADGES: BadgeConfig[] = [
   {
     id: "badge-detox",
     title: "Dũng Sĩ Thải Độc Số",
-    desc: "Đã vượt qua cám dỗ ảo, ngắt kết nối thành công để quay về thế giới thực tại.",
-    requirement: "Hoàn thành nhiệm vụ ngắt kết nối mạng xã hội 3 lần.",
+    desc: "Đã vượt qua cám dỗ, ngắt kết nối thành công để tìm lại chính mình.",
+    requirement: "Hoàn thành ít nhất 5/6 thói quen Thanh lọc (D3) liên tục trong 21 ngày.",
     emoji: "🌱",
-    color: "text-emerald-600 bg-emerald-100",
-    borderColor: "border-emerald-200",
-    bgLight: "bg-emerald-50/50"
+    color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-950/40",
+    borderColor: "border-emerald-200 dark:border-emerald-800/60",
+    bgLight: "bg-emerald-50/50 dark:bg-emerald-900/10"
   },
   {
-    id: "badge-physical",
-    title: "Chiến Binh Thực Tại",
-    desc: "Rèn luyện thể lực kiên trì, thoát khỏi sức ì của màn hình phẳng.",
-    requirement: "Hoàn thành thử thách vận động thể chất 3 lần.",
-    emoji: "🏃",
-    color: "text-amber-600 bg-amber-100",
-    borderColor: "border-amber-200",
-    bgLight: "bg-amber-50/50"
+    id: "badge-dawn-awakener",
+    title: "Kẻ Đánh Thức Bình Minh",
+    desc: "Khởi đầu ngày mới bằng năng lượng thực tế thay vì ánh sáng xanh của màn hình.",
+    requirement: "21 ngày không lướt mạng xã hội trong 1 tiếng đầu tiên sau khi thức dậy.",
+    emoji: "🌅",
+    color: "text-amber-600 bg-amber-100 dark:bg-amber-950/40",
+    borderColor: "border-amber-200 dark:border-amber-800/60",
+    bgLight: "bg-amber-50/50 dark:bg-amber-900/10"
   },
   {
-    id: "badge-connect",
-    title: "Trái Tim Thấu Cảm",
-    desc: "Xây dựng các mối quan hệ thực tâm thấu hiểu sâu sắc, sẻ chia không phán xét.",
-    requirement: "Gửi phản hồi an ủi confession hoặc trò chuyện trực tiếp 3 lần.",
-    emoji: "🧡",
-    color: "text-rose-600 bg-rose-100",
-    borderColor: "border-rose-200",
-    bgLight: "bg-rose-50/50"
+    id: "badge-connection-ambassador",
+    title: "Đại Sứ Kết Nối",
+    desc: "Đã phá vỡ bức tường ảo để xây dựng lại những mối quan hệ đời thực bền chặt.",
+    requirement: "21 ngày duy trì thói quen trò chuyện trực tiếp cùng người thân, bạn bè.",
+    emoji: "🤝",
+    color: "text-rose-600 bg-rose-100 dark:bg-rose-950/40",
+    borderColor: "border-rose-200 dark:border-rose-800/60",
+    bgLight: "bg-rose-50/50 dark:bg-rose-900/10"
   },
   {
-    id: "badge-conqueror",
-    title: "Đại Sứ Bản Ngã",
-    desc: "Vững vàng kỷ luật thép, kiến tạo thói quen tốt để làm chủ cuộc sống thực tế.",
-    requirement: "Đạt tổng cộng 12 nhiệm vụ đã hoàn thành.",
+    id: "badge-mindfulness-master",
+    title: "Bậc Thầy Tỉnh Thức",
+    desc: "Đã làm chủ được nhịp thở, đưa tâm trí về trạng thái cân bằng tuyệt đối.",
+    requirement: "Hoàn thành bài tập thở Hộp 4D trọn vẹn mỗi ngày trong 21 ngày liên tiếp.",
+    emoji: "🧘",
+    color: "text-purple-600 bg-purple-100 dark:bg-purple-950/40",
+    borderColor: "border-purple-200 dark:border-purple-800/60",
+    bgLight: "bg-purple-50/50 dark:bg-purple-900/10"
+  },
+  {
+    id: "badge-emotion-guardian",
+    title: "Người Gác Đền Cảm Xúc",
+    desc: "Sở hữu màng lọc tâm lý vững chắc trước mọi tiêu cực từ không gian mạng.",
+    requirement: "21 ngày liên tục vào 'Góc Bình Yên' để nhận Lời khẳng định tích cực.",
+    emoji: "🛡️",
+    color: "text-blue-600 bg-blue-100 dark:bg-blue-950/40",
+    borderColor: "border-blue-200 dark:border-blue-800/60",
+    bgLight: "bg-blue-50/50 dark:bg-blue-900/10"
+  },
+  {
+    id: "badge-discipline-pro",
+    title: "Chiến Binh Kỷ Luật",
+    desc: "Kỷ luật thép, hoàn toàn làm chủ được thói quen sử dụng công nghệ của bản thân.",
+    requirement: "Đạt chuỗi 21 ngày hoàn thành 100% mục tiêu đo lường.",
     emoji: "🏆",
-    color: "text-blue-600 bg-blue-100",
-    borderColor: "border-blue-200",
-    bgLight: "bg-blue-50/50"
-  },
-  {
-    id: "badge-digital-minimalist",
-    title: "Digital Minimalist",
-    desc: "Làm chủ không gian số, thiết lập thành công lối sống công nghệ tối giản lành mạnh.",
-    requirement: "Duy trì chuỗi hoàn thành ít nhất 5/6 thói quen thanh lọc D3 liên tiếp trong 3 ngày.",
-    emoji: "🕶️",
-    color: "text-purple-600 bg-purple-100",
-    borderColor: "border-purple-200",
-    bgLight: "bg-purple-50/50"
+    color: "text-yellow-600 bg-yellow-100 dark:bg-yellow-950/40",
+    borderColor: "border-yellow-200 dark:border-yellow-800/60",
+    bgLight: "bg-yellow-50/50 dark:bg-yellow-900/10"
   }
 ];
 
@@ -316,6 +389,42 @@ export default function Gamification() {
   const { userData, addXP, setXP } = useUserData();
   const totalXp = userData.karmaXP;
 
+  interface ToastConfig {
+    id: string;
+    title: string;
+    emoji: string;
+    desc: string;
+  }
+
+  const [toasts, setToasts] = useState<ToastConfig[]>([]);
+
+  const showCongratulationToast = (badgeTitle: string, emoji: string, desc: string) => {
+    const newToast = {
+      id: Date.now().toString() + Math.random().toString(),
+      title: badgeTitle,
+      emoji: emoji,
+      desc: desc
+    };
+    setToasts((prev) => [...prev, newToast]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== newToast.id));
+    }, 7000);
+  };
+
+  const [dailyActiveTasks, setDailyActiveTasks] = useState<DailyChallengeTask[]>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("remix_corez_daily_active_tasks");
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          console.error("Error reading stored tasks:", e);
+        }
+      }
+    }
+    return getRandomTasks(ALL_TASKS_POOL, 5);
+  });
+
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
   const [taskHistory, setTaskHistory] = useState<Record<string, number>>({
     "task-detox": 0,
@@ -324,6 +433,20 @@ export default function Gamification() {
     "task-mental": 0,
     "task-breath": 0
   });
+
+  const [challengeProgress, setChallengeProgress] = useState<Record<string, number>>({
+    "badge-detox": 12,
+    "badge-dawn-awakener": 18,
+    "badge-connection-ambassador": 8,
+    "badge-mindfulness-master": 21,
+    "badge-emotion-guardian": 15,
+    "badge-discipline-pro": 4
+  });
+
+  const saveChallengeProgress = (updated: Record<string, number>) => {
+    setChallengeProgress(updated);
+    localStorage.setItem("remix_corez_challenge_progress", JSON.stringify(updated));
+  };
   const [dayCounter, setDayCounter] = useState(1); // Day 1 out of 21
   const [totalTasksDone, setTotalTasksDone] = useState(0);
   
@@ -377,18 +500,30 @@ export default function Gamification() {
     const storedCompletedToday = localStorage.getItem("remix_corez_completed_today");
     const storedLongest = localStorage.getItem("remix_corez_longest_d3_streak");
     const storedBadgeHistory = localStorage.getItem("remix_corez_badge_history");
+    const storedChallengeProgress = localStorage.getItem("remix_corez_challenge_progress");
+    const storedActiveTasks = localStorage.getItem("remix_corez_daily_active_tasks");
 
     if (storedHistory) setTaskHistory(JSON.parse(storedHistory));
     if (storedDone) setTotalTasksDone(parseInt(storedDone));
     if (storedDay) setDayCounter(parseInt(storedDay));
     if (storedCompletedToday) setCompletedTaskIds(JSON.parse(storedCompletedToday));
     if (storedLongest) setLongestStreak(parseInt(storedLongest));
+    if (storedChallengeProgress) {
+      try {
+        setChallengeProgress(JSON.parse(storedChallengeProgress));
+      } catch (e) {
+        console.error(e);
+      }
+    }
     if (storedBadgeHistory) {
       try {
         setUnlockedHistory(JSON.parse(storedBadgeHistory));
       } catch (e) {
         console.error(e);
       }
+    }
+    if (!storedActiveTasks && dailyActiveTasks.length > 0) {
+      localStorage.setItem("remix_corez_daily_active_tasks", JSON.stringify(dailyActiveTasks));
     }
   }, []);
 
@@ -398,11 +533,9 @@ export default function Gamification() {
     const historyToUpdate = [...unlockedHistory];
 
     const checkUnlocked = (badgeId: string) => {
-      if (badgeId === "badge-detox") return (taskHistory["task-detox"] || 0) >= 3;
-      if (badgeId === "badge-physical") return (taskHistory["task-physical"] || 0) >= 3;
-      if (badgeId === "badge-connect") return (taskHistory["task-connect"] || 0) >= 3;
-      if (badgeId === "badge-conqueror") return totalTasksDone >= 12;
-      if (badgeId === "badge-digital-minimalist") return calculateD3Streak() >= 3;
+      if (badgeId.startsWith("badge-")) {
+        return (challengeProgress[badgeId] || 0) >= 21;
+      }
       
       if (badgeId === "ach-detox-100") return (userData.detoxMinutes || 0) >= 100;
       if (badgeId === "ach-empathy-10") return (userData.moodLogs || []).length >= 10;
@@ -441,7 +574,7 @@ export default function Gamification() {
       setUnlockedHistory(historyToUpdate);
       localStorage.setItem("remix_corez_badge_history", JSON.stringify(historyToUpdate));
     }
-  }, [taskHistory, totalTasksDone, userData.detoxMinutes, userData.moodLogs, userData.reflections, userData.plantStage, unlockedHistory.length]);
+  }, [taskHistory, totalTasksDone, userData.detoxMinutes, userData.moodLogs, userData.reflections, userData.plantStage, unlockedHistory.length, challengeProgress]);
 
   // Trigger confetti celebration when a badge is unlocked
   useEffect(() => {
@@ -613,22 +746,7 @@ export default function Gamification() {
   };
 
   const checkBadgeUnlocks = (taskId: string, history: Record<string, number>, totalDone: number) => {
-    // 1. Detox badge
-    if (taskId === "task-detox" && history["task-detox"] === 3) {
-      triggerBadgeAlert("badge-detox");
-    }
-    // 2. Physical badge
-    if (taskId === "task-physical" && history["task-physical"] === 3) {
-      triggerBadgeAlert("badge-physical");
-    }
-    // 3. Connect badge
-    if (taskId === "task-connect" && history["task-connect"] === 3) {
-      triggerBadgeAlert("badge-connect");
-    }
-    // 4. Conqueror badge
-    if (totalDone === 12) {
-      triggerBadgeAlert("badge-conqueror");
-    }
+    // Dynamic 21-day badges are updated when day advances, but we can trigger immediate unlock alert if progress hits 21.
   };
 
   const triggerBadgeAlert = (badgeId: string) => {
@@ -636,6 +754,7 @@ export default function Gamification() {
     if (badge) {
       setUnlockedBadge(badge.title);
       addBadgeToHistory(badge.id, badge.title, badge.emoji, "Thử thách 21 ngày");
+      showCongratulationToast(badge.title, badge.emoji, badge.desc);
     }
   };
 
@@ -650,13 +769,71 @@ export default function Gamification() {
           "task-mental": 0,
           "task-breath": 0
         }, 0, 1, []);
+        saveChallengeProgress({
+          "badge-detox": 0,
+          "badge-dawn-awakener": 0,
+          "badge-connection-ambassador": 0,
+          "badge-mindfulness-master": 0,
+          "badge-emotion-guardian": 0,
+          "badge-discipline-pro": 0
+        });
+        const newActive = getRandomTasks(ALL_TASKS_POOL, 5);
+        setDailyActiveTasks(newActive);
+        localStorage.setItem("remix_corez_daily_active_tasks", JSON.stringify(newActive));
       }
       return;
     }
 
+    const updatedProgress = { ...challengeProgress };
+    
+    // 1. Digital Detox Warrior (badge-detox): At least 4 D3 habits
+    if (completedTaskIds.length >= 4) {
+      updatedProgress["badge-detox"] = Math.min(21, (updatedProgress["badge-detox"] || 0) + 1);
+    }
+    // 2. Dawn Awakener (badge-dawn-awakener): any detox task completed
+    const hasDetoxCompleted = dailyActiveTasks.some(t => t.category === "detox" && completedTaskIds.includes(t.id));
+    if (hasDetoxCompleted) {
+      updatedProgress["badge-dawn-awakener"] = Math.min(21, (updatedProgress["badge-dawn-awakener"] || 0) + 1);
+    }
+    // 3. Connection Ambassador (badge-connection-ambassador): any connect task completed
+    const hasConnectCompleted = dailyActiveTasks.some(t => t.category === "connect" && completedTaskIds.includes(t.id));
+    if (hasConnectCompleted) {
+      updatedProgress["badge-connection-ambassador"] = Math.min(21, (updatedProgress["badge-connection-ambassador"] || 0) + 1);
+    }
+    // 4. Mindfulness Master (badge-mindfulness-master): any breath task completed
+    const hasBreathCompleted = dailyActiveTasks.some(t => t.category === "breath" && completedTaskIds.includes(t.id));
+    if (hasBreathCompleted) {
+      updatedProgress["badge-mindfulness-master"] = Math.min(21, (updatedProgress["badge-mindfulness-master"] || 0) + 1);
+    }
+    // 5. Emotion Guardian (badge-emotion-guardian): any mental task completed
+    const hasMentalCompleted = dailyActiveTasks.some(t => t.category === "mental" && completedTaskIds.includes(t.id));
+    if (hasMentalCompleted) {
+      updatedProgress["badge-emotion-guardian"] = Math.min(21, (updatedProgress["badge-emotion-guardian"] || 0) + 1);
+    }
+    // 6. Discipline Pro (badge-discipline-pro): 100% daily tasks done
+    if (completedTaskIds.length === dailyActiveTasks.length && dailyActiveTasks.length > 0) {
+      updatedProgress["badge-discipline-pro"] = Math.min(21, (updatedProgress["badge-discipline-pro"] || 0) + 1);
+    }
+
+    saveChallengeProgress(updatedProgress);
+
+    // Alert newly unlocked badges
+    Object.keys(updatedProgress).forEach(badgeId => {
+      const oldVal = challengeProgress[badgeId] || 0;
+      const newVal = updatedProgress[badgeId] || 0;
+      if (oldVal < 21 && newVal >= 21) {
+        triggerBadgeAlert(badgeId);
+      }
+    });
+
+    // Pick 5 random active tasks for the new day
+    const newActive = getRandomTasks(ALL_TASKS_POOL, 5);
+    setDailyActiveTasks(newActive);
+    localStorage.setItem("remix_corez_daily_active_tasks", JSON.stringify(newActive));
+
     // Advance to next day, clear daily checked list but keep totals
     saveGameState(totalXp + 50, taskHistory, totalTasksDone, dayCounter + 1, []);
-    alert("Tuyệt vời! Cậu vừa bước sang ngày mới trên hành trình 21 ngày kỷ luật. Nhận ngay 50 XP thưởng động lực! 🌟");
+    alert("Tuyệt vời! Cậu vừa bước sang ngày mới trên hành trình 21 ngày kỷ luật. Nhận ngay 50 XP thưởng động lực và tiến trình các thử thách 21 ngày đã tự động cập nhật! 🌟");
   };
 
   const handleResetProgress = () => {
@@ -668,6 +845,17 @@ export default function Gamification() {
         "task-mental": 0,
         "task-breath": 2
       }, 5, 4, []);
+      saveChallengeProgress({
+        "badge-detox": 0,
+        "badge-dawn-awakener": 0,
+        "badge-connection-ambassador": 0,
+        "badge-mindfulness-master": 0,
+        "badge-emotion-guardian": 0,
+        "badge-discipline-pro": 0
+      });
+      const newActive = getRandomTasks(ALL_TASKS_POOL, 5);
+      setDailyActiveTasks(newActive);
+      localStorage.setItem("remix_corez_daily_active_tasks", JSON.stringify(newActive));
     }
   };
 
@@ -734,12 +922,8 @@ export default function Gamification() {
 
   // Check if badge is unlocked
   const isBadgeUnlocked = (badgeId: string) => {
-    if (badgeId === "badge-detox") return (taskHistory["task-detox"] || 0) >= 3;
-    if (badgeId === "badge-physical") return (taskHistory["task-physical"] || 0) >= 3;
-    if (badgeId === "badge-connect") return (taskHistory["task-connect"] || 0) >= 3;
-    if (badgeId === "badge-conqueror") return totalTasksDone >= 12;
-    if (badgeId === "badge-digital-minimalist") {
-      return calculateD3Streak() >= 3;
+    if (badgeId.startsWith("badge-")) {
+      return (challengeProgress[badgeId] || 0) >= 21;
     }
     return false;
   };
@@ -812,7 +996,7 @@ export default function Gamification() {
 
           {/* Checklist list */}
           <div className="space-y-3 flex-1 py-1">
-            {DAILY_TASKS.map((task) => {
+            {dailyActiveTasks.map((task) => {
               const isChecked = completedTaskIds.includes(task.id);
               return (
                 <div 
@@ -995,7 +1179,7 @@ export default function Gamification() {
                       strokeWidth="4"
                       fill="transparent"
                       strokeDasharray={2 * Math.PI * 20}
-                      strokeDashoffset={2 * Math.PI * 20 - (completedTaskIds.length / DAILY_TASKS.length) * (2 * Math.PI * 20)}
+                      strokeDashoffset={2 * Math.PI * 20 - (completedTaskIds.length / (dailyActiveTasks.length || 5)) * (2 * Math.PI * 20)}
                       strokeLinecap="round"
                     />
                   </svg>
@@ -1005,7 +1189,7 @@ export default function Gamification() {
                       {completedTaskIds.length}
                     </span>
                     <span className="text-[8px] text-slate-400 font-mono leading-none mt-0.5">
-                      /{DAILY_TASKS.length}
+                      /{dailyActiveTasks.length}
                     </span>
                   </div>
                 </div>
@@ -1013,9 +1197,9 @@ export default function Gamification() {
                 <div className="min-w-0">
                   <h6 className="text-[11px] font-bold text-slate-700 dark:text-slate-200 leading-none">Mục Tiêu Ngày</h6>
                   <p className="text-[9px] text-slate-400 dark:text-slate-400 leading-tight mt-1.5">
-                    {completedTaskIds.length === DAILY_TASKS.length 
-                      ? "Đã đạt 5/5! 🌟" 
-                      : `Còn ${DAILY_TASKS.length - completedTaskIds.length} thói quen`}
+                    {completedTaskIds.length === dailyActiveTasks.length 
+                      ? `Đã đạt ${completedTaskIds.length}/${dailyActiveTasks.length}! 🌟` 
+                      : `Còn ${dailyActiveTasks.length - completedTaskIds.length} thói quen`}
                   </p>
                 </div>
               </div>
@@ -1072,47 +1256,84 @@ export default function Gamification() {
                     <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
                       Thử thách 21 ngày
                     </h5>
-                    <div className="flex gap-3 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-slate-200">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-2.5">
                       {BADGES.map((badge) => {
                         const isUnlocked = isBadgeUnlocked(badge.id);
-                        let progressText = "0/3";
-                        if (badge.id === "badge-detox") progressText = `${Math.min(3, taskHistory["task-detox"] || 0)}/3`;
-                        if (badge.id === "badge-physical") progressText = `${Math.min(3, taskHistory["task-physical"] || 0)}/3`;
-                        if (badge.id === "badge-connect") progressText = `${Math.min(3, taskHistory["task-connect"] || 0)}/3`;
-                        if (badge.id === "badge-conqueror") progressText = `${Math.min(12, totalTasksDone)}/12`;
-                        if (badge.id === "badge-digital-minimalist") progressText = `${Math.min(3, d3Streak)}/3`;
+                        const progress = challengeProgress[badge.id] || 0;
+                        const progressText = `${progress}/21 ngày`;
+                        
+                        // Decide glow effect based on badge style
+                        const glowClass = isUnlocked 
+                          ? "shadow-[0_0_15px_rgba(16,185,129,0.25)] border-emerald-400 bg-emerald-50/70"
+                          : "";
 
                         return (
                           <motion.div
                             whileHover={{ y: -2 }}
                             key={badge.id}
-                            className={`min-w-[145px] max-w-[145px] p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all shrink-0 ${
+                            className={`p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all ${
                               isUnlocked 
-                                ? `${badge.bgLight} ${badge.borderColor} shadow-sm` 
-                                : "bg-white/20 border-slate-100 opacity-60"
+                                ? `${badge.bgLight} ${badge.borderColor} ${glowClass} ring-2 ring-emerald-500/10` 
+                                : "bg-slate-50/50 border-slate-200/60 opacity-60 grayscale"
                             }`}
                           >
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
-                              isUnlocked ? badge.color : "bg-slate-100 text-slate-300 border border-slate-200"
+                            {/* Glow decoration for unlocked badges */}
+                            {isUnlocked && (
+                              <div className="absolute -right-6 -top-6 w-12 h-12 rounded-full bg-gradient-to-br from-yellow-300 to-amber-400 opacity-20 blur-lg" />
+                            )}
+
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 transition-all ${
+                              isUnlocked ? badge.color + " scale-110 shadow-sm" : "bg-slate-100 text-slate-300 border border-slate-200"
                             }`}>
-                              {isUnlocked ? badge.emoji : <Lock className="w-4 h-4 text-slate-300" />}
+                              {isUnlocked ? badge.emoji : <Lock className="w-5 h-5 text-slate-400" />}
                             </div>
 
-                            <div className="mt-2 w-full flex-1 flex flex-col justify-between">
-                              <div className="space-y-0.5">
-                                <h5 className="text-[11px] font-bold text-slate-800 truncate" title={badge.title}>
+                            <div className="mt-3 w-full flex-1 flex flex-col justify-between">
+                              <div className="space-y-1">
+                                <h5 className={`text-[12px] font-bold truncate ${isUnlocked ? "text-slate-800" : "text-slate-500"}`} title={badge.title}>
                                   {badge.title}
                                 </h5>
-                                <span className="text-[9px] font-mono text-slate-400 block">
+                                
+                                {/* Micro progress bar */}
+                                <div className="w-full bg-slate-200/70 rounded-full h-1 mt-1 overflow-hidden">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-500 ${isUnlocked ? "bg-emerald-500" : "bg-slate-300"}`}
+                                    style={{ width: `${(progress / 21) * 100}%` }}
+                                  />
+                                </div>
+
+                                <span className={`text-[9px] font-mono block font-bold ${isUnlocked ? "text-emerald-600" : "text-slate-400"}`}>
                                   {progressText}
                                 </span>
-                                <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight font-light h-6">
+
+                                <p className="text-[10px] text-slate-500 line-clamp-3 leading-snug font-light h-10 mt-1">
                                   {badge.desc}
                                 </p>
                               </div>
-                              <p className="text-[8px] text-slate-400 font-light italic leading-none border-t border-slate-200/40 pt-1.5 mt-1.5 truncate" title={`YC: ${badge.requirement}`}>
-                                YC: {badge.requirement}
-                              </p>
+
+                              <div className="border-t border-slate-200/40 pt-2 mt-2">
+                                <p className="text-[8px] text-slate-400 font-light italic leading-tight text-left" title={`YC: ${badge.requirement}`}>
+                                  <span className="font-semibold text-slate-500">YC:</span> {badge.requirement}
+                                </p>
+                              </div>
+
+                              {/* Tester Quick Increment Button */}
+                              {!isUnlocked && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const nextProg = Math.min(21, progress + 1);
+                                    const updated = { ...challengeProgress, [badge.id]: nextProg };
+                                    saveChallengeProgress(updated);
+                                    if (nextProg === 21) {
+                                      triggerBadgeAlert(badge.id);
+                                    }
+                                  }}
+                                  className="mt-2 w-full bg-white hover:bg-slate-50 border border-slate-200 active:scale-95 text-[9px] font-bold text-slate-600 py-1 px-1.5 rounded-lg transition-all"
+                                >
+                                  +1 Ngày Rèn Luyện
+                                </button>
+                              )}
                             </div>
                           </motion.div>
                         );
@@ -1221,14 +1442,66 @@ export default function Gamification() {
             </div>
 
             {/* Quick footer alert */}
-            <div className="pt-2 text-center text-[9px] text-slate-400 font-light border-t border-slate-150/40">
-              *Huy hiệu rèn luyện giúp khẳng định bản lĩnh thực tại và thói quen tích cực.
+            <div className="pt-2 text-center text-[9px] text-slate-400 font-light border-t border-slate-150/40 space-y-1">
+              <p>*Huy hiệu rèn luyện giúp khẳng định bản lĩnh thực tại và thói quen tích cực.</p>
+              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-1 bg-emerald-50/50 dark:bg-emerald-950/20 p-2 rounded-lg border border-emerald-100/50 dark:border-emerald-900/30">
+                <span className="font-bold">Thử thách lan tỏa:</span> Chụp màn hình thẻ bài của cậu rồi đăng lên story kèm hashtag #CoreZLangSon để truyền cảm hứng làn sóng sống khỏe đời thực nhé! 🌱
+              </div>
             </div>
 
           </div>
 
         </div>
 
+      </div>
+
+      {/* 30-Day Digital Detox Chart */}
+      <div className="mt-6">
+        <DigitalDetoxChart />
+      </div>
+
+      {/* Toast Notification Container */}
+      <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-3 pointer-events-none max-w-sm w-full px-4 sm:px-0">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, y: 50, scale: 0.9, x: 20 }}
+              animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20, transition: { duration: 0.2 } }}
+              className="pointer-events-auto w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-emerald-500/30 rounded-2xl p-4 shadow-[0_10px_30px_rgba(16,185,129,0.15)] flex gap-3.5 relative overflow-hidden ring-1 ring-black/5"
+            >
+              {/* Sparkle background glow */}
+              <div className="absolute -right-10 -bottom-10 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none" />
+              
+              {/* Icon / Emoji circle */}
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-100 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/20 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                {toast.emoji}
+              </div>
+              
+              {/* Text details */}
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black tracking-widest uppercase text-emerald-600 dark:text-emerald-400">
+                    MỞ KHÓA THỬ THÁCH 🎉
+                  </span>
+                  <button 
+                    onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors pointer-events-auto"
+                  >
+                    <X className="w-3.5 h-3.5" strokeWidth={2.5} />
+                  </button>
+                </div>
+                <h4 className="text-[13px] font-bold text-slate-950 dark:text-white leading-tight">
+                  {toast.title}
+                </h4>
+                <p className="text-[10.5px] leading-normal font-light text-slate-500 dark:text-slate-400">
+                  Chúc mừng cậu đã kiên trì hoàn thành 21 ngày rèn luyện: <span className="font-semibold text-slate-600 dark:text-slate-300">"{toast.desc}"</span>. Thật đáng tự hào! 🌟
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
     </div>
