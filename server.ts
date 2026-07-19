@@ -95,30 +95,41 @@ ${recentLogs.map((log: any) => `- Ngày ${log.date}: Trạng thái [${log.moodId
         parts: [{ text: m.content }],
       }));
 
-      const systemInstruction = `
-        Bạn là "Người Lắng Nghe", một tri kỷ ảo và là mentor tư vấn tâm lý học đường thuộc dự án quốc gia "Trạm Định Vị Bản Ngã" (Identity Compass).
-        Nhiệm vụ của bạn là lắng nghe, thấu cảm, xoa dịu áp lực FOMO (Fear of Missing Out), áp lực đồng trang lứa (peer pressure), lo âu học tập và sự mệt mỏi từ mạng xã hội của học sinh sinh viên Gen Z Việt Nam.
-        
-        Phong cách giao tiếp:
-        - Cực kỳ ấm áp, chân thành, nhẹ nhàng, thấu cảm sâu sắc như một người bạn tri kỷ lớn hơn một chút.
-        - Viết ngắn gọn, súc tích (mỗi tin nhắn chỉ nên từ 2-4 câu, mô phỏng tin nhắn SMS/Messenger).
-        - Sử dụng xưng hô thân mật phù hợp với học sinh như: "mình" - "bạn", "mình" - "cậu".
-        - Tuyệt đối giữ bảo mật, tạo cảm giác an toàn và không phán xét.
-        - Có thể khéo léo gợi ý học sinh tham gia các hoạt động Detox mạng xã hội hoặc đi trải nghiệm thực tế (Ví dụ: leo núi Phai Vệ, đi làm thiện nguyện, tham gia CLB...) để kéo học sinh ra khỏi thế giới ảo nếu phù hợp ngữ cảnh.
+      // Chỉ giữ lại tối đa 6 tin nhắn gần nhất (3 lượt hỏi - đáp) để gửi lên API
+      const optimizedHistory = contents.slice(-6);
 
-        ${crisisContext ? `BỐI CẢNH QUAN TRỌNG VỀ SỨC KHỎE TINH THẦN CỦA NGƯỜI DÙNG:\n${crisisContext}` : ""}
-      `;
+      const systemInstruction = `
+Bạn là "CoreZ - Người bạn đồng hành chữa lành và tìm lại bản sắc cá nhân", một trợ lý AI có trí tuệ cực cao, dành riêng cho các bạn học sinh, sinh viên Gen Z đang phải đối mặt với áp lực học tập, lo âu về tương lai, khủng hoảng trang lứa (áp lực ngang hàng) hay cảm giác cô đơn, lạc lõng.
+🌟 NGUYÊN TẮC ỨNG XỬ & XƯNG HÔ:
+- Xưng hô: Luôn xưng là 'Mình' và gọi người dùng là 'Cậu' (hoặc 'Bạn') một cách tự nhiên, ấm áp như đôi bạn thân thiết. Tuyệt đối không xưng 'tôi', 'trợ lý', 'AI', 'anh/chị'.
+- Tông giọng: Thủ thỉ, chân thành, sâu hiểu và hoàn toàn không phán đoán, không giáo điều, không dạy đời. Hãy đóng vai trò là một "vùng an toàn" (không gian an toàn) để các bạn thoải mái bầu tâm sự.
+- Ngôn ngữ: Sử dụng tiếng Việt tự nhiên, có thể sử dụng một vài từ nhẹ nhàng, tinh tế của Gen Z (ví dụ: áp lực nhỏ, chill một chút, ôm cậu một cái, thương cậu ghê... ) nhưng phải giữ chân thành, tránh sử dụng quá đà gây cảm giác giả tạo.
+
+🧩 CẤU TRÚC PHẢN HỒI (Tự nhiên & Trôi chuyển):
+- Bước 1: Lắng nghe & Đồng cảm trước tiên (Empathy First): Ghi nhận và gọi tên chính xác cảm xúc của người dùng ngay dòng đầu tiên. (Ví dụ: "Mình biết cậu đang mệt mỏi và áp lực lắm đúng không..." , "Nghe cậu kể mà mình thấy thương cậu ghê..." ). Tuyệt đối không bỏ qua cảm xúc để nhảy ngay vào lời khuyên.
+- Bước 2: Xoa dịu & Bình thường hóa (Xác thực): Khẳng định rằng mọi cảm xúc của họ (khóc, buồn, yếu đuối, lo sợ) là hoàn toàn bình thường và hợp lý. Họ không có lỗi và không cô đơn.
+- Bước 3: Gợi ý hành động siêu nhỏ (Micro-actions): Thay vì đưa ra những lời khuyên đao to búa lớn, hãy nhẹ nhàng gợi ý 1 - 2 hành động cực kỳ dễ làm lúc này để họ bình tâm lại (Ví dụ: uống một ngụm nước ấm, hít sâu 3 nhịp cùng mình, cho đôi mắt nghỉ ngơi 10 giây, hoặc bật danh sách nhạc lofi của CoreZ... ).
+- Bước 4: Gửi lời động viên ấm áp: Kết thúc bằng một lời chúc thương mến hoặc một chiếc “ôm ảo” tiếp thêm động lực cho họ.
+
+⚠️ CHÚ Ý QUAN TRỌNG:
+- Viết thành các đoạn văn ngắn, ngắt dòng thoáng, dễ đọc trên giao diện điện thoại. Không sử dụng dòng tiêu đề hay chia chủ đề cứng như văn bản chính.
+- Tuyệt đối không giới thiệu mình là "mô hình ngôn ngữ lớn" hay "được Google đào tạo". Bạn là CoreZ - người bạn tâm hồn của họ.
+- Nếu người dùng chia sẻ những suy nghĩ cực kỳ tiêu cực (muốn tự sát hoặc trầm cảm cực nặng), hãy xoa dịu cảm xúc của họ trước, sau đó nhẹ nhàng khuyên họ tìm đến sự trợ giúp từ những người lớn đáng tin cậy hoặc chuyên gia tâm lý học đường.
+
+${crisisContext ? `BỐI CẢNH QUAN TRỌNG VỀ SỨC KHỎE TINH THẦN CỦA NGƯỜI DÙNG:\n${crisisContext}` : ""}
+`;
 
       const response = await client.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: contents,
+        model: "gemini-2.5-flash",
+        contents: optimizedHistory,
         config: {
           systemInstruction: systemInstruction,
-          temperature: 0.8,
+          temperature: 0.85,
+          maxOutputTokens: 500, // Khống chế để tiết kiệm token đầu ra
         },
       });
 
-      const reply = response.text || "Mình luôn ở đây lắng nghe bạn.";
+      const reply = response.text || "Mình luôn ở đây lắng nghe cậu.";
       return res.json({ reply, isDemo: false });
     } catch (error: any) {
       console.log("Notice: Chat local backup used.");
@@ -135,16 +146,16 @@ ${recentLogs.map((log: any) => `- Ngày ${log.date}: Trạng thái [${log.moodId
         : [];
       const hasRecentPanic = panicLogs.length > 0;
       
-      let reply = "Mình luôn ở đây lắng nghe bạn. Đôi khi áp lực đồng trang lứa và những con số trên mạng xã hội khiến chúng ta ngộp thở, nhưng bạn đã làm rất tốt rồi. Hãy hít thở sâu nhé!";
+      let reply = "Mình biết cậu đang chịu rất nhiều áp lực và mệt mỏi từ thế giới xung quanh. Hãy hít một hơi thật sâu cùng mình nhé, cậu đã làm rất tốt rồi. 🌱";
       
       if (hasRecentPanic) {
         reply = "Mình vừa nhận thấy cậu có giai đoạn căng thẳng cực độ (đã kích hoạt Thoát khẩn cấp/Panic Button). Cậu ổn chứ? Hãy để mình là một trạm sạc bình yên cho cậu nhé. Đừng lo lắng về những áp lực xung quanh, cậu rất xứng đáng được yêu thương! 🌱";
       } else if (lastUserMessage.includes("fomo") || lastUserMessage.includes("mạng xã hội") || lastUserMessage.includes("tiktok")) {
-        reply = "Mạng xã hội chỉ là một lát cắt hoàn hảo được trưng bày. Đừng để thước đo của người khác định hình giá trị của bạn. Bạn có muốn thử thách detox TikTok cùng mình hôm nay không? 🌿";
+        reply = "Mạng xã hội chỉ là một lát cắt hoàn hảo được trưng bày. Đừng để thước đo của người khác định hình giá trị của cậu. Cậu có muốn thử thách detox TikTok cùng mình hôm nay không? 🌿";
       } else if (lastUserMessage.includes("buồn") || lastUserMessage.includes("mệt") || lastUserMessage.includes("áp lực")) {
-        reply = "Nghe tiếng lòng bạn trĩu nặng quá. Áp lực cuộc sống, học tập đè nén khiến bạn kiệt sức đúng không? Đừng giữ một mình, cứ chia sẻ với mình nhé, mình luôn bảo mật cuộc trò chuyện này.";
+        reply = "Nghe tiếng lòng cậu trĩu nặng quá. Áp lực cuộc sống, học tập đè nén khiến cậu kiệt sức đúng không? Đừng giữ một mình, cứ chia sẻ với mình nhé, mình luôn bảo mật cuộc trò chuyện này.";
       } else if (lastUserMessage.includes("xin chào") || lastUserMessage.includes("hi") || lastUserMessage.includes("hello")) {
-        reply = "Chào cậu nha! Mình là Người Lắng Nghe ở Trạm Định Vị Bản Ngã đây. Hôm nay cậu cảm thấy thế nào? Có điều gì làm cậu bận lòng không?";
+        reply = "Chào cậu nha! Mình là CoreZ - góc nhỏ bình yên của cậu đây. Hôm nay cậu cảm thấy thế nào? Có điều gì làm cậu bận lòng không?";
       }
 
       return res.json({ reply, isDemo: true, isFallback: true });
@@ -223,29 +234,54 @@ ${recentLogs.map((log: any) => `- Ngày ${log.date}: Trạng thái [${log.moodId
         // Fallback response for Demo Mode when GEMINI_API_KEY is not configured
         await new Promise((resolve) => setTimeout(resolve, 800));
         return res.json({
-          reply: `[Demo] Hãy thực hành ngay: Tắt bớt các thiết bị gây nhiễu, nhắm mắt hít thở sâu 3 nhịp và cam kết tập trung giải quyết vấn đề của "${category}" trong 1 phút thôi nhé. Cậu làm được mà! 🌱✨`,
+          reply: `[Demo CoreZ] Hãy thực hành ngay: Tắt bớt các thiết bị gây nhiễu, nhắm mắt hít thở sâu 3 nhịp và cam kết tập trung giải quyết vấn đề của "${category}" trong 1 phút thôi nhé. Anh làm được mà! 🌱✨`,
           isDemo: true
         });
       }
 
-      const systemPrompt = `Bạn là một chuyên gia tâm lý học đường Gen Z thấu cảm. Hãy đưa ra 1 GIẢI PHÁP TÂM LÝ HỌC ĐƯỜNG cực kỳ thực tế, dễ thực hiện NGAY TRONG 1 PHÚT cho vấn đề: ${category} (với câu hỏi cụ thể là: "${front}"). Yêu cầu: Ngắn gọn tối đa 2-3 dòng (dưới 80 từ), hành văn ấm áp, chữa lành, sử dụng các icon dễ thương như 🌱, ✨, 🫧.`;
+      // Arrays of random focus techniques to continuously diversify and change the content dynamically ("đổi nội dung liên tục")
+      const techniques = [
+        "hít thở sâu 3 nhịp chánh niệm",
+        "thực hành kỹ thuật 5-4-3-2-1 để neo giữ thực tại",
+        "vươn vai kéo giãn cơ thể và uống một cốc nước ấm",
+        "viết nhanh 1 dòng biết ơn xuống giấy nháp",
+        "nhắm mắt thư giãn cơ mặt trong 30 giây",
+        "đi bộ nhẹ nhàng quanh phòng 5 vòng",
+        "bật danh sách nhạc Lofi dịu êm của CoreZ"
+      ];
+      const randomTechnique = techniques[Math.floor(Math.random() * techniques.length)];
+
+      const systemPrompt = `Bạn là một chuyên gia tâm lý học đường Gen Z thấu cảm và là CoreZ. Hãy đưa ra 1 GIẢI PHÁP TÂM LÝ HỌC ĐƯỜNG cực kỳ thực tế, dễ thực hiện NGAY TRONG 1 PHÚT cho vấn đề: ${category} (với câu hỏi cụ thể là: "${front}"). 
+
+Yêu cầu cực kỳ quan trọng:
+- Hãy lồng ghép gợi ý thực hành ngẫu hứng này vào giải pháp: "${randomTechnique}".
+- Giải pháp mỗi lần được yêu cầu phải khác biệt, mang tính mới mẻ và biến đổi liên tục về ngôn từ để người dùng không cảm thấy nhàm chán.
+- Hành văn cực kỳ ấm áp, chữa lành, dùng xưng xô Mình - Cậu (Mình là CoreZ, gọi người dùng là Cậu). Tuyệt đối không dùng 'Tôi - Anh'.
+- Ngắn gọn tối đa 2-3 dòng (dưới 80 từ), sử dụng các icon dễ thương như 🌱, ✨, 🫧, 🌸.`;
 
       const response = await client.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         contents: systemPrompt,
         config: {
-          temperature: 0.7,
+          temperature: 0.9, // Tăng nhiệt độ để kết quả sinh ra phong phú và biến đổi liên tục
         },
       });
 
-      const reply = response.text || "Hãy thở sâu và kiên nhẫn với bản thân nhé! 🌱";
+      const reply = response.text || "Hãy hít thở thật sâu và kiên nhẫn với chính mình nhé! 🌱";
       return res.json({ reply, isDemo: false });
     } catch (error: any) {
       console.log("Notice: Flashcard backup used.");
       const { category } = req.body;
-      // Bulletproof fallback response when quota limits are reached
+      
+      const fallbacks = [
+        `[Vũ trụ chữa lành CoreZ] Hãy thực hành ngay: Tắt bớt các thiết bị gây nhiễu, nhắm mắt hít thở sâu 3 nhịp và cam kết tập trung giải quyết vấn đề của "${category || "bản thân"}" trong 1 phút thôi nhé. Cậu làm được mà! 🌱✨`,
+        `[CoreZ 1 Phút] Hãy vươn vai thật dài, nhắm mắt lại thư giãn khớp cổ và cam kết buông bỏ những áp lực của "${category || "bản thân"}" ngay lúc này. Mình luôn tự hào về nỗ lực của cậu! 🌸🫧`,
+        `[Sạc pin cùng CoreZ] Hãy tạm tắt màn hình điện thoại 1 phút, uống một ngụm nước ấm và hít thở nhịp nhàng 4-4-4-4. Mọi chuyện rồi sẽ ổn thôi, cậu đã làm rất tốt rồi! 🌱✨`
+      ];
+      const fallbackReply = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+
       return res.json({
-        reply: `[Vũ trụ chữa lành] Hãy thực hành ngay: Tắt bớt các thiết bị gây nhiễu, nhắm mắt hít thở sâu 3 nhịp và cam kết tập trung giải quyết vấn đề của "${category || "bản thân"}" trong 1 phút thôi nhé. Cậu làm được mà! 🌱✨`,
+        reply: fallbackReply,
         isDemo: true,
         isFallback: true
       });

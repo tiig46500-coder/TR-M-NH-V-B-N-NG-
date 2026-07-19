@@ -18,6 +18,7 @@ import {
   Info
 } from "lucide-react";
 import { useUserData } from "../context/UserContext";
+import confetti from "canvas-confetti";
 
 interface DailyChallengeTask {
   id: string;
@@ -330,6 +331,41 @@ export default function Gamification() {
   const [unlockedBadge, setUnlockedBadge] = useState<string | null>(null);
   const [showFireworks, setShowFireworks] = useState(false);
 
+  // Active badge view tab: "grid" (all badges shelf) or "history" (timeline list)
+  const [activeBadgeTab, setActiveBadgeTab] = useState<"grid" | "history">("grid");
+
+  // Badges unlock history timeline
+  const [unlockedHistory, setUnlockedHistory] = useState<Array<{
+    badgeId: string;
+    title: string;
+    emoji: string;
+    category: string;
+    unlockedAt: string;
+  }>>([]);
+
+  // Helper to persist a newly unlocked badge to history
+  const addBadgeToHistory = (badgeId: string, title: string, emoji: string, category: string) => {
+    setUnlockedHistory((prev) => {
+      if (prev.some((item) => item.badgeId === badgeId)) return prev;
+      const newItem = {
+        badgeId,
+        title,
+        emoji,
+        category,
+        unlockedAt: new Date().toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        })
+      };
+      const updated = [newItem, ...prev];
+      localStorage.setItem("remix_corez_badge_history", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // Longest streak tracking
   const [longestStreak, setLongestStreak] = useState(0);
 
@@ -340,13 +376,111 @@ export default function Gamification() {
     const storedDay = localStorage.getItem("remix_corez_day_counter");
     const storedCompletedToday = localStorage.getItem("remix_corez_completed_today");
     const storedLongest = localStorage.getItem("remix_corez_longest_d3_streak");
+    const storedBadgeHistory = localStorage.getItem("remix_corez_badge_history");
 
     if (storedHistory) setTaskHistory(JSON.parse(storedHistory));
     if (storedDone) setTotalTasksDone(parseInt(storedDone));
     if (storedDay) setDayCounter(parseInt(storedDay));
     if (storedCompletedToday) setCompletedTaskIds(JSON.parse(storedCompletedToday));
     if (storedLongest) setLongestStreak(parseInt(storedLongest));
+    if (storedBadgeHistory) {
+      try {
+        setUnlockedHistory(JSON.parse(storedBadgeHistory));
+      } catch (e) {
+        console.error(e);
+      }
+    }
   }, []);
+
+  // Synchronize badge history on load or updates to catch any existing achievements
+  useEffect(() => {
+    let changed = false;
+    const historyToUpdate = [...unlockedHistory];
+
+    const checkUnlocked = (badgeId: string) => {
+      if (badgeId === "badge-detox") return (taskHistory["task-detox"] || 0) >= 3;
+      if (badgeId === "badge-physical") return (taskHistory["task-physical"] || 0) >= 3;
+      if (badgeId === "badge-connect") return (taskHistory["task-connect"] || 0) >= 3;
+      if (badgeId === "badge-conqueror") return totalTasksDone >= 12;
+      if (badgeId === "badge-digital-minimalist") return calculateD3Streak() >= 3;
+      
+      if (badgeId === "ach-detox-100") return (userData.detoxMinutes || 0) >= 100;
+      if (badgeId === "ach-empathy-10") return (userData.moodLogs || []).length >= 10;
+      if (badgeId === "ach-reflection-5") return (userData.reflections || []).length >= 5;
+      if (badgeId === "ach-gardener-3") return (userData.plantStage || 0) >= 3;
+      return false;
+    };
+
+    for (const b of BADGES) {
+      if (checkUnlocked(b.id) && !historyToUpdate.some(item => item.badgeId === b.id)) {
+        historyToUpdate.push({
+          badgeId: b.id,
+          title: b.title,
+          emoji: b.emoji,
+          category: "Thử thách 21 ngày",
+          unlockedAt: new Date().toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+        });
+        changed = true;
+      }
+    }
+
+    for (const ach of CORE_ACHIEVEMENTS) {
+      if (checkUnlocked(ach.id) && !historyToUpdate.some(item => item.badgeId === ach.id)) {
+        historyToUpdate.push({
+          badgeId: ach.id,
+          title: ach.title,
+          emoji: ach.emoji,
+          category: "Thành tựu Cốt lõi",
+          unlockedAt: new Date().toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+        });
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      setUnlockedHistory(historyToUpdate);
+      localStorage.setItem("remix_corez_badge_history", JSON.stringify(historyToUpdate));
+    }
+  }, [taskHistory, totalTasksDone, userData.detoxMinutes, userData.moodLogs, userData.reflections, userData.plantStage, unlockedHistory.length]);
+
+  // Trigger confetti celebration when a badge is unlocked
+  useEffect(() => {
+    if (unlockedBadge) {
+      // Continuous beautiful fireworks effect with canvas-confetti
+      const duration = 4.5 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+
+      const randomInRange = (min: number, max: number) => {
+        return Math.random() * (max - min) + min;
+      };
+
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        // Fireworks from the left and right sides
+        confetti({ 
+          ...defaults, 
+          particleCount, 
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+          colors: ['#34D399', '#60A5FA', '#F472B6', '#FBBF24', '#A78BFA']
+        });
+        confetti({ 
+          ...defaults, 
+          particleCount, 
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+          colors: ['#34D399', '#60A5FA', '#F472B6', '#FBBF24', '#A78BFA']
+        });
+      }, 250);
+
+      return () => clearInterval(interval);
+    }
+  }, [unlockedBadge]);
 
   // Sync longest streak on change of completed daily tasks
   useEffect(() => {
@@ -365,10 +499,10 @@ export default function Gamification() {
   // Watch for newly unlocked core achievements
   useEffect(() => {
     const achs = [
-      { id: "ach-detox-100", title: "Thải Độc Bền Bỉ" },
-      { id: "ach-empathy-10", title: "Người Thấu Cảm" },
-      { id: "ach-reflection-5", title: "Học Giả Phản Tư" },
-      { id: "ach-gardener-3", title: "Người Gieo Mầm Xanh" }
+      { id: "ach-detox-100", title: "Thải Độc Bền Bỉ", emoji: "🔋" },
+      { id: "ach-empathy-10", title: "Người Thấu Cảm", emoji: "🧡" },
+      { id: "ach-reflection-5", title: "Học Giả Phản Tư", emoji: "📖" },
+      { id: "ach-gardener-3", title: "Người Gieo Mầm Xanh", emoji: "🌸" }
     ];
 
     for (const ach of achs) {
@@ -379,6 +513,7 @@ export default function Gamification() {
         setUnlockedBadge(ach.title);
         localStorage.setItem(`remix_corez_notified_${ach.id}`, "true");
         addXP(50); // Extra reward for major core achievement!
+        addBadgeToHistory(ach.id, ach.title, ach.emoji, "Thành tựu Cốt lõi");
         break;
       }
     }
@@ -500,7 +635,7 @@ export default function Gamification() {
     const badge = BADGES.find(b => b.id === badgeId);
     if (badge) {
       setUnlockedBadge(badge.title);
-      // Play sound or save custom alert
+      addBadgeToHistory(badge.id, badge.title, badge.emoji, "Thử thách 21 ngày");
     }
   };
 
@@ -890,123 +1025,205 @@ export default function Gamification() {
 
           {/* DIGITAL BADGES WALL */}
           <div className="bg-white/65 backdrop-blur-xl rounded-[28px] border border-white/40 p-5 shadow-sm space-y-3.5 flex-1 flex flex-col justify-between overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/30 pb-2">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-emerald-500" />
-                Huy Chương Danh Độ (Badges Shelf)
-              </h4>
-              <span className="text-[10px] text-slate-400 font-mono">Trượt ngang xem 🌟</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/30 pb-2.5 gap-2">
+              <div className="flex items-center gap-1.5">
+                <Award className="w-4.5 h-4.5 text-emerald-500" />
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Bộ Sưu Tập Huy Chương (Badges)
+                </h4>
+              </div>
+              
+              {/* Tab Selector */}
+              <div className="flex bg-slate-100/80 p-0.5 rounded-lg border border-slate-200/50 self-start sm:self-auto shrink-0">
+                <button
+                  onClick={() => setActiveBadgeTab("grid")}
+                  className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${
+                    activeBadgeTab === "grid" 
+                      ? "bg-white text-slate-800 shadow-sm" 
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  Tất cả ({BADGES.length + CORE_ACHIEVEMENTS.length})
+                </button>
+                <button
+                  onClick={() => setActiveBadgeTab("history")}
+                  className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1 ${
+                    activeBadgeTab === "history" 
+                      ? "bg-white text-slate-800 shadow-sm" 
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  Lịch sử đạt được
+                  {unlockedHistory.length > 0 && (
+                    <span className="bg-emerald-500 text-white text-[8px] px-1 rounded-full leading-none">
+                      {unlockedHistory.length}
+                    </span>
+                  )}
+                </button>
+              </div>
             </div>
 
-             {/* Badges list */}
-             <div className="space-y-4 flex-1 overflow-y-auto pr-1">
-               {/* SECTION A: HUY HIỆU THỬ THÁCH */}
-               <div className="space-y-2">
-                 <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
-                   Thử thách 21 ngày
-                 </h5>
-                 <div className="flex gap-3 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-slate-200">
-                   {BADGES.map((badge) => {
-                     const isUnlocked = isBadgeUnlocked(badge.id);
-                     let progressText = "0/3";
-                     if (badge.id === "badge-detox") progressText = `${Math.min(3, taskHistory["task-detox"] || 0)}/3`;
-                     if (badge.id === "badge-physical") progressText = `${Math.min(3, taskHistory["task-physical"] || 0)}/3`;
-                     if (badge.id === "badge-connect") progressText = `${Math.min(3, taskHistory["task-connect"] || 0)}/3`;
-                     if (badge.id === "badge-conqueror") progressText = `${Math.min(12, totalTasksDone)}/12`;
-                     if (badge.id === "badge-digital-minimalist") progressText = `${Math.min(3, d3Streak)}/3`;
+            {/* Badges list */}
+            <div className="flex-1 overflow-y-auto pr-1 min-h-[220px]">
+              {activeBadgeTab === "grid" ? (
+                <div className="space-y-4">
+                  {/* SECTION A: HUY HIỆU THỬ THÁCH */}
+                  <div className="space-y-2">
+                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">
+                      Thử thách 21 ngày
+                    </h5>
+                    <div className="flex gap-3 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-slate-200">
+                      {BADGES.map((badge) => {
+                        const isUnlocked = isBadgeUnlocked(badge.id);
+                        let progressText = "0/3";
+                        if (badge.id === "badge-detox") progressText = `${Math.min(3, taskHistory["task-detox"] || 0)}/3`;
+                        if (badge.id === "badge-physical") progressText = `${Math.min(3, taskHistory["task-physical"] || 0)}/3`;
+                        if (badge.id === "badge-connect") progressText = `${Math.min(3, taskHistory["task-connect"] || 0)}/3`;
+                        if (badge.id === "badge-conqueror") progressText = `${Math.min(12, totalTasksDone)}/12`;
+                        if (badge.id === "badge-digital-minimalist") progressText = `${Math.min(3, d3Streak)}/3`;
 
-                     return (
-                       <motion.div
-                         whileHover={{ y: -2 }}
-                         key={badge.id}
-                         className={`min-w-[145px] max-w-[145px] p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all shrink-0 ${
-                           isUnlocked 
-                             ? `${badge.bgLight} ${badge.borderColor} shadow-sm` 
-                             : "bg-white/20 border-slate-100 opacity-60"
-                         }`}
-                       >
-                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
-                           isUnlocked ? badge.color : "bg-slate-100 text-slate-300 border border-slate-200"
-                         }`}>
-                           {isUnlocked ? badge.emoji : <Lock className="w-4 h-4 text-slate-300" />}
-                         </div>
+                        return (
+                          <motion.div
+                            whileHover={{ y: -2 }}
+                            key={badge.id}
+                            className={`min-w-[145px] max-w-[145px] p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all shrink-0 ${
+                              isUnlocked 
+                                ? `${badge.bgLight} ${badge.borderColor} shadow-sm` 
+                                : "bg-white/20 border-slate-100 opacity-60"
+                            }`}
+                          >
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
+                              isUnlocked ? badge.color : "bg-slate-100 text-slate-300 border border-slate-200"
+                            }`}>
+                              {isUnlocked ? badge.emoji : <Lock className="w-4 h-4 text-slate-300" />}
+                            </div>
 
-                         <div className="mt-2 w-full flex-1 flex flex-col justify-between">
-                           <div className="space-y-0.5">
-                             <h5 className="text-[11px] font-bold text-slate-800 truncate" title={badge.title}>
-                               {badge.title}
-                             </h5>
-                             <span className="text-[9px] font-mono text-slate-400 block">
-                               {progressText}
-                             </span>
-                             <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight font-light h-6">
-                               {badge.desc}
-                             </p>
-                           </div>
-                           <p className="text-[8px] text-slate-400 font-light italic leading-none border-t border-slate-200/40 pt-1.5 mt-1.5 truncate" title={`YC: ${badge.requirement}`}>
-                             YC: {badge.requirement}
-                           </p>
-                         </div>
-                       </motion.div>
-                     );
-                   })}
-                 </div>
-               </div>
+                            <div className="mt-2 w-full flex-1 flex flex-col justify-between">
+                              <div className="space-y-0.5">
+                                <h5 className="text-[11px] font-bold text-slate-800 truncate" title={badge.title}>
+                                  {badge.title}
+                                </h5>
+                                <span className="text-[9px] font-mono text-slate-400 block">
+                                  {progressText}
+                                </span>
+                                <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight font-light h-6">
+                                  {badge.desc}
+                                </p>
+                              </div>
+                              <p className="text-[8px] text-slate-400 font-light italic leading-none border-t border-slate-200/40 pt-1.5 mt-1.5 truncate" title={`YC: ${badge.requirement}`}>
+                                YC: {badge.requirement}
+                              </p>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-               {/* SECTION B: THÀNH TỰU BẢN NGÃ */}
-               <div className="space-y-2 pt-2 border-t border-slate-150/40">
-                 <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1 flex items-center gap-1">
-                   <Sparkles className="w-3 h-3 text-emerald-500" />
-                   Thành tựu Cốt lõi
-                 </h5>
-                 <div className="flex gap-3 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-slate-200">
-                   {CORE_ACHIEVEMENTS.map((ach) => {
-                     const isUnlocked = isAchUnlocked(ach.id);
-                     const progressText = getAchProgressText(ach.id);
+                  {/* SECTION B: THÀNH TỰU BẢN NGÃ */}
+                  <div className="space-y-2 pt-2 border-t border-slate-150/40">
+                    <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-emerald-500" />
+                      Thành tựu Cốt lõi
+                    </h5>
+                    <div className="flex gap-3 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-slate-200">
+                      {CORE_ACHIEVEMENTS.map((ach) => {
+                        const isUnlocked = isAchUnlocked(ach.id);
+                        const progressText = getAchProgressText(ach.id);
 
-                     return (
-                       <motion.div
-                         whileHover={{ y: -2 }}
-                         key={ach.id}
-                         className={`min-w-[145px] max-w-[145px] p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all shrink-0 ${
-                           isUnlocked 
-                             ? `${ach.bgLight} ${ach.borderColor} shadow-sm` 
-                             : "bg-white/20 border-slate-100 opacity-60"
-                         }`}
-                       >
-                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
-                           isUnlocked ? ach.color : "bg-slate-100 text-slate-300 border border-slate-200"
-                         }`}>
-                           {isUnlocked ? ach.emoji : <Lock className="w-4 h-4 text-slate-300" />}
-                         </div>
+                        return (
+                          <motion.div
+                            whileHover={{ y: -2 }}
+                            key={ach.id}
+                            className={`min-w-[145px] max-w-[145px] p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all shrink-0 ${
+                              isUnlocked 
+                                ? `${ach.bgLight} ${ach.borderColor} shadow-sm` 
+                                : "bg-white/20 border-slate-100 opacity-60"
+                            }`}
+                          >
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
+                              isUnlocked ? ach.color : "bg-slate-100 text-slate-300 border border-slate-200"
+                            }`}>
+                              {isUnlocked ? ach.emoji : <Lock className="w-4 h-4 text-slate-300" />}
+                            </div>
 
-                         <div className="mt-2 w-full flex-1 flex flex-col justify-between">
-                           <div className="space-y-0.5">
-                             <h5 className="text-[11px] font-bold text-slate-800 truncate" title={ach.title}>
-                               {ach.title}
-                             </h5>
-                             <span className="text-[9px] font-mono text-slate-400 block">
-                               {progressText}
-                             </span>
-                             <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight font-light h-6">
-                               {ach.desc}
-                             </p>
-                           </div>
-                           <p className="text-[8px] text-slate-400 font-light italic leading-none border-t border-slate-200/40 pt-1.5 mt-1.5 truncate" title={`YC: ${ach.requirement}`}>
-                             YC: {ach.requirement}
-                           </p>
-                         </div>
-                       </motion.div>
-                     );
-                   })}
-                 </div>
-               </div>
-             </div>
+                            <div className="mt-2 w-full flex-1 flex flex-col justify-between">
+                              <div className="space-y-0.5">
+                                <h5 className="text-[11px] font-bold text-slate-800 truncate" title={ach.title}>
+                                  {ach.title}
+                                </h5>
+                                <span className="text-[9px] font-mono text-slate-400 block">
+                                  {progressText}
+                                </span>
+                                <p className="text-[9.5px] text-slate-500 line-clamp-2 leading-tight font-light h-6">
+                                  {ach.desc}
+                                </p>
+                              </div>
+                              <p className="text-[8px] text-slate-400 font-light italic leading-none border-t border-slate-200/40 pt-1.5 mt-1.5 truncate" title={`YC: ${ach.requirement}`}>
+                                YC: {ach.requirement}
+                              </p>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* HISTORY TIMELINE VIEW */
+                <div className="space-y-3 py-1.5">
+                  {unlockedHistory.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-center space-y-2">
+                      <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                        <Award className="w-5 h-5" />
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-medium">Anh chưa có lịch sử nhận huy hiệu.</p>
+                      <p className="text-[9px] text-slate-400 max-w-[240px]">Hãy tiếp tục hoàn thành các thử thách hàng ngày hoặc tích lũy hoạt động chánh niệm để mở khóa huy chương đầu tiên nhé! 🌱</p>
+                    </div>
+                  ) : (
+                    <div className="relative pl-4 border-l-2 border-slate-150 space-y-4">
+                      {unlockedHistory.map((item, idx) => (
+                        <motion.div
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          key={`${item.badgeId}-${idx}`}
+                          className="relative"
+                        >
+                          {/* Timeline dot */}
+                          <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-white" />
+                          
+                          <div className="bg-white/80 border border-slate-150 p-3 rounded-2xl flex items-center justify-between gap-3 shadow-xs hover:border-emerald-300 transition-all">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl filter drop-shadow-sm">{item.emoji}</span>
+                              <div>
+                                <h6 className="text-[11px] font-bold text-slate-800">
+                                  Đã đạt: {item.title}
+                                </h6>
+                                <p className="text-[9px] text-slate-400 font-mono">
+                                  Phân loại: {item.category}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-[9px] text-emerald-600 bg-emerald-50 font-bold px-2 py-0.5 rounded-md border border-emerald-100">
+                                Thành công ✨
+                              </span>
+                              <p className="text-[8px] text-slate-400 mt-1">{item.unlockedAt}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
-             {/* Quick footer alert */}
-             <div className="pt-2 text-center text-[9px] text-slate-400 font-light border-t border-slate-150/40">
-               *Huy hiệu rèn luyện giúp khẳng định bản lĩnh thực tại và thói quen tích cực.
-             </div>
+            {/* Quick footer alert */}
+            <div className="pt-2 text-center text-[9px] text-slate-400 font-light border-t border-slate-150/40">
+              *Huy hiệu rèn luyện giúp khẳng định bản lĩnh thực tại và thói quen tích cực.
+            </div>
 
           </div>
 

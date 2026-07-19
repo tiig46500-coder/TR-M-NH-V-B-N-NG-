@@ -19,6 +19,7 @@ export interface Confession {
   timestamp: string;
   color: string; // Tailwind bg-color class
   rotation: string; // Tailwind rotation class for realistic look
+  author?: string; // Optional anonymous author name
 }
 
 export interface HabitChallenge {

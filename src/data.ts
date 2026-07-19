@@ -84,6 +84,7 @@ export const INITIAL_CONFESSIONS: Confession[] = [
     timestamp: "10 phút trước",
     color: "bg-amber-50 text-slate-700 border-amber-200",
     rotation: "rotate-1",
+    author: "Hạt Mầm Mạnh Mẽ"
   },
   {
     id: "conf-2",
@@ -91,6 +92,7 @@ export const INITIAL_CONFESSIONS: Confession[] = [
     timestamp: "1 giờ trước",
     color: "bg-sky-50 text-slate-700 border-sky-200",
     rotation: "-rotate-2",
+    author: "Chú Mèo Bình Yên"
   },
   {
     id: "conf-3",
@@ -98,6 +100,7 @@ export const INITIAL_CONFESSIONS: Confession[] = [
     timestamp: "3 giờ trước",
     color: "bg-emerald-50 text-slate-700 border-emerald-200",
     rotation: "rotate-3",
+    author: "Đám Mây Lặng Lẽ"
   },
   {
     id: "conf-4",
@@ -105,6 +108,7 @@ export const INITIAL_CONFESSIONS: Confession[] = [
     timestamp: "Hôm qua",
     color: "bg-amber-50 text-slate-700 border-amber-100",
     rotation: "-rotate-1",
+    author: "Lá Cây Kiên Cường"
   },
   {
     id: "conf-5",
@@ -112,6 +116,7 @@ export const INITIAL_CONFESSIONS: Confession[] = [
     timestamp: "Hôm qua",
     color: "bg-pink-50 text-slate-700 border-pink-100",
     rotation: "rotate-2",
+    author: "Ngôi Sao Bí Ẩn"
   },
 ];
 

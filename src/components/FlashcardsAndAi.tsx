@@ -15,6 +15,7 @@ import {
 import { FLASHCARDS } from "../data";
 import { ChatMessage } from "../types";
 import { useUserData } from "../context/UserContext";
+import { saveFavoritePost } from "./GocBinhYen";
 
 export default function FlashcardsAndAi() {
   const { userData } = useUserData();
@@ -27,6 +28,36 @@ export default function FlashcardsAndAi() {
   // Cache for dynamic Gemini tips
   const [customTips, setCustomTips] = useState<Record<number, string>>({});
   const [loadingTipIds, setLoadingTipIds] = useState<Record<number, boolean>>({});
+
+  const [savedCardIds, setSavedCardIds] = useState<Record<number, boolean>>({});
+  const [savedMsgIds, setSavedMsgIds] = useState<Record<string, boolean>>({});
+
+  const handleSaveCard = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Ngăn chặn lật thẻ khi bấm nút lưu
+    const cardId = currentCard.id;
+    const adviceText = customTips[cardId] || currentCard.back;
+    
+    const postToSave = {
+      id: `card-${cardId}-${Date.now()}`,
+      aiAdvice: adviceText,
+      category: currentCard.category,
+      timestamp: new Date().toLocaleDateString("vi-VN") + " " + new Date().toLocaleTimeString("vi-VN", {hour: '2-digit', minute:'2-digit'})
+    };
+    
+    saveFavoritePost(postToSave);
+    setSavedCardIds((prev) => ({ ...prev, [cardId]: true }));
+  };
+
+  const handleSaveMessage = (msg: ChatMessage) => {
+    const postToSave = {
+      id: msg.id,
+      aiAdvice: msg.content,
+      category: "AI Mentor",
+      timestamp: new Date().toLocaleDateString("vi-VN") + " " + new Date().toLocaleTimeString("vi-VN", {hour: '2-digit', minute:'2-digit'})
+    };
+    saveFavoritePost(postToSave);
+    setSavedMsgIds((prev) => ({ ...prev, [msg.id]: true }));
+  };
 
   const currentCard = FLASHCARDS[currentCardIdx];
 
@@ -87,9 +118,9 @@ export default function FlashcardsAndAi() {
   const [chatInput, setChatInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: "welcome-1",
+      id: "msg-0",
       role: "model",
-      content: "Chào cậu nha! Mình là Người Lắng Nghe ở Trạm Định Vị Bản Ngã đây. Hôm nay cậu cảm thấy thế nào? Có điều gì làm cậu áp lực hay bận lòng không, kể cho mình nghe nhé. Mình luôn bảo mật cuộc trò chuyện này.",
+      content: "Chào cậu! Mình là CoreZ - góc nhỏ bình yên của cậu đây. Hôm nay cậu cảm thấy thế nào? Cứ thoải mái kể cho mình nghe nhé, mình luôn ở đây lắng nghe và giữ bí mật tuyệt đối cho cậu. 🌱",
       timestamp: new Date()
     }
   ]);
@@ -158,7 +189,7 @@ export default function FlashcardsAndAi() {
       const assistantMsg: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         role: "model",
-        content: "Cậu ơi, tín hiệu của mình đang hơi chập chờn một chút. Nhưng cậu nhớ nhé: cậu luôn đủ tốt và đáng quý. Hãy hít một hơi thật sâu và thử trò chuyện lại với mình sau vài giây nha! 🌱",
+        content: "Cậu ơi, kết nối của mình đang hơi chập chờn một chút. Nhưng cậu nhớ nhé: cậu luôn tuyệt vời và xứng đáng được yêu thương. Hãy hít thở sâu cùng mình và thử nhắn lại sau vài giây nha! 🌱",
         timestamp: new Date()
       };
       setMessages((prev) => [...prev, assistantMsg]);
@@ -244,7 +275,7 @@ export default function FlashcardsAndAi() {
             >
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold tracking-wider text-emerald-400 bg-emerald-950/60 px-2.5 py-0.5 rounded uppercase border border-emerald-500/30">
-                  {loadingTipIds[currentCard.id] ? "Đang đúc kết..." : "Bí kíp 1 phút • Gemini"}
+                  {loadingTipIds[currentCard.id] ? "Đang đúc kết..." : "Bí kíp 1 phút - CoreZ"}
                 </span>
                 <Heart className="w-4.5 h-4.5 text-rose-400 fill-rose-500/10" />
               </div>
@@ -281,8 +312,21 @@ export default function FlashcardsAndAi() {
                 </div>
               )}
 
-              <div className="text-[10px] text-emerald-400 font-semibold text-center mt-1">
-                Thực hành ngay ngày hôm nay cậu nhé! 🫧
+              <div className="flex items-center justify-between mt-2 pt-2.5 border-t border-slate-800/60 w-full">
+                <span className="text-[10px] text-emerald-400 font-semibold">
+                  Thực hành ngay cậu nhé! 🫧
+                </span>
+                <button
+                  onClick={handleSaveCard}
+                  className={`text-[10px] font-bold px-2 py-1 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border select-none ${
+                    savedCardIds[currentCard.id]
+                      ? "bg-rose-950/40 text-rose-300 border-rose-500/30"
+                      : "bg-emerald-950/40 text-emerald-300 border-emerald-500/30 hover:bg-emerald-900/50"
+                  }`}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${savedCardIds[currentCard.id] ? "fill-rose-400 text-rose-400" : ""}`} />
+                  <span>{savedCardIds[currentCard.id] ? "Đã lưu" : "Lưu bí kíp"}</span>
+                </button>
               </div>
             </div>
           </div>
@@ -325,7 +369,7 @@ export default function FlashcardsAndAi() {
             </div>
             <div>
               <h3 className="font-serif text-sm sm:text-base font-bold text-slate-800">
-                Người Lắng Nghe
+                CoreZ • Bạn Đồng Hành
               </h3>
               <p className="text-[10px] text-slate-400 leading-none flex items-center gap-1">
                 <span>Trợ lý ảo thấu cảm 24/7 • Đảm bảo riêng tư</span>
@@ -349,13 +393,28 @@ export default function FlashcardsAndAi() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-[13px] leading-relaxed ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs sm:text-[13px] leading-relaxed relative group/msg ${
                     isModel
-                      ? "bg-white/60 backdrop-blur-sm text-slate-700 border border-white/40 rounded-bl-none shadow-sm"
+                      ? "bg-white/60 backdrop-blur-sm text-slate-700 border border-white/40 rounded-bl-none shadow-sm pb-8"
                       : "bg-[#34D399] text-white rounded-br-none font-medium shadow-md shadow-emerald-200/30"
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{msg.content}</p>
+                  
+                  {isModel && (
+                    <button
+                      type="button"
+                      onClick={() => handleSaveMessage(msg)}
+                      className={`absolute bottom-1.5 right-2 px-2 py-0.5 text-[9px] rounded-md font-bold cursor-pointer transition-all flex items-center gap-1 border select-none ${
+                        savedMsgIds[msg.id]
+                          ? "bg-rose-50 text-rose-500 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/40"
+                          : "bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 hover:text-emerald-500 hover:bg-emerald-50 hover:border-emerald-200 dark:hover:text-emerald-300 dark:hover:bg-emerald-950/30 dark:hover:border-emerald-800/40 opacity-100 sm:opacity-0 sm:group-hover/msg:opacity-100 focus:opacity-100"
+                      }`}
+                    >
+                      <Heart className={`w-2.5 h-2.5 ${savedMsgIds[msg.id] ? "fill-rose-400 text-rose-400" : ""}`} />
+                      <span>{savedMsgIds[msg.id] ? "Đã lưu" : "Lưu Góc Bình Yên"}</span>
+                    </button>
+                  )}
                 </div>
               </div>
             );

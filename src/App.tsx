@@ -28,10 +28,11 @@ import SelfDiscovery from "./components/SelfDiscovery";
 import Gamification from "./components/Gamification";
 import Journaling from "./components/Journaling";
 import Community from "./components/Community";
+import GocBinhYen from "./components/GocBinhYen";
 import PanicButton from "./components/PanicButton";
 import SosButton from "./components/SosButton";
-import HealingAudioPlayer from "./components/HealingAudioPlayer";
 import CuteStar from "./components/CuteStar";
+import IdentityCompassWidget from "./components/IdentityCompassWidget";
 import { useUserData } from "./context/UserContext";
 import { RiskLevel } from "./types";
 
@@ -138,8 +139,8 @@ export default function App() {
   // Views: 'landing' | 'quiz' | 'main'
   const [currentView, setCurrentView] = useState<"landing" | "quiz" | "main">("landing");
   
-  // Dashboard Tabs: 'space4d' | 'self_discovery' | 'mood' | 'journaling' | 'gamification' | 'community' | 'mentor'
-  const [activeTab, setActiveTab] = useState<"space4d" | "self_discovery" | "mood" | "journaling" | "gamification" | "community" | "mentor">("space4d");
+  // Dashboard Tabs: 'space4d' | 'self_discovery' | 'mood' | 'journaling' | 'gamification' | 'community' | 'mentor' | 'gocbinhyen'
+  const [activeTab, setActiveTab] = useState<"space4d" | "self_discovery" | "mood" | "journaling" | "gamification" | "community" | "mentor" | "gocbinhyen">("space4d");
   
   // State for Reset Confirmation Modal
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -503,9 +504,6 @@ export default function App() {
       {/* 2. Global Floating SOS Hotline (Bottom-Right) */}
       <SosButton />
 
-      {/* 3. Global Healing Audio Player (Bottom-Left) */}
-      <HealingAudioPlayer />
-
       {/* View Switcher Container */}
       <AnimatePresence mode="wait">
         
@@ -806,6 +804,22 @@ export default function App() {
                   </span>
                 </button>
 
+                {/* Tab 8: Góc Bình Yên */}
+                <button
+                  id="tab-gocbinhyen"
+                  onClick={() => setActiveTab("gocbinhyen")}
+                  className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
+                    activeTab === "gocbinhyen"
+                      ? "text-rose-600 bg-white/85 shadow-sm"
+                      : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                    <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500/10 animate-pulse" />
+                    Góc Bình Yên
+                  </span>
+                </button>
+
               </nav>
             </div>
 
@@ -900,6 +914,17 @@ export default function App() {
                     <Community />
                   </motion.div>
                 )}
+                {activeTab === "gocbinhyen" && (
+                  <motion.div
+                    key="tab-content-gocbinhyen"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <GocBinhYen />
+                  </motion.div>
+                )}
               </AnimatePresence>
             </main>
 
@@ -912,6 +937,11 @@ export default function App() {
         )}
 
       </AnimatePresence>
+
+      {/* 5. Glowing Interactive Identity Compass Widget */}
+      {currentView === "main" && (
+        <IdentityCompassWidget assessmentLevel={assessmentLevel} onNavigate={(tab) => setActiveTab(tab)} />
+      )}
 
       {/* 4. Beautiful Reset Confirmation Modal */}
       <AnimatePresence>

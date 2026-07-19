@@ -38,6 +38,16 @@ const ROTATIONS = [
   "rotate-0", "rotate-1", "-rotate-1", "rotate-2", "-rotate-2", "rotate-1.5", "-rotate-1.5"
 ];
 
+// 1. Hàm tạo tên ẩn danh ngẫu nhiên mang phong cách "Chữa lành"
+export const generateAnonymousName = (): string => {
+  const adjectives = ['Bình Yên', 'Mạnh Mẽ', 'Lặng Lẽ', 'Bí Ẩn', 'Kiên Cường'];
+  const nouns = ['Đám Mây', 'Ngôi Sao', 'Hạt Mầm', 'Lá Cây', 'Chú Mèo'];
+  const randomAdj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+  
+  return `${randomNoun} ${randomAdj}`; // Ví dụ: "Đám Mây Bình Yên"
+};
+
 export default function Community() {
   const [confessions, setConfessions] = useState<Confession[]>([]);
   const [inputText, setInputText] = useState("");
@@ -140,7 +150,8 @@ export default function Community() {
         content: finalContent,
         timestamp: "Vừa xong",
         color: color,
-        rotation: rotation
+        rotation: rotation,
+        author: generateAnonymousName()
       };
 
       const updatedConfessions = [newConf, ...confessions];
@@ -177,7 +188,8 @@ export default function Community() {
         content: inputText,
         timestamp: "Vừa xong",
         color: color,
-        rotation: rotation
+        rotation: rotation,
+        author: generateAnonymousName()
       };
 
       const updatedConfessions = [newConf, ...confessions];
@@ -439,6 +451,11 @@ export default function Community() {
                   >
                     {/* Sticky note tack head design */}
                     <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-slate-300/30" />
+
+                    <div className="flex items-center gap-1 text-[9px] font-mono font-bold text-slate-500 mb-2.5 border-b border-slate-200/40 pb-1.5">
+                      <UserCheck className="w-3 h-3 text-emerald-600 shrink-0" />
+                      <span className="truncate">Sứ giả: {conf.author || "Bạn học Ẩn danh"}</span>
+                    </div>
 
                     <p className="text-[11px] leading-relaxed text-justify font-serif text-slate-700 whitespace-pre-wrap flex-1 pr-1">
                       “{conf.content}”
