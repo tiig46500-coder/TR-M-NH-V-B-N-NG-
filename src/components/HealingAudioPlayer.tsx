@@ -339,7 +339,7 @@ export default function HealingAudioPlayer() {
     {
       id: "track-2",
       title: "lofi thư giãn",
-      artist: "CoreZ Chill Beats",
+      artist: "Cozy Chill Beats",
       duration: 210,
       synthType: "lofi",
       url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",

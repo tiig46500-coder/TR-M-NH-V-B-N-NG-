@@ -17,6 +17,7 @@ import {
   Bookmark
 } from "lucide-react";
 import { useUserData, ReflectionLog, FutureLetter } from "../context/UserContext";
+import { HEALING_QUOTES, HealingQuote } from "../data";
 
 interface Prompt {
   id: number;
@@ -57,6 +58,28 @@ export default function Journaling({ initialTab }: JournalingProps) {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"reflection" | "letter" | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Healing Quote state
+  const [currentQuote, setCurrentQuote] = useState<HealingQuote | null>(null);
+
+  useEffect(() => {
+    // Select random healing quote on mount to provide instant inspiration
+    if (HEALING_QUOTES.length > 0) {
+      const randIdx = Math.floor(Math.random() * HEALING_QUOTES.length);
+      setCurrentQuote(HEALING_QUOTES[randIdx]);
+    }
+  }, []);
+
+  const handleRandomizeQuote = () => {
+    if (HEALING_QUOTES.length <= 1) return;
+    let nextIdx = Math.floor(Math.random() * HEALING_QUOTES.length);
+    if (currentQuote) {
+      while (HEALING_QUOTES[nextIdx].id === currentQuote.id) {
+        nextIdx = Math.floor(Math.random() * HEALING_QUOTES.length);
+      }
+    }
+    setCurrentQuote(HEALING_QUOTES[nextIdx]);
+  };
 
   useEffect(() => {
     if (initialTab) {
@@ -196,6 +219,50 @@ export default function Journaling({ initialTab }: JournalingProps) {
   return (
     <div className="w-full max-w-4xl mx-auto py-2 px-4 font-sans relative z-10" id="journaling-module">
       
+      {/* Healing Quote Inspiration Banner */}
+      {currentQuote && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-6 p-5 rounded-[24px] bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/20 backdrop-blur-md relative overflow-hidden group shadow-sm text-left"
+        >
+          {/* Subtle decorative quote marks background */}
+          <div className="absolute right-4 top-2 text-7xl font-serif text-emerald-500/5 select-none pointer-events-none font-black leading-none">
+            “
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
+            <div className="space-y-2 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-bold tracking-wider text-emerald-600 bg-emerald-100/60 dark:bg-emerald-950/40 dark:text-emerald-300 px-2.5 py-0.5 rounded-full uppercase border border-emerald-500/10">
+                  {currentQuote.category}
+                </span>
+                <span className="text-[10px] text-emerald-500 font-semibold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-emerald-500 animate-pulse" />
+                  Cảm hứng phản tư tức thì
+                </span>
+              </div>
+              <p className="font-serif text-sm sm:text-base font-bold text-slate-800 dark:text-emerald-50 leading-relaxed italic">
+                “{currentQuote.text}”
+              </p>
+              <p className="text-xs text-slate-400 font-mono font-medium">
+                — {currentQuote.author}
+              </p>
+            </div>
+
+            <button
+              onClick={handleRandomizeQuote}
+              className="px-3 py-1.5 bg-white/70 hover:bg-white dark:bg-slate-800/60 dark:hover:bg-slate-850 border border-emerald-500/10 rounded-xl text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer select-none active:scale-95 whitespace-nowrap"
+              title="Đổi trích dẫn chữa lành khác"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Tìm cảm hứng khác</span>
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Sub tabs header */}
       <div className="flex justify-center mb-6">
         <div className="bg-white/40 border border-white/40 backdrop-blur-md p-1.5 rounded-2xl flex gap-1 shadow-sm">
@@ -273,7 +340,7 @@ export default function Journaling({ initialTab }: JournalingProps) {
                   <label className="text-[10.5px] font-bold text-slate-500 uppercase font-mono block">Nội dung phản tư của cậu</label>
                   <textarea
                     rows={6}
-                    placeholder="Hãy viết thật chậm, mộc mạc và chân thực nhất những suy nghĩ ẩn sâu trong cậu ngày hôm nay... Ở CoreZ, không ai phán xét cậu cả."
+                    placeholder="Hãy viết thật chậm, mộc mạc và chân thực nhất những suy nghĩ ẩn sâu trong cậu ngày hôm nay... Ở Cozy, không ai phán xét cậu cả."
                     value={reflectionInput}
                     onChange={(e) => setReflectionInput(e.target.value)}
                     className="w-full p-4 rounded-2xl border border-white/40 focus:outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white/50 placeholder:text-slate-400 shadow-inner resize-none flex-1 min-h-[140px]"
@@ -398,7 +465,7 @@ export default function Journaling({ initialTab }: JournalingProps) {
                         Đang niêm phong thư bằng sáp ong...
                       </h4>
                       <p className="text-xs text-slate-400 font-light max-w-xs mx-auto leading-relaxed">
-                        Thư của cậu đang được bọc sáp, đóng dấu mộc CoreZ và gửi vào lồng kính thời gian. Xin hãy đợi trong giây lát...
+                        Thư của cậu đang được bọc sáp, đóng dấu mộc Cozy và gửi vào lồng kính thời gian. Xin hãy đợi trong giây lát...
                       </p>
                     </div>
                     {/* Tiny animated spinner */}

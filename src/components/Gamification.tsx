@@ -435,6 +435,77 @@ const Fireworks: React.FC<FireworksProps> = ({ isTriggered, onComplete }) => {
   );
 };
 
+interface BadgeSparklesProps {
+  active: boolean;
+}
+
+const BadgeSparkles: React.FC<BadgeSparklesProps> = ({ active }) => {
+  if (!active) return null;
+
+  // Generate 24 star particles that radiate outwards
+  const particles = Array.from({ length: 24 }).map((_, i) => {
+    const angle = (i * 360) / 24; // evenly distributed angles
+    const radialDistance = Math.random() * 45 + 65; // shoot outwards
+    const speed = Math.random() * 0.9 + 0.6; // random duration
+    const size = Math.random() * 11 + 7; // random size
+    const colors = ["#FBBF24", "#F59E0B", "#F472B6", "#10B981", "#3B82F6", "#8B5CF6"];
+    const color = colors[i % colors.length];
+
+    return {
+      id: i,
+      angle,
+      radialDistance,
+      speed,
+      size,
+      color,
+    };
+  });
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-30 flex items-center justify-center overflow-visible">
+      {particles.map((p) => {
+        const radians = (p.angle * Math.PI) / 180;
+        const targetX = Math.cos(radians) * p.radialDistance;
+        const targetY = Math.sin(radians) * p.radialDistance;
+
+        return (
+          <motion.div
+            key={p.id}
+            className="absolute rounded-full flex items-center justify-center select-none"
+            style={{
+              width: p.size,
+              height: p.size,
+            }}
+            initial={{ x: 0, y: 0, scale: 0, opacity: 1, rotate: 0 }}
+            animate={{
+              x: targetX,
+              y: targetY,
+              scale: [0, 1.4, 0.5, 0],
+              opacity: [1, 1, 0.7, 0],
+              rotate: [0, p.angle + 180],
+            }}
+            transition={{
+              duration: p.speed,
+              ease: "easeOut",
+              repeat: Infinity,
+              repeatDelay: Math.random() * 0.4,
+            }}
+          >
+            {/* Custom sparkling star icon */}
+            <svg
+              viewBox="0 0 24 24"
+              fill={p.color}
+              className="w-full h-full filter drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]"
+            >
+              <path d="M12 0l3.09 9.51h10l-8.09 5.87 3.09 9.51-8.09-5.87-8.09 5.87 3.09-9.51-8.09-5.87h10z" />
+            </svg>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+};
+
 export default function Gamification() {
   const { userData, addXP, setXP } = useUserData();
   const totalXp = userData.karmaXP;
@@ -502,6 +573,8 @@ export default function Gamification() {
   
   // Confetti / Alert effects
   const [unlockedBadge, setUnlockedBadge] = useState<string | null>(null);
+  const [justUnlockedBadgeId, setJustUnlockedBadgeId] = useState<string | null>(null);
+  const [sparklingBadgeId, setSparklingBadgeId] = useState<string | null>(null);
   const [showFireworks, setShowFireworks] = useState(false);
 
   // Active badge view tab: "grid" (all badges shelf) or "history" (timeline list)
@@ -705,6 +778,7 @@ export default function Gamification() {
       
       if (isUnlocked && !isAlreadyNotified) {
         setUnlockedBadge(ach.title);
+        setJustUnlockedBadgeId(ach.id);
         localStorage.setItem(`remix_corez_notified_${ach.id}`, "true");
         addXP(50); // Extra reward for major core achievement!
         addBadgeToHistory(ach.id, ach.title, ach.emoji, "Thành tựu Cốt lõi");
@@ -831,6 +905,7 @@ export default function Gamification() {
     const badge = BADGES.find(b => b.id === badgeId);
     if (badge) {
       setUnlockedBadge(badge.title);
+      setJustUnlockedBadgeId(badge.id);
       addBadgeToHistory(badge.id, badge.title, badge.emoji, "Thử thách 21 ngày");
       showCongratulationToast(badge.title, badge.emoji, badge.desc);
     }
@@ -1025,8 +1100,9 @@ export default function Gamification() {
               <div className="absolute inset-0 bg-gradient-to-br from-amber-100/30 to-yellow-200/10 pointer-events-none z-0" />
               
               <div className="relative z-10 space-y-4">
-                <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center text-3xl shadow border-4 border-white animate-bounce">
+                <div className="mx-auto w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center text-3xl shadow border-4 border-white animate-bounce relative overflow-visible">
                   🏆
+                  <BadgeSparkles active={true} />
                 </div>
                 <div className="space-y-1.5">
                   <h4 className="text-xs font-mono uppercase font-bold text-amber-500 tracking-wider">Huy hiệu mới đã mở!</h4>
@@ -1036,7 +1112,10 @@ export default function Gamification() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setUnlockedBadge(null)}
+                  onClick={() => {
+                    setUnlockedBadge(null);
+                    setJustUnlockedBadgeId(null);
+                  }}
                   className="w-full py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer hover:from-amber-600 transition-colors"
                 >
                   Nhận Huy Hiệu Đầy Tự Hào
@@ -1056,7 +1135,7 @@ export default function Gamification() {
           <div className="space-y-1.5 border-b border-white/40 pb-3">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase">
-                21 Ngày Rèn Kỷ Luật CoreZ
+                21 Ngày Rèn Kỷ Luật Cozy
               </span>
               <span className="text-xs font-bold text-amber-600 flex items-center gap-1 font-mono">
                 <Flame className="w-4 h-4 text-amber-500 fill-amber-500/10 animate-pulse" />
@@ -1349,9 +1428,15 @@ export default function Gamification() {
                           <motion.div
                             whileHover={{ y: -2 }}
                             key={badge.id}
+                            onClick={() => {
+                              if (isUnlocked) {
+                                setSparklingBadgeId(badge.id);
+                                setTimeout(() => setSparklingBadgeId(null), 3000);
+                              }
+                            }}
                             className={`p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all ${
                               isUnlocked 
-                                ? `${badge.bgLight} ${badge.borderColor} ${glowClass} ring-2 ring-emerald-500/10` 
+                                ? `${badge.bgLight} ${badge.borderColor} ${glowClass} ring-2 ring-emerald-500/10 cursor-pointer` 
                                 : "bg-slate-50/50 border-slate-200/60 opacity-60 grayscale"
                             }`}
                           >
@@ -1359,6 +1444,9 @@ export default function Gamification() {
                             {isUnlocked && (
                               <div className="absolute -right-6 -top-6 w-12 h-12 rounded-full bg-gradient-to-br from-yellow-300 to-amber-400 opacity-20 blur-lg" />
                             )}
+
+                            {/* Sparkling stars animation */}
+                            <BadgeSparkles active={justUnlockedBadgeId === badge.id || sparklingBadgeId === badge.id} />
 
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl shrink-0 transition-all ${
                               isUnlocked ? badge.color + " scale-110 shadow-sm" : "bg-slate-100 text-slate-300 border border-slate-200"
@@ -1434,12 +1522,21 @@ export default function Gamification() {
                           <motion.div
                             whileHover={{ y: -2 }}
                             key={ach.id}
+                            onClick={() => {
+                              if (isUnlocked) {
+                                setSparklingBadgeId(ach.id);
+                                setTimeout(() => setSparklingBadgeId(null), 3000);
+                              }
+                            }}
                             className={`min-w-[145px] max-w-[145px] p-3 rounded-2xl border flex flex-col justify-between items-center text-center relative overflow-hidden transition-all shrink-0 ${
                               isUnlocked 
-                                ? `${ach.bgLight} ${ach.borderColor} shadow-sm` 
+                                ? `${ach.bgLight} ${ach.borderColor} shadow-sm cursor-pointer` 
                                 : "bg-white/20 border-slate-100 opacity-60"
                             }`}
                           >
+                            {/* Sparkling stars animation */}
+                            <BadgeSparkles active={justUnlockedBadgeId === ach.id || sparklingBadgeId === ach.id} />
+
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 ${
                               isUnlocked ? ach.color : "bg-slate-100 text-slate-300 border border-slate-200"
                             }`}>
@@ -1523,7 +1620,7 @@ export default function Gamification() {
             <div className="pt-2 text-center text-[9px] text-slate-400 font-light border-t border-slate-150/40 space-y-1">
               <p>*Huy hiệu rèn luyện giúp khẳng định bản lĩnh thực tại và thói quen tích cực.</p>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-1 bg-emerald-50/50 dark:bg-emerald-950/20 p-2 rounded-lg border border-emerald-100/50 dark:border-emerald-900/30">
-                <span className="font-bold">Thử thách lan tỏa:</span> Chụp màn hình thẻ bài của cậu rồi đăng lên story kèm hashtag #CoreZLangSon để truyền cảm hứng làn sóng sống khỏe đời thực nhé! 🌱
+                <span className="font-bold">Thử thách lan tỏa:</span> Chụp màn hình thẻ bài của cậu rồi đăng lên story kèm hashtag #CozyLangSon để truyền cảm hứng làn sóng sống khỏe đời thực nhé! 🌱
               </div>
             </div>
 

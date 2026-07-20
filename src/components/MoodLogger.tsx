@@ -20,6 +20,8 @@ import { MoodLogEntry } from "../types";
 import BreathExercisePopup from "./BreathExercisePopup";
 import { useUserData } from "../context/UserContext";
 import { D3EnergyChart } from "./D3EnergyChart";
+import { MoodTrendChart } from "./MoodTrendChart";
+import { MoodCalendar } from "./MoodCalendar";
 
 // Seed data to make the UI beautiful and fully illustrated on first load
 const SEED_LOGS: MoodLogEntry[] = [
@@ -829,10 +831,10 @@ export default function MoodLogger() {
         }
 
         if (consecutiveNegativeCount >= 3) {
-          setBreathReason("Dữ liệu cảm xúc 3 ngày gần đây của cậu hơi chông chênh và mệt mỏi. Hãy dành ra 1 phút quý giá cùng CoreZ hít thở sâu theo phương pháp hộp 4D để sạc lại pin tinh thần nhé! 🌱");
+          setBreathReason("Dữ liệu cảm xúc 3 ngày gần đây của cậu hơi chông chênh và mệt mỏi. Hãy dành ra 1 phút quý giá cùng Cozy hít thở sâu theo phương pháp hộp 4D để sạc lại pin tinh thần nhé! 🌱");
           setIsBreathOpen(true);
         } else if (currentMoodIsNegative) {
-          setBreathReason("Hôm nay cậu cảm thấy hơi mỏi mệt hoặc áp lực. Hít thở sâu bằng phương pháp thở hộp 4D của CoreZ sẽ giúp xoa dịu thần kinh và mang lại sự bình yên tức thì.");
+          setBreathReason("Hôm nay cậu cảm thấy hơi mỏi mệt hoặc áp lực. Hít thở sâu bằng phương pháp thở hộp 4D của Cozy sẽ giúp xoa dịu thần kinh và mang lại sự bình yên tức thì.");
           setIsBreathOpen(true);
         }
       }
@@ -899,7 +901,7 @@ export default function MoodLogger() {
           <button
             type="button"
             onClick={() => {
-              setBreathReason("Cậu muốn dành ra 1 phút tĩnh lặng lúc này chứ? Hãy hít một hơi thật sâu cùng CoreZ nhé.");
+              setBreathReason("Cậu muốn dành ra 1 phút tĩnh lặng lúc này chứ? Hãy hít một hơi thật sâu cùng Cozy nhé.");
               setIsBreathOpen(true);
             }}
             className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-4 py-2.5 rounded-2xl shadow-sm transition-all cursor-pointer active:scale-95"
@@ -1128,6 +1130,9 @@ export default function MoodLogger() {
               <D3EnergyChart logs={sortedChronologicalLogs} moodsConfig={MOODS} />
             )}
           </div>
+
+          {/* RECHARTS MOOD TREND CHART */}
+          <MoodTrendChart logs={logs} onResetLogs={() => setLogs([])} />
 
           {/* VISUAL B: EVOLVING MOOD GARDEN (LẠNG SƠN LOCALIZATION) */}
           <div className="bg-white/65 backdrop-blur-xl rounded-[28px] border border-white/40 p-5 shadow-sm space-y-4 relative overflow-hidden">
@@ -1585,7 +1590,7 @@ export default function MoodLogger() {
                   <button
                     type="button"
                     onClick={() => {
-                      setBreathReason("Nhánh cây thảo mộc của cậu đang héo rũ vì stress. Hãy tưới nước cho cây bằng 1 phút thở sâu Hộp 4D cùng CoreZ để cây nở hoa lấp lánh trở lại nhé! 🌱");
+                      setBreathReason("Nhánh cây thảo mộc của cậu đang héo rũ vì stress. Hãy tưới nước cho cây bằng 1 phút thở sâu Hộp 4D cùng Cozy để cây nở hoa lấp lánh trở lại nhé! 🌱");
                       setIsBreathOpen(true);
                     }}
                     className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
@@ -1716,6 +1721,11 @@ export default function MoodLogger() {
 
         </div>
 
+      </div>
+
+      {/* Lịch Bản Ngã & Nhịp Điệu Cảm Xúc (Lịch biểu tháng/năm) */}
+      <div className="mt-8">
+        <MoodCalendar logs={logs} moodsConfig={MOODS} />
       </div>
 
       <BreathExercisePopup 

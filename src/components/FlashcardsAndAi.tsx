@@ -120,7 +120,7 @@ export default function FlashcardsAndAi() {
     {
       id: "msg-0",
       role: "model",
-      content: "Chào cậu! Mình là CoreZ - góc nhỏ bình yên của cậu đây. Hôm nay cậu cảm thấy thế nào? Cứ thoải mái kể cho mình nghe nhé, mình luôn ở đây lắng nghe và giữ bí mật tuyệt đối cho cậu. 🌱",
+      content: "Chào cậu! Mình là Cozy - người bạn đồng hành AI thấu cảm và chuyên gia tâm lý học đường của cậu đây. Sứ mệnh của mình là lắng nghe, thấu hiểu và cùng cậu tìm thấy bình yên từ bên trong tâm hồn. Hôm nay cậu thế nào, cứ thoải mái trút bầu tâm sự với mình nhé! 🌱",
       timestamp: new Date()
     }
   ]);
@@ -275,7 +275,7 @@ export default function FlashcardsAndAi() {
             >
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold tracking-wider text-emerald-400 bg-emerald-950/60 px-2.5 py-0.5 rounded uppercase border border-emerald-500/30">
-                  {loadingTipIds[currentCard.id] ? "Đang đúc kết..." : "Bí kíp 1 phút - CoreZ"}
+                  {loadingTipIds[currentCard.id] ? "Đang đúc kết..." : "Bí kíp 1 phút - Cozy"}
                 </span>
                 <Heart className="w-4.5 h-4.5 text-rose-400 fill-rose-500/10" />
               </div>
@@ -369,7 +369,7 @@ export default function FlashcardsAndAi() {
             </div>
             <div>
               <h3 className="font-serif text-sm sm:text-base font-bold text-slate-800">
-                CoreZ • Bạn Đồng Hành
+                Cozy • Bạn Đồng Hành
               </h3>
               <p className="text-[10px] text-slate-400 leading-none flex items-center gap-1">
                 <span>Trợ lý ảo thấu cảm 24/7 • Đảm bảo riêng tư</span>

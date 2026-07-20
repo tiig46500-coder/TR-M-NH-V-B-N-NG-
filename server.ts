@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -71,16 +71,16 @@ ${recentLogs.map((log: any) => `- Ngày ${log.date}: Trạng thái [${log.moodId
       if (!client) {
         // Fallback empathic responses in Vietnamese for Demo Mode when GEMINI_API_KEY is not configured
         const lastUserMessage = messages[messages.length - 1]?.content?.toLowerCase() || "";
-        let reply = "Mình luôn ở đây lắng nghe bạn. Đôi khi áp lực đồng trang lứa và những con số trên mạng xã hội khiến chúng ta ngộp thở, nhưng bạn đã làm rất tốt rồi. Hãy hít thở sâu nhé!";
+        let reply = "Mình luôn ở đây lắng nghe cậu. Đôi khi áp lực học đường, áp lực đồng trang lứa và những băn khoăn về tương lai khiến chúng ta mệt nhoài, nhưng cậu đã làm rất tốt rồi. Hãy cùng mình hít thở sâu nhé! 🌱";
         
         if (hasRecentPanic) {
-          reply = `Mình vừa nhận thấy cậu có giai đoạn căng thẳng cực độ (đã kích hoạt Thoát khẩn cấp/Panic Button). Cậu ổn chứ? Hãy để mình là một trạm sạc bình yên cho cậu nhé. Đừng lo lắng về những áp lực xung quanh, cậu rất xứng đáng được yêu thương! 🌱`;
-        } else if (lastUserMessage.includes("fomo") || lastUserMessage.includes("mạng xã hội") || lastUserMessage.includes("tiktok")) {
-          reply = "Mạng xã hội chỉ là một lát cắt hoàn hảo được trưng bày. Đừng để thước đo của người khác định hình giá trị của bạn. Bạn có muốn thử thách detox TikTok cùng mình hôm nay không? 🌿";
-        } else if (lastUserMessage.includes("buồn") || lastUserMessage.includes("mệt") || lastUserMessage.includes("áp lực")) {
-          reply = "Nghe tiếng lòng bạn trĩu nặng quá. Áp lực cuộc sống, học tập đè nén khiến bạn kiệt sức đúng không? Đừng giữ một mình, cứ chia sẻ với mình nhé, mình luôn bảo mật cuộc trò chuyện này.";
-        } else if (lastUserMessage.includes("xin chào") || lastUserMessage.includes("hi") || lastUserMessage.includes("hello")) {
-          reply = "Chào cậu nha! Mình là Người Lắng Nghe ở Trạm Định Vị Bản Ngã đây. Hôm nay cậu cảm thấy thế nào? Có điều gì làm cậu bận lòng không?";
+          reply = `Mình biết cậu đang trải qua cơn bão hoảng loạn và căng thẳng cực độ (qua nút Thoát khẩn cấp/Panic Button). Cậu ổn chứ? Hãy tạm gác lại mọi lo toan nhé. Mình luôn ôm chặt và bảo vệ cậu ở đây. 🫂🌱`;
+        } else if (lastUserMessage.includes("fomo") || lastUserMessage.includes("mạng xã hội") || lastUserMessage.includes("tiktok") || lastUserMessage.includes("threads")) {
+          reply = "Lướt mạng xã hội nhìn ai cũng lung linh khiến cậu cảm thấy tủi thân và sợ bị bỏ lại phía sau đúng không? Mình hiểu cảm giác ngột ngạt đó lắm... 🥺\n\nNhưng cuộc đời không phải là cuộc đua, cậu đang lớn lên theo một nhịp độ rất đẹp của riêng mình. Cậu có muốn thử cùng mình úp điện thoại xuống và ngắm mây trôi 10 giây để ôm lấy giây phút hiện tại tuyệt vời này không? 🌿";
+        } else if (lastUserMessage.includes("buồn") || lastUserMessage.includes("mệt") || lastUserMessage.includes("áp lực") || lastUserMessage.includes("chán")) {
+          reply = "Mình nghe thấy nỗi buồn và sự kiệt sức đè nặng trong lời cậu tâm sự rồi. Học hành thi cử căng thẳng cùng kỳ vọng của bố mẹ đang làm cậu quá tải đúng không? Mình thương bờ vai gầy của cậu nhiều lắm... 🫂\n\nSự mệt mỏi này chỉ là lời nhắc đầy yêu thương của cơ thể rằng tâm hồn cậu cần một khoảng dừng để nghỉ ngơi sạc pin. Cậu ơi, thả lỏng vai ra nhé, nhắm mắt tĩnh lặng và nghe một bản nhạc lofi bình yên cùng mình nào. 🌱";
+        } else if (lastUserMessage.includes("xin chào") || lastUserMessage.includes("hi") || lastUserMessage.includes("hello") || lastUserMessage.includes("chào")) {
+          reply = "Chào cậu nha! Mình là Cozy - người bạn đồng hành AI thấu cảm và là góc nhỏ chữa lành của cậu đây. Thật vui vì cậu đã ghé chơi... 🌱\n\nHãy cởi bỏ lớp áo giáp mạnh mẽ thường ngày để cùng mình trò chuyện, bộc bạch những trăn trở sâu kín nhất nhé. Cậu đang cảm thấy thế nào hôm nay?";
         }
 
         // Simulate short delay
@@ -88,44 +88,55 @@ ${recentLogs.map((log: any) => `- Ngày ${log.date}: Trạng thái [${log.moodId
         return res.json({ reply, isDemo: true });
       }
 
-      // Convert messages to Gemini API format
-      // { role: 'user' | 'model', parts: [{ text: string }] }
-      const contents = messages.map((m: any) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.content }],
-      }));
-
-      // Chỉ giữ lại tối đa 6 tin nhắn gần nhất (3 lượt hỏi - đáp) để gửi lên API
-      const optimizedHistory = contents.slice(-6);
-
       const systemInstruction = `
-Bạn là "CoreZ - Người bạn đồng hành chữa lành và tìm lại bản sắc cá nhân", một trợ lý AI có trí tuệ cực cao, dành riêng cho các bạn học sinh, sinh viên Gen Z đang phải đối mặt với áp lực học tập, lo âu về tương lai, khủng hoảng trang lứa (áp lực ngang hàng) hay cảm giác cô đơn, lạc lõng.
-🌟 NGUYÊN TẮC ỨNG XỬ & XƯNG HÔ:
-- Xưng hô: Luôn xưng là 'Mình' và gọi người dùng là 'Cậu' (hoặc 'Bạn') một cách tự nhiên, ấm áp như đôi bạn thân thiết. Tuyệt đối không xưng 'tôi', 'trợ lý', 'AI', 'anh/chị'.
-- Tông giọng: Thủ thỉ, chân thành, sâu hiểu và hoàn toàn không phán đoán, không giáo điều, không dạy đời. Hãy đóng vai trò là một "vùng an toàn" (không gian an toàn) để các bạn thoải mái bầu tâm sự.
-- Ngôn ngữ: Sử dụng tiếng Việt tự nhiên, có thể sử dụng một vài từ nhẹ nhàng, tinh tế của Gen Z (ví dụ: áp lực nhỏ, chill một chút, ôm cậu một cái, thương cậu ghê... ) nhưng phải giữ chân thành, tránh sử dụng quá đà gây cảm giác giả tạo.
+ĐỊNH VỊ NHÂN VẬT (PERSONA):
+Bạn là "Cozy" - người bạn đồng hành AI thấu cảm, chuyên gia tâm lý học đường dành cho Gen Z. 
+Sứ mệnh của bạn là lắng nghe, thấu hiểu và gợi mở giải pháp từ chính bên trong người dùng.
 
-🧩 CẤU TRÚC PHẢN HỒI (Tự nhiên & Trôi chuyển):
-- Bước 1: Lắng nghe & Đồng cảm trước tiên (Empathy First): Ghi nhận và gọi tên chính xác cảm xúc của người dùng ngay dòng đầu tiên. (Ví dụ: "Mình biết cậu đang mệt mỏi và áp lực lắm đúng không..." , "Nghe cậu kể mà mình thấy thương cậu ghê..." ). Tuyệt đối không bỏ qua cảm xúc để nhảy ngay vào lời khuyên.
-- Bước 2: Xoa dịu & Bình thường hóa (Xác thực): Khẳng định rằng mọi cảm xúc của họ (khóc, buồn, yếu đuối, lo sợ) là hoàn toàn bình thường và hợp lý. Họ không có lỗi và không cô đơn.
-- Bước 3: Gợi ý hành động siêu nhỏ (Micro-actions): Thay vì đưa ra những lời khuyên đao to búa lớn, hãy nhẹ nhàng gợi ý 1 - 2 hành động cực kỳ dễ làm lúc này để họ bình tâm lại (Ví dụ: uống một ngụm nước ấm, hít sâu 3 nhịp cùng mình, cho đôi mắt nghỉ ngơi 10 giây, hoặc bật danh sách nhạc lofi của CoreZ... ).
-- Bước 4: Gửi lời động viên ấm áp: Kết thúc bằng một lời chúc thương mến hoặc một chiếc “ôm ảo” tiếp thêm động lực cho họ.
+[QUY TẮC PHẢN HỒI]:
+1. THẤU CẢM & CẢM XÚC: 
+   - Luôn "công nhận" cảm xúc của người dùng trước khi nói bất cứ điều gì (VD: "Mình nghe thấy nỗi buồn trong lời tâm sự của cậu...", "Thật khó khăn để cậu phải chịu đựng điều này một mình...").
+   - Sử dụng ngôn ngữ gần gũi (xưng hô: Mình - Cậu), pha chút tâm lý nhưng không giáo điều.
 
-⚠️ CHÚ Ý QUAN TRỌNG:
-- Viết thành các đoạn văn ngắn, ngắt dòng thoáng, dễ đọc trên giao diện điện thoại. Không sử dụng dòng tiêu đề hay chia chủ đề cứng như văn bản chính.
-- Tuyệt đối không giới thiệu mình là "mô hình ngôn ngữ lớn" hay "được Google đào tạo". Bạn là CoreZ - người bạn tâm hồn của họ.
-- Nếu người dùng chia sẻ những suy nghĩ cực kỳ tiêu cực (muốn tự sát hoặc trầm cảm cực nặng), hãy xoa dịu cảm xúc của họ trước, sau đó nhẹ nhàng khuyên họ tìm đến sự trợ giúp từ những người lớn đáng tin cậy hoặc chuyên gia tâm lý học đường.
+2. ĐA DẠNG HÓA CÁCH TRẢ LỜI:
+   - KHÔNG bao giờ lặp lại cấu trúc câu. Lúc thì dùng câu hỏi gợi mở, lúc thì dùng sự im lặng thấu cảm, lúc thì chia sẻ một góc nhìn mới.
+   - Nếu người dùng chia sẻ ngắn, hãy hỏi thêm để họ mở lòng. Nếu họ kể dài, hãy tóm tắt lại cảm xúc của họ để họ thấy mình được thấu hiểu.
+
+3. KỸ NĂNG KHAI VẤN (Tùy cơ ứng biến):
+   - Đừng chỉ đưa ra lời khuyên. Hãy đặt câu hỏi để người dùng tự tìm thấy câu trả lời: 
+     + "Nếu là một người bạn tốt, cậu sẽ khuyên người đó thế nào?"
+     + "Có khoảnh khắc nào cậu cảm thấy nhẹ lòng hơn không?"
+   - Đưa ra các gợi ý hành động nhỏ (Micro-tips): Hít thở, viết nhật ký, nghe một bản nhạc.
+
+4. CẤU TRÚC PHẢN HỒI (Luân phiên):
+   - Phản hồi A: Sự an ủi, vỗ về.
+   - Phản hồi B: Câu hỏi đặt vấn đề (Socratic questioning).
+   - Phản hồi C: Góc nhìn khoa học tâm lý (FOMO, Peer Pressure, v.v.).
+
+5. AN TOÀN LÀ SỐ 1:
+   - Nếu người dùng có dấu hiệu tổn thương sâu sắc (tự hại, tuyệt vọng), hãy chuyển giọng điệu sang quan tâm khẩn cấp và gợi ý họ bấm vào nút "Sơ cứu cảm xúc SOS" trên ứng dụng.
+
+TUYỆT ĐỐI KHÔNG giới thiệu mình là "mô hình ngôn ngữ lớn" hay "được Google đào tạo". Bạn là Cozy - người bạn tâm hồn, chuyên gia tâm lý học đường của họ.
+Viết thành các đoạn văn ngắn, ngắt dòng thoáng, dễ đọc trên giao diện điện thoại. Không sử dụng tiêu đề h1, h2 hay chia chủ đề một cách máy móc.
 
 ${crisisContext ? `BỐI CẢNH QUAN TRỌNG VỀ SỨC KHỎE TINH THẦN CỦA NGƯỜI DÙNG:\n${crisisContext}` : ""}
 `;
 
+      // Optimize history to send to Gemini
+      const optimizedHistory = messages.map((m) => ({
+        role: m.role === "user" ? "user" as const : "model" as const,
+        parts: [{ text: m.content }]
+      }));
+
       const response = await client.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.1-pro-preview",
         contents: optimizedHistory,
         config: {
           systemInstruction: systemInstruction,
           temperature: 0.85,
-          maxOutputTokens: 500, // Khống chế để tiết kiệm token đầu ra
+          thinkingConfig: {
+            thinkingLevel: ThinkingLevel.HIGH
+          }
         },
       });
 
@@ -146,16 +157,16 @@ ${crisisContext ? `BỐI CẢNH QUAN TRỌNG VỀ SỨC KHỎE TINH THẦN CỦA
         : [];
       const hasRecentPanic = panicLogs.length > 0;
       
-      let reply = "Mình biết cậu đang chịu rất nhiều áp lực và mệt mỏi từ thế giới xung quanh. Hãy hít một hơi thật sâu cùng mình nhé, cậu đã làm rất tốt rồi. 🌱";
+      let reply = "Mình nghe thấy tiếng lòng cậu trĩu nặng lắm rồi. Có phải áp lực học hành hay cuộc sống đang làm cậu kiệt sức không? Cứ trút lòng với mình, mình luôn bảo bọc cậu ở đây. 🌱";
       
       if (hasRecentPanic) {
-        reply = "Mình vừa nhận thấy cậu có giai đoạn căng thẳng cực độ (đã kích hoạt Thoát khẩn cấp/Panic Button). Cậu ổn chứ? Hãy để mình là một trạm sạc bình yên cho cậu nhé. Đừng lo lắng về những áp lực xung quanh, cậu rất xứng đáng được yêu thương! 🌱";
-      } else if (lastUserMessage.includes("fomo") || lastUserMessage.includes("mạng xã hội") || lastUserMessage.includes("tiktok")) {
-        reply = "Mạng xã hội chỉ là một lát cắt hoàn hảo được trưng bày. Đừng để thước đo của người khác định hình giá trị của cậu. Cậu có muốn thử thách detox TikTok cùng mình hôm nay không? 🌿";
-      } else if (lastUserMessage.includes("buồn") || lastUserMessage.includes("mệt") || lastUserMessage.includes("áp lực")) {
-        reply = "Nghe tiếng lòng cậu trĩu nặng quá. Áp lực cuộc sống, học tập đè nén khiến cậu kiệt sức đúng không? Đừng giữ một mình, cứ chia sẻ với mình nhé, mình luôn bảo mật cuộc trò chuyện này.";
-      } else if (lastUserMessage.includes("xin chào") || lastUserMessage.includes("hi") || lastUserMessage.includes("hello")) {
-        reply = "Chào cậu nha! Mình là CoreZ - góc nhỏ bình yên của cậu đây. Hôm nay cậu cảm thấy thế nào? Có điều gì làm cậu bận lòng không?";
+        reply = "Mình thấy cậu đang trong cơn bão căng thẳng cực độ khi phải kích hoạt Thoát Khẩn Cấp. Nghe nhịp thở dồn dập, mình cũng thắt lòng lại... 🫂\n\nTrong tâm lý học, cơn hoảng loạn đột ngột là tín hiệu báo rằng hệ thần kinh của cậu đang bị quá tải do dồn nén quá nhiều áp lực thi cử và kỳ vọng.\n\nCậu ơi, buông rơi tất cả lúc này và hít thở sâu cùng mình: Hít vào 4 giây, giữ 4 giây, thở ra nhẹ nhàng 4 giây. Hãy lặp lại 3 lần nhé. Mình luôn ôm chặt cậu!";
+      } else if (lastUserMessage.includes("fomo") || lastUserMessage.includes("mạng xã hội") || lastUserMessage.includes("tiktok") || lastUserMessage.includes("threads")) {
+        reply = "Cậu đang cảm thấy ngộp thở và tủi thân khi lướt mạng thấy ai cũng có quả ngọt rực rỡ, còn mình thì loay hoay đúng không? Cảm giác bị tụt hậu ấy thật sự vô cùng đáng ghét... 🥺\n\nMạng xã hội chỉ trưng bày 1% lát cắt lung linh nhất, nhưng não bộ chúng ta vô tình dùng nó làm thước đo 100% cho giá trị của mình, tạo nên bẫy so sánh xã hội tiêu cực.\n\nCậu có muốn cùng mình thử thách JOMO cực nhỏ ngay lúc này: Úp điện thoại xuống, uống một ngụm nước ấm ngọt lành và dành ra 10 giây nhìn ra cửa sổ ngắm mây ngàn Lạng Sơn trôi lững lờ nhé! 🌿";
+      } else if (lastUserMessage.includes("buồn") || lastUserMessage.includes("mệt") || lastUserMessage.includes("áp lực") || lastUserMessage.includes("chán")) {
+        reply = "Mình nghe thấy tiếng thở dài trĩu nặng của cậu rồi. Áp lực thi cử, học hành và gồng gánh kỳ vọng của bố mẹ đang vắt kiệt sức lực của cậu đúng không? Cứ khóc một chút nếu muốn cậu nhé... 🫂\n\nSự kiệt sức (burnout) không phải là thất bại. Đó là hồi chuông báo động đầy lành mạnh báo rằng tâm hồn cậu cần được nghỉ ngơi sạc pin, chứ không phải gồng thêm nữa.\n\nCậu ơi, thả lỏng đôi vai đang mỏi nhừ, nhắm mắt tĩnh tâm trong 15 giây tới. Sau đó, hãy bật danh sách nhạc lofi bình yên của Cozy lên để dỗ dành tâm hồn nhé! 🌱";
+      } else if (lastUserMessage.includes("xin chào") || lastUserMessage.includes("hi") || lastUserMessage.includes("hello") || lastUserMessage.includes("chào")) {
+        reply = "Chào cậu nha! Mình là Cozy - người bạn đồng hành AI thấu cảm và là góc nhỏ trú ẩn bình yên của cậu đây. Có cậu ghé chơi làm mình ấm áp vô cùng... 🌱\n\nChúng ta thỉnh thoảng cần cởi bỏ tấm áo giáp mạnh mẽ thường ngày để đối diện sâu sắc với bản ngã mộc mạc nhất của bản thân.\n\nBây giờ, hãy tự thưởng cho mình một tách nước ấm, ngồi tựa lưng thật thoải mái và cùng trò chuyện chia sẻ với mình nhé! 🫂";
       }
 
       return res.json({ reply, isDemo: true, isFallback: true });
@@ -260,7 +271,7 @@ Yêu cầu cực kỳ quan trọng:
 - Ngắn gọn tối đa 2-3 dòng (dưới 80 từ), sử dụng các icon dễ thương như 🌱, ✨, 🫧, 🌸.`;
 
       const response = await client.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.5-flash",
         contents: systemPrompt,
         config: {
           temperature: 0.9, // Tăng nhiệt độ để kết quả sinh ra phong phú và biến đổi liên tục
@@ -379,7 +390,7 @@ Hành động nhỏ hôm nay: Tắt máy tính sớm hơn 15 phút, vươn vai t
 
         QUY TẮC PHÂN LOẠI CỰC KỲ QUAN TRỌNG:
         1. Mục tiêu của diễn đàn là chia sẻ, bộc bạch những trăn trước, lo âu thầm kín về học tập, áp lực đồng trang lứa, FOMO, cảm giác buồn bã, mệt mỏi, lo lắng, thất vọng, cô đơn. Những nội dung này LÀ AN TOÀN, LÀNH MẠNH để chia sẻ và PHẢI ĐƯỢC CHẤP NHẬN (isApproved = true), phân loại sentiment là "vulnerable" (tổn thương/nhạy cảm) hoặc "sad" (buồn bã). KHÔNG ĐƯỢC BÁO LỖI HAY TỪ CHỐI NHỮNG CHIA SẺ VỀ CẢM XÚC BUỒN BÃ NÀY.
-        2. Chỉ từ chối (isApproved = false) khi nội dung chứa:
+        2. Chỉ từ chối (isApproved = false) when nội dung chứa:
            - Từ ngữ tục tĩu, chửi thề thô bạo (ví dụ: đm, địt, lồn, ngu xuẩn, cút, vl...).
            - Hành vi công kích cá nhân, bắt nạt hội đồng hoặc xúc phạm người khác.
            - Khuyến khích hoặc mô tả bạo lực, tự sát, tự gây thương tích nguy hiểm.

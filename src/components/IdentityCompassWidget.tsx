@@ -176,7 +176,7 @@ export default function IdentityCompassWidget({ assessmentLevel, onNavigate }: I
 
             {/* Motivational message */}
             <p className="text-[9.5px] text-slate-400 font-light text-center leading-normal">
-              La Bàn CoreZ định hướng tư duy và dẫn dắt cậu an tâm sinh trưởng từng ngày. 🌱
+              La Bàn Cozy định hướng tư duy và dẫn dắt cậu an tâm sinh trưởng từng ngày. 🌱
             </p>
           </motion.div>
         )}

@@ -504,7 +504,7 @@ export default function SelfDiscovery() {
                 
                 {/* Cover Header */}
                 <div className="flex justify-between items-center relative z-10">
-                  <span className="text-[9px] font-mono tracking-widest text-emerald-400 font-bold uppercase">CoreZ Compass</span>
+                  <span className="text-[9px] font-mono tracking-widest text-emerald-400 font-bold uppercase">Cozy Compass</span>
                   <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
                 </div>
 
@@ -554,7 +554,7 @@ export default function SelfDiscovery() {
                 {/* Back Header */}
                 <div className="flex justify-between items-center relative z-10 pb-2 border-b border-white/15 shrink-0">
                   <span className="text-[9px] font-mono tracking-widest text-slate-400 uppercase">ĐÃ ĐỊNH VỊ BẢN NGÃ</span>
-                  <span className="text-[10px] font-bold text-emerald-400">CoreZ ✨</span>
+                  <span className="text-[10px] font-bold text-emerald-400">Cozy ✨</span>
                 </div>
 
                 {/* Scrollable Container for all content to prevent overflow in 450px card height */}
@@ -713,7 +713,7 @@ export default function SelfDiscovery() {
               Thử thách lan tỏa:
             </h5>
             <p className="text-xs text-emerald-700 leading-relaxed font-medium">
-              Chụp màn hình thẻ bài của cậu rồi đăng lên story kèm hashtag #CoreZLangSon để truyền cảm hứng làn sóng sống khỏe đời thực nhé! 🌱
+              Chụp màn hình thẻ bài của cậu rồi đăng lên story kèm hashtag #CozyLangSon để truyền cảm hứng làn sóng sống khỏe đời thực nhé! 🌱
             </p>
           </div>
 
