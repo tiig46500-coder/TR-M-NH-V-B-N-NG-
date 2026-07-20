@@ -221,6 +221,16 @@ const CORE_ACHIEVEMENTS: BadgeConfig[] = [
     bgLight: "bg-indigo-50/50"
   },
   {
+    id: "ach-empathy-3",
+    title: "Thấu Cảm Sơ Khởi",
+    desc: "Khơi dậy sự tò mò lành mạnh về thế giới nội tâm của bản thân.",
+    requirement: "Ghi nhận đủ 3 nhật ký cảm xúc hàng ngày.",
+    emoji: "🍃",
+    color: "text-teal-600 bg-teal-100",
+    borderColor: "border-teal-200",
+    bgLight: "bg-teal-50/50"
+  },
+  {
     id: "ach-empathy-10",
     title: "Người Thấu Cảm",
     desc: "Lắng nghe sâu sắc những chuyển biến tinh tế trong xúc cảm nội tâm của bản thân.",
@@ -229,6 +239,46 @@ const CORE_ACHIEVEMENTS: BadgeConfig[] = [
     color: "text-rose-600 bg-rose-100",
     borderColor: "border-rose-200",
     bgLight: "bg-rose-50/50"
+  },
+  {
+    id: "ach-empathy-25",
+    title: "Tri Kỷ Nội Tâm",
+    desc: "Đã thiết lập mối giao kết bền chặt, thấu suốt từng gợn sóng cảm xúc nhỏ nhất.",
+    requirement: "Ghi nhận đủ 25 nhật ký cảm xúc hàng ngày.",
+    emoji: "🔮",
+    color: "text-indigo-600 bg-indigo-100",
+    borderColor: "border-indigo-200",
+    bgLight: "bg-indigo-50/50"
+  },
+  {
+    id: "ach-breath-3",
+    title: "Hơi Thở Yên Bình",
+    desc: "Đã rèn luyện cách neo giữ tâm trí thông qua hơi thở Hộp 4D mộc mạc.",
+    requirement: "Hoàn thành đủ 3 bài hít thở sâu Hộp 4D.",
+    emoji: "🌬️",
+    color: "text-emerald-600 bg-emerald-100",
+    borderColor: "border-emerald-200",
+    bgLight: "bg-emerald-50/50"
+  },
+  {
+    id: "ach-breath-10",
+    title: "Hành Giả Tỉnh Thức",
+    desc: "Duy trì nhịp thở điều hòa, giữ thùy trán khỏe mạnh trước các kích thích mạng xã hội.",
+    requirement: "Hoàn thành đủ 10 bài hít thở sâu Hộp 4D.",
+    emoji: "🌀",
+    color: "text-blue-600 bg-blue-100",
+    borderColor: "border-blue-200",
+    bgLight: "bg-blue-50/50"
+  },
+  {
+    id: "ach-breath-25",
+    title: "Bậc Thầy Định Tâm",
+    desc: "Tâm trí tựa mặt hồ phẳng lặng, hoàn toàn làm chủ mọi luồng suy nghĩ và lo âu.",
+    requirement: "Hoàn thành đủ 25 bài hít thở sâu Hộp 4D.",
+    emoji: "🧘‍♀️",
+    color: "text-amber-600 bg-amber-100",
+    borderColor: "border-amber-200",
+    bgLight: "bg-amber-50/50"
   },
   {
     id: "ach-reflection-5",
@@ -629,13 +679,24 @@ export default function Gamification() {
     }
   }, [completedTaskIds]);
 
+  // Helper to fetch mindfulness breathing sessions count
+  const getMindfulnessCount = () => {
+    const raw = localStorage.getItem("remix_corez_mindfulness_sessions");
+    return raw ? parseInt(raw, 10) : 0;
+  };
+
   // Watch for newly unlocked core achievements
   useEffect(() => {
     const achs = [
       { id: "ach-detox-100", title: "Thải Độc Bền Bỉ", emoji: "🔋" },
+      { id: "ach-empathy-3", title: "Thấu Cảm Sơ Khởi", emoji: "🍃" },
       { id: "ach-empathy-10", title: "Người Thấu Cảm", emoji: "🧡" },
+      { id: "ach-empathy-25", title: "Tri Kỷ Nội Tâm", emoji: "🔮" },
       { id: "ach-reflection-5", title: "Học Giả Phản Tư", emoji: "📖" },
-      { id: "ach-gardener-3", title: "Người Gieo Mầm Xanh", emoji: "🌸" }
+      { id: "ach-gardener-3", title: "Người Gieo Mầm Xanh", emoji: "🌸" },
+      { id: "ach-breath-3", title: "Hơi Thở Yên Bình", emoji: "🌬️" },
+      { id: "ach-breath-10", title: "Hành Giả Tỉnh Thức", emoji: "🌀" },
+      { id: "ach-breath-25", title: "Bậc Thầy Định Tâm", emoji: "🧘‍♀️" }
     ];
 
     for (const ach of achs) {
@@ -655,17 +716,34 @@ export default function Gamification() {
   // Core achievements check helpers
   const isAchUnlocked = (id: string) => {
     if (id === "ach-detox-100") return (userData.detoxMinutes || 0) >= 100;
+    if (id === "ach-empathy-3") return (userData.moodLogs || []).length >= 3;
     if (id === "ach-empathy-10") return (userData.moodLogs || []).length >= 10;
+    if (id === "ach-empathy-25") return (userData.moodLogs || []).length >= 25;
     if (id === "ach-reflection-5") return (userData.reflections || []).length >= 5;
     if (id === "ach-gardener-3") return (userData.plantStage || 0) >= 3;
+    
+    // Mindfulness breath sessions
+    const breathCount = getMindfulnessCount();
+    if (id === "ach-breath-3") return breathCount >= 3;
+    if (id === "ach-breath-10") return breathCount >= 10;
+    if (id === "ach-breath-25") return breathCount >= 25;
+    
     return false;
   };
 
   const getAchProgressText = (id: string) => {
     if (id === "ach-detox-100") return `${Math.min(100, userData.detoxMinutes || 0)}/100p`;
+    if (id === "ach-empathy-3") return `${Math.min(3, (userData.moodLogs || []).length)}/3`;
     if (id === "ach-empathy-10") return `${Math.min(10, (userData.moodLogs || []).length)}/10`;
+    if (id === "ach-empathy-25") return `${Math.min(25, (userData.moodLogs || []).length)}/25`;
     if (id === "ach-reflection-5") return `${Math.min(5, (userData.reflections || []).length)}/5`;
     if (id === "ach-gardener-3") return `Cấp ${userData.plantStage || 1}/3`;
+    
+    const breathCount = getMindfulnessCount();
+    if (id === "ach-breath-3") return `${Math.min(3, breathCount)}/3`;
+    if (id === "ach-breath-10") return `${Math.min(10, breathCount)}/10`;
+    if (id === "ach-breath-25") return `${Math.min(25, breathCount)}/25`;
+    
     return "0/1";
   };
 

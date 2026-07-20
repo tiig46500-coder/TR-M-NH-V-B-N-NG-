@@ -358,7 +358,7 @@ const SvgStarAnise: React.FC<SvgFlowerProps & { isWatered?: boolean }> = ({ scal
 };
 
 export default function MoodLogger() {
-  const { userData, setMoodLogs, setPlantStage } = useUserData();
+  const { userData, setMoodLogs, setPlantStage, addDetoxMinutes } = useUserData();
   const logs = userData.moodLogs;
 
   const setLogs = (updated: MoodLogEntry[]) => {
@@ -1724,6 +1724,15 @@ export default function MoodLogger() {
         reason={breathReason} 
         onComplete={() => {
           setIsWatered(true);
+          // Increment breathing sessions in localStorage
+          const currentCountRaw = localStorage.getItem("remix_corez_mindfulness_sessions");
+          const currentCount = currentCountRaw ? parseInt(currentCountRaw, 10) : 0;
+          localStorage.setItem("remix_corez_mindfulness_sessions", (currentCount + 1).toString());
+          
+          // Add 5 minutes of detox progress for a job well done!
+          if (addDetoxMinutes) {
+            addDetoxMinutes(5);
+          }
         }}
       />
     </div>
