@@ -127,6 +127,25 @@ export default function FlashcardsAndAi() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Dynamic empathetic greeting based on user profile
+  useEffect(() => {
+    if (userData.name) {
+      setMessages((prev) => {
+        if (prev.length === 1 && prev[0].id === "msg-0") {
+          return [
+            {
+              id: "msg-0",
+              role: "model",
+              content: `Chào ${userData.name}! Mình là Cozy - người bạn đồng hành AI thấu cảm của cậu đây. Mình biết năng lượng hiện tại của cậu đang là "${userData.vibe || "chữa lành"}" và mục tiêu của cậu là "${userData.goal || "tìm người lắng nghe"}". Mình luôn ở đây để san sẻ và đồng hành cùng cậu. Hôm nay cậu cảm thấy thế nào? 🌱`,
+              timestamp: new Date()
+            }
+          ];
+        }
+        return prev;
+      });
+    }
+  }, [userData.name, userData.vibe, userData.goal]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -164,7 +183,12 @@ export default function FlashcardsAndAi() {
         },
         body: JSON.stringify({ 
           messages: payloadMessages,
-          moodLogs: userData.moodLogs
+          moodLogs: userData.moodLogs,
+          profile: {
+            name: userData.name,
+            vibe: userData.vibe,
+            goal: userData.goal
+          }
         })
       });
 

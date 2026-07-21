@@ -26,7 +26,22 @@ export interface FutureLetter {
   isSealed: boolean;
 }
 
+export interface JourneySummary {
+  id: string;
+  date: string;
+  summaryText: string;
+  statsSnap: {
+    karmaXP: number;
+    detoxMinutes: number;
+    plantStage: number;
+    reflectionsCount: number;
+    lettersCount: number;
+    moodLogsCount: number;
+  };
+}
+
 export interface UserData {
+  userId?: string;
   diiScore: number;
   diiLevel: RiskLevel | null;
   karmaXP: number;
@@ -35,6 +50,10 @@ export interface UserData {
   plantStage: number; // Giai đoạn của Cây bản địa (0 - 3)
   reflections: ReflectionLog[];
   futureLetters: FutureLetter[];
+  journeySummaries?: JourneySummary[];
+  name?: string;
+  vibe?: string;
+  goal?: string;
 }
 
 interface UserContextType {
@@ -50,7 +69,9 @@ interface UserContextType {
   deleteReflection: (id: string) => void;
   addFutureLetter: (letter: FutureLetter) => void;
   deleteFutureLetter: (id: string) => void;
+  addJourneySummary: (summary: JourneySummary) => void;
   resetAllData: () => void;
+  updateProfile: (name: string, vibe: string, goal: string) => void;
 }
 
 const DEFAULT_USER_DATA: UserData = {
@@ -62,12 +83,25 @@ const DEFAULT_USER_DATA: UserData = {
   plantStage: 0,
   reflections: [],
   futureLetters: [],
+  journeySummaries: [],
+  name: "",
+  vibe: "",
+  goal: "",
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<UserData>(() => {
+    // Helper to generate a new unique User ID
+    const generateNewUserId = () => "user_" + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+
+    let activeUserId = localStorage.getItem("USER_ID");
+    if (!activeUserId) {
+      activeUserId = generateNewUserId();
+      localStorage.setItem("USER_ID", activeUserId);
+    }
+
     // 1. Check if unified user data already exists
     const savedData = localStorage.getItem("remix_corez_user_data");
     if (savedData) {
@@ -75,6 +109,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const parsed = JSON.parse(savedData);
         // Ensure all required fields exist
         return {
+          userId: activeUserId,
           diiScore: typeof parsed.diiScore === "number" ? parsed.diiScore : 0,
           diiLevel: parsed.diiLevel || null,
           karmaXP: typeof parsed.karmaXP === "number" ? parsed.karmaXP : 0,
@@ -83,6 +118,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           plantStage: typeof parsed.plantStage === "number" ? parsed.plantStage : 0,
           reflections: Array.isArray(parsed.reflections) ? parsed.reflections : [],
           futureLetters: Array.isArray(parsed.futureLetters) ? parsed.futureLetters : [],
+          journeySummaries: Array.isArray(parsed.journeySummaries) ? parsed.journeySummaries : [],
+          name: parsed.name || "",
+          vibe: parsed.vibe || "",
+          goal: parsed.goal || "",
         };
       } catch (e) {
         console.error("Error parsing user data from localStorage", e);
@@ -121,6 +160,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     return {
+      userId: activeUserId,
       diiScore: legacyDiiScore ? parseInt(legacyDiiScore, 10) : 0,
       diiLevel: legacyDiiLevel || null,
       karmaXP: legacyXP ? parseInt(legacyXP, 10) : 0,
@@ -129,6 +169,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       plantStage: legacyPlant ? parseInt(legacyPlant, 10) : 0,
       reflections: parsedReflections,
       futureLetters: parsedLetters,
+      journeySummaries: [],
+      name: "",
+      vibe: "",
+      goal: "",
     };
   });
 
@@ -235,6 +279,22 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   };
 
+  const addJourneySummary = (summary: JourneySummary) => {
+    setUserData((prev) => ({
+      ...prev,
+      journeySummaries: [summary, ...(prev.journeySummaries || [])],
+    }));
+  };
+
+  const updateProfile = (name: string, vibe: string, goal: string) => {
+    setUserData((prev) => ({
+      ...prev,
+      name,
+      vibe,
+      goal,
+    }));
+  };
+
   const resetAllData = () => {
     // Clear all related keys in localStorage
     localStorage.removeItem("remix_corez_user_data");
@@ -272,7 +332,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteReflection,
         addFutureLetter,
         deleteFutureLetter,
+        addJourneySummary,
         resetAllData,
+        updateProfile,
       }}
     >
       {children}

@@ -34,7 +34,7 @@ const HEALING_QUOTES = [
   "Cậu đã làm rất tốt rồi. Hãy tự ôm lấy chính mình và tự hào vì nỗ lực thầm lặng của mình hôm nay nhé. 🧡",
   "Đừng so sánh cuộc sống thực tế của cậu với những thước phim lung linh đã qua chỉnh sửa của người khác trên mạng. Con đường của cậu là độc bản. 🌟",
   "Giông bão rồi sẽ qua, sương mù dày đặc trên đỉnh Mẫu Sơn rồi cũng tan để đón nắng ấm rạng rỡ lên. Cố lên nhé bạn ơi! 🏔️",
-  "Ở Trạm Định Vị Cozy, không ai phán xét cậu cả. Cậu luôn có quyền mệt mỏi và luôn xứng đáng được yêu thương nâng niu. 🌱",
+  "Ở Trạm Định Vị CoreZ, không ai phán xét cậu cả. Cậu luôn có quyền mệt mỏi và luôn xứng đáng được yêu thương nâng niu. 🌱",
   "Cậu không đơn độc đâu, trong hàng ngàn học sinh ngoài kia luôn có những tâm hồn thấu cảm và sẵn lòng dang rộng cánh tay nghe cậu sẻ chia.",
   "Mỗi bước đi chầm chậm của cậu đều mang ý nghĩa lớn lao. Hãy trân trọng hiện tại và tiếp tục rèn luyện kiên trì nhé. 🏃"
 ];
@@ -409,7 +409,7 @@ export default function Community() {
                 </div>
                 
                 <div className="space-y-1.5">
-                  <h4 className="text-[10px] font-mono font-bold tracking-widest text-emerald-600 uppercase">Sứ Điệp Chữa Lành Cozy</h4>
+                  <h4 className="text-[10px] font-mono font-bold tracking-widest text-emerald-600 uppercase">Sứ Điệp Chữa Lành CoreZ</h4>
                   <p className="font-serif text-xs sm:text-sm leading-relaxed text-slate-700 text-justify">
                     “ {healingQuote} ”
                   </p>
@@ -967,7 +967,7 @@ export default function Community() {
                             </div>
                             
                             <div className="mt-3 pt-2 border-t border-amber-100/50 text-[9px] text-slate-500 leading-normal italic">
-                               ✨ Cozy: Tớ tin rằng thời gian đã mài dũa nỗi lo âu này thành hạt cát trôi xuôi. Cậu tuyệt vời lắm!
+                               ✨ CoreZ: Tớ tin rằng thời gian đã mài dũa nỗi lo âu này thành hạt cát trôi xuôi. Cậu tuyệt vời lắm!
                             </div>
                           </div>
                         )}

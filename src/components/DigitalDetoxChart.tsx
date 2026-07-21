@@ -7,11 +7,9 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  LineChart, 
-  Line 
 } from "recharts";
 import { useUserData } from "../context/UserContext";
-import { Leaf, Info, Sparkles, TrendingUp, Calendar, Zap } from "lucide-react";
+import { Leaf, Sparkles, TrendingUp, Calendar, Zap } from "lucide-react";
 
 interface DetoxDataPoint {
   dateLabel: string; // e.g. "12/07"
@@ -20,8 +18,9 @@ interface DetoxDataPoint {
 }
 
 export const DigitalDetoxChart: React.FC = () => {
-  const { userData } = useUserData();
+  const { userData, addDetoxMinutes } = useUserData();
   const [chartData, setChartData] = useState<DetoxDataPoint[]>([]);
+  const [inputMinutes, setInputMinutes] = useState<string>("30");
 
   useEffect(() => {
     // Generate dates for the last 30 days
@@ -40,72 +39,86 @@ export const DigitalDetoxChart: React.FC = () => {
       });
     }
 
-    // Load or seed historical detox data from localStorage
-    const storageKey = "remix_corez_detox_history_30d";
+    // Load or seed historical detox data from localStorage using user-isolated key
+    const storageKey = `remix_corez_detox_history_30d_${userData.userId || "anonymous"}`;
     let storedHistory: Record<string, number> = {};
     const raw = localStorage.getItem(storageKey);
+    let isNewUser = false;
+
     if (raw) {
       try {
         storedHistory = JSON.parse(raw);
       } catch (e) {
         console.error("Failed to parse detox history", e);
       }
+    } else {
+      isNewUser = true;
     }
 
-    // Seed historical data if missing (deterministic seed so it remains stable)
-    let needsSave = false;
-    const seededHistory: Record<string, number> = { ...storedHistory };
-    
-    dates.forEach(({ fullDate }, index) => {
-      // Don't overwrite today's real progress
+    // Map to recharts data points - if new user, keep all at 0
+    const mappedData = dates.map(({ fullDate, label }, index) => {
+      let minutes = 0;
+      if (!isNewUser) {
+        minutes = storedHistory[fullDate] || 0;
+      }
+      
+      // Update today's real progress from current context/state
       if (index === 29) {
-        seededHistory[fullDate] = userData.detoxMinutes || 0;
-        return;
+        minutes = userData.detoxMinutes || 0;
       }
 
-      if (seededHistory[fullDate] === undefined) {
-        // Generate a nice varying progression with some dips and climbs
-        const seedValue = (index * 7) % 31;
-        const baseline = 20 + (index % 4) * 15;
-        const randomBonus = (seedValue % 3) * 10 + (index % 2) * 5;
-        // Make the progress slightly upwards over the 30 days to represent "rèn luyện" (training)
-        const improvementTrend = Math.floor(index * 1.2); 
-        
-        seededHistory[fullDate] = Math.max(10, Math.min(120, baseline + randomBonus + improvementTrend));
-        needsSave = true;
-      }
+      return {
+        dateLabel: label,
+        fullDate,
+        minutes
+      };
     });
 
-    // Always update today's index with current detoxMinutes from state
-    const todayStr = dates[29].fullDate;
-    seededHistory[todayStr] = userData.detoxMinutes || 0;
-
-    if (needsSave || seededHistory[todayStr] !== storedHistory[todayStr]) {
-      localStorage.setItem(storageKey, JSON.stringify(seededHistory));
-    }
-
-    // Map to recharts data points
-    const mappedData = dates.map(({ fullDate, label }) => ({
-      dateLabel: label,
-      fullDate,
-      minutes: seededHistory[fullDate] || 0
-    }));
-
     setChartData(mappedData);
-  }, [userData.detoxMinutes]);
+  }, [userData.detoxMinutes, userData.userId]);
 
   // Calculate statistics
   const totalMinutes = chartData.reduce((acc, curr) => acc + curr.minutes, 0);
   const averageMinutes = chartData.length > 0 ? Math.round(totalMinutes / chartData.length) : 0;
   const maxMinutes = chartData.length > 0 ? Math.max(...chartData.map(d => d.minutes)) : 0;
 
+  // Handler for adding detox progress
+  const handleRecordDetox = () => {
+    const mins = parseInt(inputMinutes, 10);
+    if (isNaN(mins) || mins <= 0) return;
+
+    // Get today's date in YYYY-MM-DD format
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+    const storageKey = `remix_corez_detox_history_30d_${userData.userId || "anonymous"}`;
+    let storedHistory: Record<string, number> = {};
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      try {
+        storedHistory = JSON.parse(raw);
+      } catch (e) {}
+    }
+
+    // Accumulate today's value
+    storedHistory[todayStr] = (storedHistory[todayStr] || 0) + mins;
+    localStorage.setItem(storageKey, JSON.stringify(storedHistory));
+
+    // Update global state & add XP
+    addDetoxMinutes(mins);
+    setInputMinutes("30");
+  };
+
   // Custom tooltips for Recharts
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data: DetoxDataPoint = payload[0].payload;
       return (
-        <div className="bg-slate-900/95 border border-purple-500/30 backdrop-blur-md p-3 rounded-2xl shadow-xl text-xs space-y-1 text-white">
-          <p className="font-semibold text-purple-300 flex items-center gap-1">
+        <div className="bg-slate-900/95 border border-emerald-500/30 backdrop-blur-md p-3 rounded-2xl shadow-xl text-xs space-y-1 text-white">
+          <p className="font-semibold text-emerald-300 flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             Ngày {data.dateLabel}
           </p>
@@ -125,16 +138,16 @@ export const DigitalDetoxChart: React.FC = () => {
   };
 
   return (
-    <div id="digital-detox-chart-container" className="bg-white/65 backdrop-blur-xl rounded-[32px] border border-white/40 p-5 sm:p-6 shadow-sm space-y-5">
+    <div id="digital-detox-chart-container" className="bg-white/65 backdrop-blur-xl rounded-[32px] border border-white/40 p-5 sm:p-6 shadow-sm space-y-5 relative overflow-hidden">
       
       {/* Header and Summary */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/30 pb-4">
         <div className="space-y-1">
-          <span className="text-[10px] font-bold tracking-wider text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full uppercase">
+          <span className="text-[10px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase">
             Biểu Đồ Sức Khỏe Tinh Thần
           </span>
           <h3 className="font-serif text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Leaf className="w-5 h-5 text-purple-500" />
+            <Leaf className="w-5 h-5 text-emerald-500 animate-pulse" />
             Tiến Trình Thải Độc Số (30 Ngày Gần Nhất)
           </h3>
           <p className="text-[11px] text-slate-400 font-light">
@@ -144,9 +157,9 @@ export const DigitalDetoxChart: React.FC = () => {
 
         {/* Quick stats badges */}
         <div className="flex gap-2.5">
-          <div className="bg-purple-500/5 border border-purple-500/10 px-3 py-1.5 rounded-xl text-center min-w-[75px]">
+          <div className="bg-emerald-500/5 border border-emerald-500/10 px-3 py-1.5 rounded-xl text-center min-w-[75px]">
             <span className="text-[8px] text-slate-400 block font-mono uppercase">Tổng tích lũy</span>
-            <span className="text-sm font-black text-purple-600 font-mono">{totalMinutes}p</span>
+            <span className="text-sm font-black text-emerald-600 font-mono">{totalMinutes}p</span>
           </div>
           <div className="bg-emerald-500/5 border border-emerald-500/10 px-3 py-1.5 rounded-xl text-center min-w-[75px]">
             <span className="text-[8px] text-slate-400 block font-mono uppercase">Trung bình ngày</span>
@@ -161,24 +174,35 @@ export const DigitalDetoxChart: React.FC = () => {
 
       {/* The Line / Area Chart */}
       <div className="w-full h-[220px] relative mt-2 select-none">
+        {totalMinutes === 0 && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/45 backdrop-blur-xs rounded-[28px] p-4 text-center z-10 border border-emerald-500/10">
+            <div className="p-3 bg-emerald-500/10 rounded-full text-emerald-400 mb-2 animate-bounce">
+              <Leaf className="w-6 h-6" />
+            </div>
+            <p className="text-xs font-semibold text-emerald-300">
+              Chưa có dữ liệu. Hãy ghi nhận ngày thải độc đầu tiên của bạn! 🌿
+            </p>
+          </div>
+        )}
+
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
             <defs>
               <linearGradient id="detoxGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.0} />
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(139, 92, 246, 0.08)" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(16, 185, 129, 0.08)" />
             <XAxis 
               dataKey="dateLabel" 
               tickLine={false} 
-              axisLine={{ stroke: 'rgba(139, 92, 246, 0.15)' }}
+              axisLine={{ stroke: 'rgba(16, 185, 129, 0.15)' }}
               tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'JetBrains Mono, monospace' }}
             />
             <YAxis 
               tickLine={false} 
-              axisLine={{ stroke: 'rgba(139, 92, 246, 0.15)' }}
+              axisLine={{ stroke: 'rgba(16, 185, 129, 0.15)' }}
               tick={{ fill: '#64748b', fontSize: 9, fontFamily: 'JetBrains Mono, monospace' }}
               unit="p"
             />
@@ -186,34 +210,87 @@ export const DigitalDetoxChart: React.FC = () => {
             <Area 
               type="monotone" 
               dataKey="minutes" 
-              stroke="#8b5cf6" 
+              stroke="#10b981" 
               strokeWidth={3} 
               fillOpacity={1} 
               fill="url(#detoxGradient)" 
-              dot={{ stroke: '#8b5cf6', strokeWidth: 1.5, fill: '#fff', r: 3 }}
-              activeDot={{ r: 5, strokeWidth: 2, fill: '#8b5cf6' }}
+              dot={{ stroke: '#10b981', strokeWidth: 1.5, fill: '#fff', r: 3 }}
+              activeDot={{ r: 5, strokeWidth: 2, fill: '#10b981' }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
+      {/* Interactive Recording Form */}
+      <div className="bg-slate-50/50 border border-slate-100 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <Zap className="w-4 h-4 text-emerald-500" />
+            Ghi nhận thời gian thải độc hôm nay
+          </h4>
+          <p className="text-[10px] text-slate-400 font-light">
+            Nhập số phút rời xa MXH hôm nay để vun đắp Cây bản địa & tăng karmaXP.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Quick selection chips */}
+          <div className="flex gap-1">
+            {["15", "30", "45", "60"].map((m) => (
+              <button
+                key={m}
+                onClick={() => setInputMinutes(m)}
+                className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-all border ${
+                  inputMinutes === m
+                    ? "bg-emerald-500 text-white border-emerald-500"
+                    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {m}p
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min="1"
+              max="480"
+              value={inputMinutes}
+              onChange={(e) => setInputMinutes(e.target.value)}
+              placeholder="Phút"
+              className="w-16 px-2 py-1.5 text-xs text-center font-bold rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-500 bg-white"
+            />
+            <button
+              onClick={handleRecordDetox}
+              disabled={!inputMinutes || parseInt(inputMinutes, 10) <= 0}
+              className="px-4 py-1.5 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center gap-1"
+            >
+              Ghi nhận
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Dynamic educational message based on average progress */}
-      <div className="bg-purple-50 border border-purple-100 p-3.5 rounded-2xl flex items-start gap-3">
-        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 shrink-0 mt-0.5">
-          <Sparkles className="w-4.5 h-4.5" />
+      <div className="bg-emerald-50/50 border border-emerald-100 p-3.5 rounded-2xl flex items-start gap-3">
+        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
+          <Sparkles className="w-4.5 h-4.5 animate-pulse" />
         </div>
         <div className="space-y-1">
           <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
             Nhận định từ AI Mentor Cozy
           </h4>
           <p className="text-[11px] text-slate-600 leading-relaxed font-light">
             {averageMinutes >= 60 ? (
-              <span>Tuyệt vời! Cậu đang duy trì mức thải độc trung bình là <strong className="text-purple-700 font-bold">{averageMinutes} phút/ngày</strong>. Đây là chỉ số lý tưởng giúp giảm mệt mỏi thị giác, hồi phục thùy trán và tối ưu hóa khả năng tập trung sâu. Tiếp tục giữ vững phong độ chiến binh này nhé! 🔋🌱</span>
+              <span>Tuyệt vời! Cậu đang duy trì mức thải độc trung bình là <strong className="text-emerald-700 font-bold">{averageMinutes} phút/ngày</strong>. Đây là chỉ số lý tưởng giúp giảm mệt mỏi thị giác, hồi phục thùy trán và tối ưu hóa khả năng tập trung sâu. Tiếp tục giữ vững phong độ chiến binh này nhé! 🔋🌱</span>
             ) : averageMinutes >= 30 ? (
-              <span>Khá tốt! Mức rèn luyện trung bình đạt <strong className="text-purple-700 font-bold">{averageMinutes} phút/ngày</strong>. Cậu đang từng bước giải thoát bản thân khỏi guồng quay Dopamine vô thức của thuật toán. Hãy cố gắng tăng thêm 5 phút detox mỗi ngày để cảm nhận rõ rệt sự yên bình nội tâm. 🌸✨</span>
+              <span>Khá tốt! Mức rèn luyện trung bình đạt <strong className="text-emerald-700 font-bold">{averageMinutes} phút/ngày</strong>. Cậu đang từng bước giải thoát bản thân khỏi guồng quay Dopamine vô thức của thuật toán. Hãy cố gắng tăng thêm 5 phút detox mỗi ngày để cảm nhận rõ rệt sự yên bình nội tâm. 🌸✨</span>
+            ) : averageMinutes > 0 ? (
+              <span>Cố lên cậu nhé! Chỉ số thải độc trung bình hiện đạt <strong className="text-emerald-700 font-bold">{averageMinutes} phút/ngày</strong>. Để bắt đầu, cậu chỉ cần đặt máy xuống trong 10 phút sau giờ học hoặc tắt thông báo ứng dụng lúc 10h tối. Từng bước nhỏ mộc mạc sẽ tạo nên sự chuyển biến to lớn! 🌿💪</span>
             ) : (
-              <span>Cố lên cậu nhé! Chỉ số thải độc trung bình hiện đạt <strong className="text-purple-700 font-bold">{averageMinutes} phút/ngày</strong>. Để bắt đầu, cậu chỉ cần đặt máy xuống trong 10 phút sau giờ học hoặc tắt thông báo ứng dụng lúc 10h tối. Từng bước nhỏ mộc mạc sẽ tạo nên sự chuyển biến to lớn! 🌿💪</span>
+              <span>Chào mừng cậu ghé thăm! Hãy bắt đầu hành trình bằng cách ghi nhận số phút thải độc đầu tiên hôm nay nhé. Mỗi phút rời xa màn hình là một chút dưỡng chất nuôi dưỡng Cây bản địa của cậu đấy! 🌱✨</span>
             )}
           </p>
         </div>

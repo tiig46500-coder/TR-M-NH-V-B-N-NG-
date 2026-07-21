@@ -17,10 +17,12 @@ import {
   Sun,
   Moon,
   X,
-  RotateCcw
+  RotateCcw,
+  User
 } from "lucide-react";
 import LandingPage from "./components/LandingPage";
 import AssessmentQuiz from "./components/AssessmentQuiz";
+import PersonalProfileOnboarding from "./components/PersonalProfileOnboarding";
 import Space4D from "./components/Space4D";
 import FlashcardsAndAi from "./components/FlashcardsAndAi";
 import MoodLogger from "./components/MoodLogger";
@@ -33,6 +35,7 @@ import PanicButton from "./components/PanicButton";
 import SosButton from "./components/SosButton";
 import CuteStar from "./components/CuteStar";
 import IdentityCompassWidget from "./components/IdentityCompassWidget";
+import UserProfile from "./components/UserProfile";
 import { useUserData } from "./context/UserContext";
 import { RiskLevel } from "./types";
 
@@ -136,11 +139,11 @@ export default function App() {
   const assessmentLevel = userData.diiLevel;
   const assessmentScore = userData.diiScore;
 
-  // Views: 'landing' | 'quiz' | 'main'
-  const [currentView, setCurrentView] = useState<"landing" | "quiz" | "main">("landing");
+  // Views: 'landing' | 'profile_onboarding' | 'quiz' | 'main'
+  const [currentView, setCurrentView] = useState<"landing" | "profile_onboarding" | "quiz" | "main">("landing");
   
-  // Dashboard Tabs: 'space4d' | 'self_discovery' | 'mood' | 'journaling' | 'gamification' | 'community' | 'mentor' | 'gocbinhyen'
-  const [activeTab, setActiveTab] = useState<"space4d" | "self_discovery" | "mood" | "journaling" | "gamification" | "community" | "mentor" | "gocbinhyen">("space4d");
+  // Dashboard Tabs: 'space4d' | 'self_discovery' | 'mood' | 'journaling' | 'gamification' | 'community' | 'mentor' | 'gocbinhyen' | 'profile'
+  const [activeTab, setActiveTab] = useState<"space4d" | "self_discovery" | "mood" | "journaling" | "gamification" | "community" | "mentor" | "gocbinhyen" | "profile">("space4d");
   
   // State for Reset Confirmation Modal
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -200,6 +203,10 @@ export default function App() {
   }, [userData.diiLevel]);
 
   const handleStartOnboarding = () => {
+    setCurrentView("profile_onboarding");
+  };
+
+  const handleCompleteProfileOnboarding = () => {
     setCurrentView("quiz");
   };
 
@@ -232,18 +239,53 @@ export default function App() {
     <div id="app-root" key={theme} className={getThemeClasses()}>
       {/* CSS overrides for dark-indigo & dark-moss therapeutic modes */}
       <style>{`
-        /* Deep Dark Indigo overrides */
+        /* Deep Dark Indigo (Đất Trầm / Tối Tràm) overrides */
         .dark-theme-indigo {
-          --card-bg: rgba(255, 255, 255, 0.05);
-          --card-border: rgba(255, 255, 255, 0.12);
-          background: linear-gradient(135deg, #050515 0%, #0c0b24 45%, #180d3d 100%) !important;
-          color: #ffffff !important;
+          --bg-dark-earth: #1f1c1a;
+          --surface-earth: #2a2421;
+          --text-primary-earth: #d1c7c1;
+          --text-secondary-earth: #a89d96;
+          --accent-earth: #8b5e3c;
+          --border-earth: rgba(168, 157, 150, 0.2);
+
+          --bg-color: var(--bg-dark-earth);
+          --card-bg: var(--surface-earth);
+          --card-border: var(--border-earth);
+          --text-main: var(--text-primary-earth);
+          --text-sub: var(--text-secondary-earth);
+          --accent-color: var(--accent-earth);
+
+          background: var(--bg-dark-earth) !important;
+          color: var(--text-primary-earth) !important;
           text-rendering: optimizeLegibility !important;
           -webkit-font-smoothing: antialiased !important;
           -moz-osx-font-smoothing: grayscale !important;
         }
 
-        /* Glassmorphism card & button overrides for Indigo */
+        /* Deep Dark Moss Green (Sương Rêu / Tối Rêu) overrides */
+        .dark-theme-moss {
+          --bg-dark-moss: #1a201b;
+          --surface-moss: #252e27;
+          --text-primary-moss: #e0e6e2;
+          --text-secondary-moss: #a0a8a3;
+          --accent-moss: #4a6741;
+          --border-moss: rgba(160, 168, 163, 0.2);
+
+          --bg-color: var(--bg-dark-moss);
+          --card-bg: var(--surface-moss);
+          --card-border: var(--border-moss);
+          --text-main: var(--text-primary-moss);
+          --text-sub: var(--text-secondary-moss);
+          --accent-color: var(--accent-moss);
+
+          background: var(--bg-dark-moss) !important;
+          color: var(--text-primary-moss) !important;
+          text-rendering: optimizeLegibility !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+        }
+
+        /* Glassmorphism card & button overrides using CSS variables */
         .dark-theme-indigo .bg-white:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-indigo .bg-white\\/40:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-indigo .bg-white\\/50:not(.no-dark-override):not(.no-dark-override *),
@@ -258,92 +300,7 @@ export default function App() {
         .dark-theme-indigo .bg-amber-50\\/90:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-indigo .card:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-indigo .bg-slate-50:not(.no-dark-override):not(.no-dark-override *),
-        .dark-theme-indigo button:not(.no-dark-override):not(.bg-gradient-to-r) {
-          background: rgba(255, 255, 255, 0.05) !important;
-          backdrop-filter: blur(10px) !important;
-          -webkit-backdrop-filter: blur(10px) !important;
-          border: 1px solid rgba(255, 255, 255, 0.12) !important;
-          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
-          transform: translate3d(0, 0, 0) !important;
-        }
-
-        /* Active active tab button glassmorphism override */
-        .dark-theme-indigo .bg-white\\/85 {
-          background: rgba(255, 255, 255, 0.15) !important;
-          border: 1px solid rgba(255, 255, 255, 0.25) !important;
-        }
-
-        /* Typography optimizations for Indigo mode to ensure absolute clarity and zero blur */
-        .dark-theme-indigo p:not(.no-dark-override):not(.no-dark-override *), 
-        .dark-theme-indigo span:not(.no-dark-override):not(.no-dark-override *),
-        .dark-theme-indigo div:not(.no-dark-override):not(.no-dark-override *), 
-        .dark-theme-indigo h1:not(.no-dark-override):not(.no-dark-override *), 
-        .dark-theme-indigo h2:not(.no-dark-override):not(.no-dark-override *), 
-        .dark-theme-indigo h3:not(.no-dark-override):not(.no-dark-override *), 
-        .dark-theme-indigo h4:not(.no-dark-override):not(.no-dark-override *),
-        .dark-theme-indigo h5:not(.no-dark-override):not(.no-dark-override *),
-        .dark-theme-indigo label:not(.no-dark-override):not(.no-dark-override *),
-        .dark-theme-indigo li:not(.no-dark-override):not(.no-dark-override *),
-        .dark-theme-indigo strong:not(.no-dark-override):not(.no-dark-override *) {
-          color: #f8f9fa !important;
-          text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.15), 0px 1px 4px rgba(0, 0, 0, 0.6) !important;
-          font-weight: 500 !important;
-          text-rendering: optimizeLegibility !important;
-          -webkit-font-smoothing: antialiased !important;
-          -moz-osx-font-smoothing: grayscale !important;
-          transform: translate3d(0, 0, 0) !important;
-        }
-
-        /* Bold elements for maximum punch and crispness in cards */
-        .dark-theme-indigo h1,
-        .dark-theme-indigo h2,
-        .dark-theme-indigo h3,
-        .dark-theme-indigo h4,
-        .dark-theme-indigo h5,
-        .dark-theme-indigo strong,
-        .dark-theme-indigo .font-bold,
-        .dark-theme-indigo .font-extrabold,
-        .dark-theme-indigo .font-semibold {
-          font-weight: 700 !important;
-          color: #ffffff !important;
-          text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.2), 0px 1px 6px rgba(0, 0, 0, 0.7) !important;
-        }
-
-        .dark-theme-indigo .text-slate-800,
-        .dark-theme-indigo .text-slate-700,
-        .dark-theme-indigo .text-slate-600,
-        .dark-theme-indigo .text-slate-500,
-        .dark-theme-indigo .text-slate-400 {
-          color: #f8f9fa !important;
-        }
-
-        /* Brightness & contrast boost for images and icons in Indigo */
-        .dark-theme-indigo img,
-        .dark-theme-indigo svg {
-          filter: brightness(1.15) contrast(1.15) saturate(1.15) !important;
-          transform: translate3d(0, 0, 0) !important;
-        }
-
-        .dark-theme-indigo input,
-        .dark-theme-indigo textarea,
-        .dark-theme-indigo select {
-          background-color: rgba(15, 17, 26, 0.9) !important;
-          border-color: rgba(255, 255, 255, 0.15) !important;
-          color: #ffffff !important;
-        }
-
-        /* Deep Dark Moss Green overrides */
-        .dark-theme-moss {
-          --card-bg: rgba(255, 255, 255, 0.05);
-          --card-border: rgba(255, 255, 255, 0.12);
-          background: linear-gradient(135deg, #020b08 0%, #051a14 45%, #0f2c22 100%) !important;
-          color: #ffffff !important;
-          text-rendering: optimizeLegibility !important;
-          -webkit-font-smoothing: antialiased !important;
-          -moz-osx-font-smoothing: grayscale !important;
-        }
-
-        /* Glassmorphism card & button overrides for Moss */
+        .dark-theme-indigo button:not(.no-dark-override):not(.bg-gradient-to-r),
         .dark-theme-moss .bg-white:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-moss .bg-white\\/40:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-moss .bg-white\\/50:not(.no-dark-override):not(.no-dark-override *),
@@ -359,21 +316,33 @@ export default function App() {
         .dark-theme-moss .card:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-moss .bg-slate-50:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-moss button:not(.no-dark-override):not(.bg-gradient-to-r) {
-          background: rgba(255, 255, 255, 0.05) !important;
+          background: var(--card-bg) !important;
           backdrop-filter: blur(10px) !important;
           -webkit-backdrop-filter: blur(10px) !important;
-          border: 1px solid rgba(255, 255, 255, 0.12) !important;
-          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+          border: 1px solid var(--card-border) !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
           transform: translate3d(0, 0, 0) !important;
         }
 
         /* Active active tab button glassmorphism override */
+        .dark-theme-indigo .bg-white\\/85,
         .dark-theme-moss .bg-white\\/85 {
-          background: rgba(255, 255, 255, 0.15) !important;
-          border: 1px solid rgba(255, 255, 255, 0.25) !important;
+          background: rgba(255, 255, 255, 0.12) !important;
+          border: 1px solid rgba(255, 255, 255, 0.2) !important;
         }
 
-        /* Typography optimizations for Moss mode to ensure absolute clarity and zero blur */
+        /* Typography optimizations for dark mode to ensure absolute clarity and zero blur */
+        .dark-theme-indigo p:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo span:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo div:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo h1:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo h2:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo h3:not(.no-dark-override):not(.no-dark-override *), 
+        .dark-theme-indigo h4:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo h5:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo label:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo li:not(.no-dark-override):not(.no-dark-override *),
+        .dark-theme-indigo strong:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-moss p:not(.no-dark-override):not(.no-dark-override *), 
         .dark-theme-moss span:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-moss div:not(.no-dark-override):not(.no-dark-override *), 
@@ -385,16 +354,24 @@ export default function App() {
         .dark-theme-moss label:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-moss li:not(.no-dark-override):not(.no-dark-override *),
         .dark-theme-moss strong:not(.no-dark-override):not(.no-dark-override *) {
-          color: #f8f9fa !important;
-          text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.15), 0px 1px 4px rgba(0, 0, 0, 0.6) !important;
-          font-weight: 500 !important;
+          color: var(--text-main) !important;
+          text-shadow: 0px 1px 4px rgba(0, 0, 0, 0.4) !important;
           text-rendering: optimizeLegibility !important;
           -webkit-font-smoothing: antialiased !important;
           -moz-osx-font-smoothing: grayscale !important;
           transform: translate3d(0, 0, 0) !important;
         }
 
-        /* Bold elements for maximum punch and crispness in Moss cards */
+        /* Bold elements for maximum punch and crispness in cards */
+        .dark-theme-indigo h1,
+        .dark-theme-indigo h2,
+        .dark-theme-indigo h3,
+        .dark-theme-indigo h4,
+        .dark-theme-indigo h5,
+        .dark-theme-indigo strong,
+        .dark-theme-indigo .font-bold,
+        .dark-theme-indigo .font-extrabold,
+        .dark-theme-indigo .font-semibold,
         .dark-theme-moss h1,
         .dark-theme-moss h2,
         .dark-theme-moss h3,
@@ -405,31 +382,50 @@ export default function App() {
         .dark-theme-moss .font-extrabold,
         .dark-theme-moss .font-semibold {
           font-weight: 700 !important;
-          color: #ffffff !important;
-          text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.2), 0px 1px 6px rgba(0, 0, 0, 0.7) !important;
+          color: var(--text-main) !important;
+          text-shadow: 0px 1px 6px rgba(0, 0, 0, 0.5) !important;
         }
 
+        /* Text color overrides for primary and secondary hierarchies */
+        .dark-theme-indigo .text-slate-900,
+        .dark-theme-indigo .text-slate-800,
+        .dark-theme-indigo .text-slate-700,
+        .dark-theme-moss .text-slate-900,
         .dark-theme-moss .text-slate-800,
-        .dark-theme-moss .text-slate-700,
+        .dark-theme-moss .text-slate-700 {
+          color: var(--text-main) !important;
+        }
+
+        .dark-theme-indigo .text-slate-600,
+        .dark-theme-indigo .text-slate-500,
+        .dark-theme-indigo .text-slate-400,
         .dark-theme-moss .text-slate-600,
         .dark-theme-moss .text-slate-500,
         .dark-theme-moss .text-slate-400 {
-          color: #f8f9fa !important;
+          color: var(--text-sub) !important;
         }
 
-        /* Brightness & contrast boost for images and icons in Moss */
-        .dark-theme-moss img,
+        /* Image filter to reduce glare and increase deep contrast */
+        .dark-theme-indigo img,
+        .dark-theme-moss img {
+          filter: brightness(0.8) contrast(1.1) !important;
+          border-radius: 12px !important;
+        }
+
+        .dark-theme-indigo svg,
         .dark-theme-moss svg {
-          filter: brightness(1.15) contrast(1.15) saturate(1.15) !important;
-          transform: translate3d(0, 0, 0) !important;
+          filter: brightness(1.05) contrast(1.05) !important;
         }
 
+        .dark-theme-indigo input,
+        .dark-theme-indigo textarea,
+        .dark-theme-indigo select,
         .dark-theme-moss input,
         .dark-theme-moss textarea,
         .dark-theme-moss select {
-          background-color: rgba(10, 16, 13, 0.9) !important;
-          border-color: rgba(255, 255, 255, 0.15) !important;
-          color: #ffffff !important;
+          background-color: var(--bg-color) !important;
+          border-color: var(--card-border) !important;
+          color: var(--text-main) !important;
         }
 
         .animate-spin-slow {
@@ -518,6 +514,20 @@ export default function App() {
             className="relative z-10"
           >
             <LandingPage onStart={handleStartOnboarding} />
+          </motion.div>
+        )}
+
+        {/* VIEW A.2: PROFILE ONBOARDING */}
+        {currentView === "profile_onboarding" && (
+          <motion.div
+            key="view-profile-onboarding"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative z-10"
+          >
+            <PersonalProfileOnboarding onComplete={handleCompleteProfileOnboarding} />
           </motion.div>
         )}
 
@@ -633,10 +643,10 @@ export default function App() {
                         ? "bg-indigo-950/70 text-indigo-200 shadow-md font-bold border border-indigo-500/40"
                         : "text-indigo-300/80 hover:text-indigo-200"
                     }`}
-                    title="Giao diện Chàm Dịu Mắt"
+                    title="Giao diện Đất Trầm Dịu Mắt"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                    <span className="text-[11px]">Tối Chàm</span>
+                    <span className="text-[11px]">Đất Trầm</span>
                   </button>
                   <button
                     onClick={() => setTheme("dark-moss")}
@@ -645,10 +655,10 @@ export default function App() {
                         ? "bg-emerald-950/70 text-emerald-200 shadow-md font-bold border border-emerald-500/40"
                         : "text-emerald-300/80 hover:text-emerald-200"
                     }`}
-                    title="Giao diện Rêu Trầm"
+                    title="Giao diện Sương Rêu Trầm"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-[11px]">Tối Rêu</span>
+                    <span className="text-[11px]">Sương Rêu</span>
                   </button>
                 </div>
 
@@ -820,6 +830,22 @@ export default function App() {
                   </span>
                 </button>
 
+                {/* Tab 9: Hồ sơ Cá nhân */}
+                <button
+                  id="tab-profile"
+                  onClick={() => setActiveTab("profile")}
+                  className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
+                    activeTab === "profile"
+                      ? "text-emerald-600 bg-white/85 shadow-sm"
+                      : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                    <User className="w-3.5 h-3.5 text-emerald-500" />
+                    Hồ sơ Cá nhân
+                  </span>
+                </button>
+
               </nav>
             </div>
 
@@ -923,6 +949,17 @@ export default function App() {
                     transition={{ duration: 0.2 }}
                   >
                     <GocBinhYen />
+                  </motion.div>
+                )}
+                {activeTab === "profile" && (
+                  <motion.div
+                    key="tab-content-profile"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <UserProfile />
                   </motion.div>
                 )}
               </AnimatePresence>
