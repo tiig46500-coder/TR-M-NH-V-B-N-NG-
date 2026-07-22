@@ -70,6 +70,208 @@ export default function Journaling({ initialTab }: JournalingProps) {
   const [copiedSummary, setCopiedSummary] = useState(false);
 
   // Export helper functions
+  const handleExportPdf = () => {
+    const userName = userData.name || "Bạn nhỏ CoreZ";
+    const now = new Date().toLocaleString("vi-VN");
+
+    let reflectionsHtml = "";
+    if (reflections.length === 0) {
+      reflectionsHtml = `<p class="empty-text">(Chưa có bài phản tư nào được lưu)</p>`;
+    } else {
+      reflectionsHtml = reflections.map((ref, idx) => `
+        <div class="entry-card">
+          <div class="entry-header">
+            <span class="entry-index">Bài phản tư #${idx + 1}</span>
+            <span class="entry-date">📅 Ngày ghi: ${ref.date}</span>
+          </div>
+          <div class="entry-prompt"><strong>Câu hỏi gợi mở:</strong> ${ref.promptText}</div>
+          <div class="entry-content">${(ref.answerText || '').replace(/\n/g, '<br/>')}</div>
+        </div>
+      `).join('');
+    }
+
+    let lettersHtml = "";
+    if (futureLetters.length === 0) {
+      lettersHtml = `<p class="empty-text">(Chưa có bức thư tương lai nào được lưu)</p>`;
+    } else {
+      lettersHtml = futureLetters.map((letItem, idx) => {
+        const unlocked = isLetterUnlocked(letItem.unlockDate);
+        return `
+          <div class="entry-card ${unlocked ? '' : 'locked-card'}">
+            <div class="entry-header">
+              <span class="entry-index">Thư thời gian #${idx + 1}</span>
+              <span class="entry-date">✍️ Viết: ${letItem.writeDate} | ⏳ Mở: ${letItem.releaseTimelineLabel}</span>
+            </div>
+            <div class="entry-status">${unlocked ? '🔓 Trạng thái: Đã mở khóa sáp' : '🔒 Trạng thái: Đang niêm phong sáp ong'}</div>
+            <div class="entry-content">${unlocked ? (letItem.content || '').replace(/\n/g, '<br/>') : '<em>[Nội dung đang được niêm phong sáp ong, sẽ mở khóa sau khi tới hạn]</em>'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      setToastMessage("Vui lòng cho phép bật cửa sổ pop-up để xuất file PDF!");
+      return;
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="vi">
+      <head>
+        <meta charset="UTF-8">
+        <title>Nhat_Ky_CoreZ_${userName.replace(/\s+/g, '_')}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap');
+          * { box-sizing: border-box; }
+          body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #1e293b;
+            margin: 0;
+            padding: 40px;
+            background: #ffffff;
+            line-height: 1.6;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .brand-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            color: #065f46;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+          }
+          .sub-title {
+            font-size: 13px;
+            color: #059669;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+          }
+          .meta-box {
+            background: #f0fdf4;
+            border: 1px solid #a7f3d0;
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #047857;
+            flex-wrap: wrap;
+            gap: 10px;
+          }
+          .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: #065f46;
+            margin: 30px 0 15px 0;
+            border-left: 4px solid #10b981;
+            padding-left: 12px;
+          }
+          .entry-card {
+            background: #fafafa;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 16px;
+            page-break-inside: avoid;
+          }
+          .entry-card.locked-card {
+            background: #f8fafc;
+            border-style: dashed;
+          }
+          .entry-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 700;
+          }
+          .entry-index {
+            color: #059669;
+          }
+          .entry-prompt {
+            font-size: 13px;
+            color: #0f172a;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: #ffffff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #f1f5f9;
+          }
+          .entry-status {
+            font-size: 11px;
+            color: #d97706;
+            font-weight: 600;
+            margin-bottom: 8px;
+          }
+          .entry-content {
+            font-size: 13px;
+            color: #334155;
+            white-space: pre-wrap;
+          }
+          .empty-text {
+            font-size: 12px;
+            color: #94a3b8;
+            font-style: italic;
+          }
+          .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 20px;
+          }
+          @media print {
+            body { padding: 20px; }
+            .meta-box { background: #f0fdf4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1 class="brand-title">🌱 Nhật Ký Phản Tư & Tâm Sự • CoreZ</h1>
+          <div class="sub-title">Bản lưu trữ cá nhân xuất dưới dạng PDF</div>
+          <div class="meta-box">
+            <span>👤 Chủ sở hữu: <strong>${userName}</strong></span>
+            <span>📝 Bài phản tư: <strong>${reflections.length}</strong> | ✉️ Lá thư: <strong>${futureLetters.length}</strong></span>
+            <span>🕒 Ngày xuất: <strong>${now}</strong></span>
+          </div>
+        </div>
+
+        <div class="section-title">1. Nhật Ký Phản Tư Hàng Ngày</div>
+        ${reflectionsHtml}
+
+        <div class="section-title">2. Lá Thư Gửi Tương Lai (Time Capsule)</div>
+        ${lettersHtml}
+
+        <div class="footer">
+          "Mỗi từ ngữ cậu viết ra đều là một điểm tựa chữa lành mộc mạc." 🌿<br/>
+          Bản quyền lưu trữ cá nhân của ${userName} • Được tạo bởi ứng dụng CoreZ
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          }
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setToastMessage("Đã mở trình xuất file PDF thành công! 📄");
+  };
+
   const handleExportTxt = () => {
     const userName = userData.name || "Bạn nhỏ CoreZ";
     const now = new Date().toLocaleString("vi-VN");
@@ -403,15 +605,26 @@ Thời gian xuất: ${now}
           </button>
         </div>
 
-        {/* Export Action Button */}
-        <button
-          onClick={() => setShowExportModal(true)}
-          className="px-4 py-2 bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-2xl shadow-sm transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 shrink-0"
-          title="Xuất các bài phản tư & lá thư thời gian về máy"
-        >
-          <Download className="w-4 h-4 text-emerald-500" />
-          <span>Xuất / Tải Nhật Ký 📂</span>
-        </button>
+        {/* Export Action Buttons */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={handleExportPdf}
+            className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 shrink-0"
+            title="Xuất nhật ký thành tệp PDF đẹp mắt để in hoặc lưu trữ"
+          >
+            <FileText className="w-4 h-4 text-emerald-100" />
+            <span>Xuất nhật ký thành PDF 📄</span>
+          </button>
+
+          <button
+            onClick={() => setShowExportModal(true)}
+            className="px-3.5 py-2 bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-2xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95 shrink-0"
+            title="Xem thêm tùy chọn xuất dữ liệu (.txt, .json)"
+          >
+            <Download className="w-4 h-4 text-emerald-500" />
+            <span>Khác 📂</span>
+          </button>
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
@@ -822,6 +1035,29 @@ Thời gian xuất: ${now}
               {/* Export Options */}
               <div className="space-y-3">
                 
+                {/* 0. PDF Export */}
+                <div className="p-3.5 rounded-2xl border-2 border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-950/20 flex items-center justify-between gap-3 hover:border-emerald-500 transition-all">
+                  <div className="space-y-0.5 flex-1">
+                    <div className="flex items-center gap-1.5 font-extrabold text-xs text-emerald-800 dark:text-emerald-300">
+                      <FileText className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span>Xuất File PDF (.pdf) 🌟</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-[#a0a8a3] leading-normal">
+                      Bản trình bày đẹp mắt, phân trang chuẩn mực, sẵn sàng in hoặc đọc trên mọi thiết bị.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleExportPdf();
+                      setShowExportModal(false);
+                    }}
+                    className="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Tải PDF
+                  </button>
+                </div>
+
                 {/* 1. TXT Export */}
                 <div className="p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 flex items-center justify-between gap-3 hover:border-emerald-500/50 transition-all">
                   <div className="space-y-0.5 flex-1">
