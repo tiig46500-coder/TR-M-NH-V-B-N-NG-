@@ -14,7 +14,13 @@ import {
   Sparkles, 
   Heart,
   ChevronRight,
-  Bookmark
+  Bookmark,
+  Download,
+  FileText,
+  Copy,
+  FileDown,
+  X,
+  Share2
 } from "lucide-react";
 import { useUserData, ReflectionLog, FutureLetter } from "../context/UserContext";
 import { HEALING_QUOTES, HealingQuote } from "../data";
@@ -58,6 +64,113 @@ export default function Journaling({ initialTab }: JournalingProps) {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"reflection" | "letter" | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Export modal & copied state
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [copiedSummary, setCopiedSummary] = useState(false);
+
+  // Export helper functions
+  const handleExportTxt = () => {
+    const userName = userData.name || "Bạn nhỏ CoreZ";
+    const now = new Date().toLocaleString("vi-VN");
+
+    let content = `================================================
+BẢN XUẤT NHẬT KÝ PHẢN TƯ & TÂM SỰ - COREZ
+Chủ sở hữu: ${userName}
+Thời gian xuất: ${now}
+================================================\n\n`;
+
+    content += `--- I. NHẬT KÝ PHẢN TƯ HÀNG NGÀY (${reflections.length} bài) ---\n\n`;
+
+    if (reflections.length === 0) {
+      content += `(Chưa có bài phản tư nào được lưu)\n\n`;
+    } else {
+      reflections.forEach((ref, idx) => {
+        content += `[${idx + 1}] Ngày ghi: ${ref.date}\n`;
+        content += `Câu hỏi gợi mở: ${ref.promptText}\n`;
+        content += `Nội dung phản tư:\n${ref.answerText}\n`;
+        content += `------------------------------------------------\n\n`;
+      });
+    }
+
+    content += `--- II. LÁ THƯ GỬI TƯƠNG LAI (${futureLetters.length} bức thư) ---\n\n`;
+
+    if (futureLetters.length === 0) {
+      content += `(Chưa có bức thư tương lai nào được lưu)\n\n`;
+    } else {
+      futureLetters.forEach((letItem, idx) => {
+        const unlocked = isLetterUnlocked(letItem.unlockDate);
+        content += `[${idx + 1}] Viết ngày: ${letItem.writeDate} | Hẹn mở: ${letItem.releaseTimelineLabel}\n`;
+        content += `Trạng thái: ${unlocked ? "Đã mở khóa sáp" : "Đang niêm phong sáp"}\n`;
+        if (unlocked) {
+          content += `Nội dung thư:\n${letItem.content}\n`;
+        } else {
+          content += `Nội dung thư: [ĐÃ KHÓA SÁP ONG - Mở khóa sau khi tới hạn]\n`;
+        }
+        content += `------------------------------------------------\n\n`;
+      });
+    }
+
+    content += `\n* Bản quyền thuộc về ${userName}. Cảm ơn cậu đã đồng hành cùng CoreZ để nuôi dưỡng sự bình yên đời thực! 🌱`;
+
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Nhat_Ky_Phan_Tu_${userName.replace(/\s+/g, "_")}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setToastMessage("Đã tải tệp .txt nhật ký thành công! 📂");
+  };
+
+  const handleExportJson = () => {
+    const userName = userData.name || "Bạn nhỏ CoreZ";
+    const dataToExport = {
+      user: userName,
+      exportedAt: new Date().toISOString(),
+      reflections: reflections,
+      futureLetters: futureLetters.map(l => ({
+        ...l,
+        content: isLetterUnlocked(l.unlockDate) ? l.content : "[SEALED_LETTER_LOCKED]"
+      }))
+    };
+
+    const jsonStr = JSON.stringify(dataToExport, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `CoreZ_Journal_Data.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setToastMessage("Đã tải tệp .json cấu trúc dữ liệu thành công! 📂");
+  };
+
+  const handleCopySummary = () => {
+    const userName = userData.name || "Bạn nhỏ CoreZ";
+    let summary = `🌱 TÓM TẮT NHẬT KÝ COREZ (${userName})\n`;
+    summary += `• Tổng bài phản tư: ${reflections.length}\n`;
+    summary += `• Tổng thư tương lai: ${futureLetters.length}\n\n`;
+
+    if (reflections.length > 0) {
+      summary += `📝 GHI CHÉP PHẢN TƯ MỚI NHẤT:\n`;
+      const last = reflections[0];
+      summary += `[${last.date}] Q: ${last.promptText}\n-> ${last.answerText}\n\n`;
+    }
+
+    summary += `✨ Lưu giữ góc nhỏ bình yên trên CoreZ.`;
+
+    navigator.clipboard.writeText(summary);
+    setCopiedSummary(true);
+    setTimeout(() => setCopiedSummary(false), 2000);
+    setToastMessage("Đã sao chép tóm tắt nhật ký vào bộ nhớ tạm! 📋");
+  };
 
   // Healing Quote state
   const [currentQuote, setCurrentQuote] = useState<HealingQuote | null>(null);
@@ -263,8 +376,8 @@ export default function Journaling({ initialTab }: JournalingProps) {
         </motion.div>
       )}
 
-      {/* Sub tabs header */}
-      <div className="flex justify-center mb-6">
+      {/* Sub tabs header & Export Action */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
         <div className="bg-white/40 border border-white/40 backdrop-blur-md p-1.5 rounded-2xl flex gap-1 shadow-sm">
           <button
             onClick={() => setActiveTab("daily")}
@@ -289,6 +402,16 @@ export default function Journaling({ initialTab }: JournalingProps) {
             Lá Thư Tương Lai (Time Capsule)
           </button>
         </div>
+
+        {/* Export Action Button */}
+        <button
+          onClick={() => setShowExportModal(true)}
+          className="px-4 py-2 bg-white/80 hover:bg-white dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-2xl shadow-sm transition-all flex items-center gap-2 cursor-pointer hover:scale-105 active:scale-95 shrink-0"
+          title="Xuất các bài phản tư & lá thư thời gian về máy"
+        >
+          <Download className="w-4 h-4 text-emerald-500" />
+          <span>Xuất / Tải Nhật Ký 📂</span>
+        </button>
       </div>
 
       <AnimatePresence mode="wait">
@@ -646,6 +769,134 @@ export default function Journaling({ initialTab }: JournalingProps) {
           </motion.div>
         )}
 
+      </AnimatePresence>
+
+      {/* Export & Download Journal Modal */}
+      <AnimatePresence>
+        {showExportModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="w-full max-w-md bg-white dark:bg-[#1f2520] border border-slate-200 dark:border-[#a0a8a3]/20 rounded-[32px] p-6 shadow-2xl relative overflow-hidden space-y-5 text-slate-800 dark:text-[#e0e6e2]"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+                    <Download className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-serif text-base font-bold text-slate-800 dark:text-emerald-50">
+                      Xuất & Lưu Trữ Nhật Ký 📂
+                    </h4>
+                    <p className="text-[10.5px] text-slate-400 font-mono">Quyền sở hữu thuộc về cậu</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-600 dark:text-[#a0a8a3] leading-relaxed">
+                Tất cả các dòng phản tư và lá thư thời gian đều được lưu trực tiếp trên thiết bị của cậu. Hãy tải về để lưu giữ góc tâm hồn mộc mạc này bất cứ lúc nào!
+              </p>
+
+              {/* Stats Overview */}
+              <div className="grid grid-cols-2 gap-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-[#1a201b]/60 border border-slate-100 dark:border-white/5 text-center">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bài phản tư đã lưu</p>
+                  <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{reflections.length}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Thư gửi tương lai</p>
+                  <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{futureLetters.length}</p>
+                </div>
+              </div>
+
+              {/* Export Options */}
+              <div className="space-y-3">
+                
+                {/* 1. TXT Export */}
+                <div className="p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 flex items-center justify-between gap-3 hover:border-emerald-500/50 transition-all">
+                  <div className="space-y-0.5 flex-1">
+                    <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-emerald-100">
+                      <FileText className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span>Tải Tệp Văn Bản (.txt)</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 leading-normal">
+                      Định dạng văn bản mộc mạc, dễ đọc trên máy tính và điện thoại.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleExportTxt();
+                      setShowExportModal(false);
+                    }}
+                    className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Tải .txt
+                  </button>
+                </div>
+
+                {/* 2. JSON Export */}
+                <div className="p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 flex items-center justify-between gap-3 hover:border-emerald-500/50 transition-all">
+                  <div className="space-y-0.5 flex-1">
+                    <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-emerald-100">
+                      <FileDown className="w-4 h-4 text-teal-500 shrink-0" />
+                      <span>Tải Cấu Trúc Dữ Liệu (.json)</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 leading-normal">
+                      File dữ liệu chuẩn để sao lưu dự phòng toàn bộ nhật ký.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleExportJson();
+                      setShowExportModal(false);
+                    }}
+                    className="px-3.5 py-2 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Tải .json
+                  </button>
+                </div>
+
+                {/* 3. Quick Copy Summary */}
+                <div className="p-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/50 dark:bg-black/20 flex items-center justify-between gap-3 hover:border-emerald-500/50 transition-all">
+                  <div className="space-y-0.5 flex-1">
+                    <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800 dark:text-emerald-100">
+                      <Copy className="w-4 h-4 text-indigo-500 shrink-0" />
+                      <span>Sao Chép Tóm Tắt</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 leading-normal">
+                      Sao chép nội dung bài phản tư gần nhất vào khay nhớ tạm.
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleCopySummary}
+                    className="px-3.5 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                  >
+                    {copiedSummary ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-indigo-500" />}
+                    {copiedSummary ? "Đã chép!" : "Sao chép"}
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Modal Footer */}
+              <div className="pt-2 text-center text-[10px] text-slate-400 italic border-t border-slate-100 dark:border-white/5">
+                "Mỗi từ ngữ cậu viết ra đều là một điểm tựa chữa lành mộc mạc." 🌿
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       {/* Confirmation Deletion Modal */}
