@@ -188,7 +188,7 @@ export const MoodTrendChart: React.FC<MoodTrendChartProps> = ({ logs, onResetLog
           <div className="space-y-1">
             <h4 className="text-xs font-bold text-slate-700">Chưa có dữ liệu cảm xúc nào</h4>
             <p className="text-[11px] text-slate-400 max-w-sm leading-relaxed font-light">
-              Chào mừng <strong className="text-emerald-600">{activeUser}</strong> đến với Cozy! Hãy ghi nhận trạng thái cảm xúc đầu tiên của cậu ở form bên cạnh để bắt đầu vẽ nên sơ đồ tâm trí mộc mạc của riêng mình nhé. 🌱
+              Chào mừng <strong className="text-emerald-600">{activeUser}</strong> đến với CoreZ! Hãy ghi nhận trạng thái cảm xúc đầu tiên của cậu ở form bên cạnh để bắt đầu vẽ nên sơ đồ tâm trí mộc mạc của riêng mình nhé. 🌱
             </p>
           </div>
         </div>
@@ -274,7 +274,7 @@ export const MoodTrendChart: React.FC<MoodTrendChartProps> = ({ logs, onResetLog
                   </span>
                 ) : (
                   <span>
-                    Tuyệt vời! Hành trình ghi nhận cảm xúc của cậu đã bắt đầu. Hãy cố gắng ghi nhận thêm ít nhất 2 ngày nữa để AI Mentor Cozy có đủ dữ liệu phân tích sâu sắc xu hướng tâm trạng của riêng cậu nhé! 🌸
+                    Tuyệt vời! Hành trình ghi nhận cảm xúc của cậu đã bắt đầu. Hãy cố gắng ghi nhận thêm ít nhất 2 ngày nữa để AI Mentor CoreZ có đủ dữ liệu phân tích sâu sắc xu hướng tâm trạng của riêng cậu nhé! 🌸
                   </span>
                 )}
               </p>

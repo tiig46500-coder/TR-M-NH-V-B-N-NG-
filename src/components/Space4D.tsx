@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { INITIAL_CONFESSIONS, LẠNG_SƠN_PLACES } from "../data";
 import { Confession, HabitChallenge, LạngSơnPlace } from "../types";
+import ECardsDaily from "./ECardsDaily";
 
 const INSPIRE_QUOTES = [
   {
@@ -1080,15 +1081,20 @@ export default function Space4D() {
             >
               <div className="border-b border-white/40 pb-4">
                 <span className="text-[10px] font-bold text-[#34D399] bg-emerald-50 px-2.5 py-1 rounded-full uppercase border border-emerald-100/40">
-                  Vòng 3: Sáng suốt & Kiến tạo (D4)
+                  Vòng D4: Hành động (Kiến Tạo Bản Ngã Thực)
                 </span>
                 <h3 className="font-serif text-xl font-bold text-slate-800 flex items-center gap-2 mt-2">
                   <MapPin className="w-5 h-5 text-[#34D399]" />
-                  D4 - Hành động (Kiến Tạo Bản Ngã Thực Sống Khỏe)
+                  D4 - Hành động & Bộ E-Cards “Chạm Vào Bản Ngã”
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Đóng màn hình ảo, bước vào các hành động kiến tạo thói quen văn minh và tham quan các địa danh thực tại hùng vĩ tại Lạng Sơn để thanh lọc tâm trí hoàn toàn.
+                  Đóng màn hình ảo, bước vào các hành động kiến tạo thói quen văn minh, trải nghiệm Bộ Thẻ Bài Điện Tử Chạm Vào Bản Ngã và tham quan các địa danh thực tại hùng vĩ tại Lạng Sơn để thanh lọc tâm trí hoàn toàn.
                 </p>
+              </div>
+
+              {/* CÔNG CỤ ĐẶC BIỆT VÒNG D4: BỘ E-CARDS CHẠM VÀO BẢN NGÃ */}
+              <div className="my-4">
+                <ECardsDaily />
               </div>
 
               {/* Vòng 3 Interactive Planner */}

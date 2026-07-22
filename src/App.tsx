@@ -609,7 +609,7 @@ export default function App() {
                   <h1 className="font-serif text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center justify-center sm:justify-start gap-2 leading-tight">
                     <CuteStar size={36} className="shrink-0 animate-float" />
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-emerald-800 to-emerald-500">
-                      Cozy - Kết nối giá trị, định hình tương lai
+                      CoreZ - Kết nối giá trị, định hình tương lai
                     </span>
                   </h1>
                   <p className="text-xs sm:text-sm text-slate-400 font-medium italic mt-1 text-center sm:text-left flex items-center justify-center sm:justify-start gap-1.5">
@@ -695,7 +695,7 @@ export default function App() {
               </div>
             </header>
 
-            {/* Navigation Tabs (Primary Level - 7 Cozy Pillars) */}
+            {/* Navigation Tabs (Primary Level - 7 CoreZ Pillars) */}
             <div className="flex justify-center border-b border-white/20 mb-8 bg-white/25 backdrop-blur-md p-1.5 rounded-2xl border max-w-4xl mx-auto shadow-sm">
               <nav className="flex gap-2 flex-wrap justify-center items-center w-full">
                 
@@ -766,7 +766,7 @@ export default function App() {
                   </span>
                 </button>
 
-                {/* Tab 5: Kỷ Luật Cozy (Gamification) */}
+                {/* Tab 5: Kỷ Luật CoreZ (Gamification) */}
                 <button
                   id="tab-gamification"
                   onClick={() => setActiveTab("gamification")}
@@ -778,7 +778,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-1.5 whitespace-nowrap">
                     <Award className="w-3.5 h-3.5 text-emerald-500 animate-float" />
-                    Kỷ Luật Cozy
+                    Kỷ Luật CoreZ
                   </span>
                 </button>
 

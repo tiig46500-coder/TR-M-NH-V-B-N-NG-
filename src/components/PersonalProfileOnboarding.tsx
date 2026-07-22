@@ -16,31 +16,31 @@ export default function PersonalProfileOnboarding({ onComplete }: PersonalProfil
 
   const VIBES = [
     {
-      id: "🌧️ Đám mây u tim (Đang mệt mỏi)",
-      icon: "🌧️",
-      title: "Đám mây u tim",
-      desc: "Đang mệt mỏi, cần một góc nhỏ ôm ấp vỗ về",
-      color: "from-sky-500/10 to-indigo-500/10 border-sky-300/30",
+      id: "☁️ Đám mây u tím mệt mỏi (Cần nghỉ ngơi, lắng đọng)",
+      icon: "☁️",
+      title: "Đám mây u tím mệt mỏi",
+      desc: "Cần nghỉ ngơi, lắng đọng",
+      color: "from-purple-500/10 to-indigo-500/10 border-purple-300/30",
     },
     {
-      id: "🌱 Mầm non (Đang muốn chữa lành)",
+      id: "🌱 Mầm non chữa lành (Bắt đầu tìm lại sự tích cực)",
       icon: "🌱",
-      title: "Mầm non",
-      desc: "Đang muốn chữa lành, tìm lại sự tươi mát trong tâm hồn",
+      title: "Mầm non chữa lành",
+      desc: "Bắt đầu tìm lại sự tích cực",
       color: "from-emerald-500/10 to-teal-500/10 border-emerald-300/30",
     },
     {
-      id: "🔥 Lửa nhỏ (Cần động lực)",
+      id: "🔥 Lửa nhỏ động lực (Sẵn sàng chia sẻ và kết nối)",
       icon: "🔥",
-      title: "Lửa nhỏ",
-      desc: "Cần động lực vượt qua khó khăn thi cử học đường",
+      title: "Lửa nhỏ động lực",
+      desc: "Sẵn sàng chia sẻ và kết nối",
       color: "from-amber-500/10 to-orange-500/10 border-amber-300/30",
     },
     {
-      id: "🌊 Dòng nước (Đang trong chênh)",
+      id: "🌊 Dòng nước chông chênh (Đang có nhiều xáo trộn, cần điểm tựa)",
       icon: "🌊",
-      title: "Dòng nước",
-      desc: "Đang trong chênh giữa muôn vàn ngã rẽ cuộc đời",
+      title: "Dòng nước chông chênh",
+      desc: "Đang có nhiều xáo trộn, cần điểm tựa",
       color: "from-blue-500/10 to-cyan-500/10 border-blue-300/30",
     },
   ];
@@ -48,18 +48,18 @@ export default function PersonalProfileOnboarding({ onComplete }: PersonalProfil
   const GOALS = [
     {
       id: "Tìm người lắng nghe",
-      text: "Bạn đến đây để tìm người lắng nghe?",
-      icon: "💬",
+      text: "👂 Tìm người lắng nghe",
+      icon: "👂",
     },
     {
       id: "Tìm lối thoát áp lực",
-      text: "Tìm lối thoát áp lực học đường?",
-      icon: "🍃",
+      text: "🚪 Tìm lối thoát áp lực",
+      icon: "🚪",
     },
     {
-      id: "Cần không gian yên tĩnh",
-      text: "Chỉ đơn giản là cần một không gian Yên tĩnh?",
-      icon: "🕊️",
+      id: "Tìm một không gian yên tĩnh",
+      text: "🍃 Tìm một không gian yên tĩnh",
+      icon: "🍃",
     },
   ];
 

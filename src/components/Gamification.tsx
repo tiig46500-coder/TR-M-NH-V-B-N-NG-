@@ -21,6 +21,7 @@ import {
 import { useUserData } from "../context/UserContext";
 import confetti from "canvas-confetti";
 import { DigitalDetoxChart } from "./DigitalDetoxChart";
+import ECardsDaily from "./ECardsDaily";
 
 interface DailyChallengeTask {
   id: string;
@@ -1135,7 +1136,7 @@ export default function Gamification() {
           <div className="space-y-1.5 border-b border-white/40 pb-3">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase">
-                21 Ngày Rèn Kỷ Luật Cozy
+                21 Ngày Rèn Kỷ Luật CoreZ
               </span>
               <span className="text-xs font-bold text-amber-600 flex items-center gap-1 font-mono">
                 <Flame className="w-4 h-4 text-amber-500 fill-amber-500/10 animate-pulse" />
@@ -1620,7 +1621,7 @@ export default function Gamification() {
             <div className="pt-2 text-center text-[9px] text-slate-400 font-light border-t border-slate-150/40 space-y-1">
               <p>*Huy hiệu rèn luyện giúp khẳng định bản lĩnh thực tại và thói quen tích cực.</p>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-1 bg-emerald-50/50 dark:bg-emerald-950/20 p-2 rounded-lg border border-emerald-100/50 dark:border-emerald-900/30">
-                <span className="font-bold">Thử thách lan tỏa:</span> Chụp màn hình thẻ bài của cậu rồi đăng lên story kèm hashtag #CozyLangSon để truyền cảm hứng làn sóng sống khỏe đời thực nhé! 🌱
+                <span className="font-bold">Thử thách lan tỏa:</span> Chụp màn hình thẻ bài của cậu rồi đăng lên story kèm hashtag #CoreZLangSon để truyền cảm hứng làn sóng sống khỏe đời thực nhé! 🌱
               </div>
             </div>
 
@@ -1628,6 +1629,11 @@ export default function Gamification() {
 
         </div>
 
+      </div>
+
+      {/* E-Cards Touch Your Ego / Cham Vao Ban Nga (Vong 4: Hanh dong) */}
+      <div className="mt-8">
+        <ECardsDaily />
       </div>
 
       {/* 30-Day Digital Detox Chart */}

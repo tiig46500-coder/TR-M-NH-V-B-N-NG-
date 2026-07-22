@@ -221,25 +221,25 @@ export const HEALING_QUOTES: HealingQuote[] = [
   {
     id: 1,
     text: "Mỗi đóa hoa đều nở rộ theo múi giờ của riêng nó. Đừng nhìn vào khu vườn của người khác mà nghi ngờ mùa xuân của chính mình.",
-    author: "Cozy Lắng Nghe",
+    author: "CoreZ Lắng Nghe",
     category: "Kiên nhẫn"
   },
   {
     id: 2,
     text: "Cậu không nhất thiết phải luôn hoàn hảo hay tiến về phía trước mỗi ngày. Đôi khi, việc cậu dừng lại nghỉ ngơi và tiếp tục thở đều đã là một thành tựu vĩ đại rồi.",
-    author: "Cozy Lắng Nghe",
+    author: "CoreZ Lắng Nghe",
     category: "Yêu bản thân"
   },
   {
     id: 3,
     text: "Những gì cậu nhìn thấy trên mạng xã hội chỉ là một lát cắt hoàn mỹ đã qua bộ lọc. Đừng đem những hậu trường hỗn độn nhưng chân thực của mình so sánh với thước phim lộng lẫy của người khác.",
-    author: "Cozy Lắng Nghe",
+    author: "CoreZ Lắng Nghe",
     category: "Thải độc mạng"
   },
   {
     id: 4,
     text: "Hãy nhẹ lòng xoa dịu đi những nuối tiếc. Mỗi bước đi sai đều là một mảnh ghép giúp bức tranh trưởng thành của cậu thêm phần độc bản.",
-    author: "Cozy Lắng Nghe",
+    author: "CoreZ Lắng Nghe",
     category: "Bao dung"
   },
   {
@@ -251,19 +251,19 @@ export const HEALING_QUOTES: HealingQuote[] = [
   {
     id: 6,
     text: "Nỗi buồn hôm nay giống như một đám mây xám, nó có thể che khuất mặt trời một lúc nhưng không thể ngăn ngày mai bừng sáng trở lại.",
-    author: "Cozy Lắng Nghe",
+    author: "CoreZ Lắng Nghe",
     category: "Hy vọng"
   },
   {
     id: 7,
     text: "Cậu đang đi đúng lộ trình của mình, dẫu cho có những ngày mệt nhoài chỉ muốn cuộn tròn tĩnh lặng. Hãy cứ tôn trọng nhịp điệu tự nhiên của cơ thể cậu.",
-    author: "Cozy Lắng Nghe",
+    author: "CoreZ Lắng Nghe",
     category: "Nhịp sống"
   },
   {
     id: 8,
     text: "Lắng nghe bản ngã không phải để phán xét đúng sai, mà là để ôm ấp đứa trẻ bên trong đang khao khát được thấu hiểu.",
-    author: "Cozy Lắng Nghe",
+    author: "CoreZ Lắng Nghe",
     category: "Phản tư"
   }
 ];

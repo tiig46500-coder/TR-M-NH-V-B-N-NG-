@@ -21,7 +21,7 @@ import './index.css';
     if (key === "USER_ID") {
       return originalGetItem.call(this, key);
     }
-    if (key.includes("corez") || key.includes("remix_corez") || key.includes("cozy")) {
+    if (key.includes("corez") || key.includes("remix_corez")) {
       const activeUserId = originalGetItem.call(this, "USER_ID") || userId;
       return originalGetItem.call(this, `${key}_${activeUserId}`);
     }
@@ -33,7 +33,7 @@ import './index.css';
       originalSetItem.call(this, key, value);
       return;
     }
-    if (key.includes("corez") || key.includes("remix_corez") || key.includes("cozy")) {
+    if (key.includes("corez") || key.includes("remix_corez")) {
       const activeUserId = originalGetItem.call(this, "USER_ID") || userId;
       originalSetItem.call(this, `${key}_${activeUserId}`, value);
       return;
@@ -46,7 +46,7 @@ import './index.css';
       originalRemoveItem.call(this, key);
       return;
     }
-    if (key.includes("corez") || key.includes("remix_corez") || key.includes("cozy")) {
+    if (key.includes("corez") || key.includes("remix_corez")) {
       const activeUserId = originalGetItem.call(this, "USER_ID") || userId;
       originalRemoveItem.call(this, `${key}_${activeUserId}`);
       return;

@@ -13,39 +13,49 @@ import {
   ChevronUp, 
   Calendar,
   Compass,
-  AlertCircle
+  AlertCircle,
+  TrendingUp,
+  ShieldAlert
 } from "lucide-react";
 import { useUserData, JourneySummary } from "../context/UserContext";
+import { MoodTrendChart } from "./MoodTrendChart";
+import { DigitalDetoxChart } from "./DigitalDetoxChart";
 
 const VIBES = [
   {
-    id: "🌧️ Đám mây u tim (Đang mệt mỏi)",
-    icon: "🌧️",
-    title: "Đám mây u tim",
-    desc: "Đang mệt mỏi, cần một góc nhỏ ôm ấp vỗ về",
-    color: "from-sky-500/10 to-indigo-500/10 border-sky-300/30 text-sky-400",
+    id: "☁️ Đám mây u tím mệt mỏi (Cần nghỉ ngơi, lắng đọng)",
+    icon: "☁️",
+    title: "Đám mây u tím mệt mỏi",
+    desc: "Cần nghỉ ngơi, lắng đọng",
+    color: "from-purple-500/10 to-indigo-500/10 border-purple-300/30 text-purple-400",
   },
   {
-    id: "🌱 Mầm non (Đang muốn chữa lành)",
+    id: "🌱 Mầm non chữa lành (Bắt đầu tìm lại sự tích cực)",
     icon: "🌱",
-    title: "Mầm non",
-    desc: "Đang muốn chữa lành, tìm lại sự tươi mát trong tâm hồn",
+    title: "Mầm non chữa lành",
+    desc: "Bắt đầu tìm lại sự tích cực",
     color: "from-emerald-500/10 to-teal-500/10 border-emerald-300/30 text-emerald-400",
   },
   {
-    id: "🔥 Lửa nhỏ (Cần động lực)",
+    id: "🔥 Lửa nhỏ động lực (Sẵn sàng chia sẻ và kết nối)",
     icon: "🔥",
-    title: "Lửa nhỏ",
-    desc: "Cần động lực vượt qua khó khăn thi cử học đường",
+    title: "Lửa nhỏ động lực",
+    desc: "Sẵn sàng chia sẻ và kết nối",
     color: "from-amber-500/10 to-orange-500/10 border-amber-300/30 text-amber-400",
   },
   {
-    id: "🌊 Dòng nước (Đang trong chênh)",
+    id: "🌊 Dòng nước chông chênh (Đang có nhiều xáo trộn, cần điểm tựa)",
     icon: "🌊",
-    title: "Dòng nước",
-    desc: "Đang trong chênh giữa muôn vàn ngã rẽ cuộc đời",
+    title: "Dòng nước chông chênh",
+    desc: "Đang có nhiều xáo trộn, cần điểm tựa",
     color: "from-blue-500/10 to-cyan-500/10 border-blue-300/30 text-blue-400",
   },
+];
+
+const GOALS = [
+  { id: "Tìm người lắng nghe", label: "👂 Tìm người lắng nghe" },
+  { id: "Tìm lối thoát áp lực", label: "🚪 Tìm lối thoát áp lực" },
+  { id: "Tìm một không gian yên tĩnh", label: "🍃 Tìm một không gian yên tĩnh" },
 ];
 
 export default function UserProfile() {
@@ -55,6 +65,12 @@ export default function UserProfile() {
   const [error, setError] = useState<string | null>(null);
   const [expandedSummaryId, setExpandedSummaryId] = useState<string | null>(null);
   const [vibeSelectOpen, setVibeSelectOpen] = useState(false);
+
+  // Profile Modal Edit State
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editName, setEditName] = useState(userData.name || "");
+  const [editVibe, setEditVibe] = useState(userData.vibe || "");
+  const [editGoal, setEditGoal] = useState(userData.goal || "");
 
   // Statistics
   const karmaXP = userData.karmaXP || 0;
@@ -187,15 +203,30 @@ export default function UserProfile() {
               </span>
             </div>
 
-            {/* Edit Vibe Quick-Selector */}
-            <div className="pt-2">
-              <button
-                onClick={() => setVibeSelectOpen(!vibeSelectOpen)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors cursor-pointer shadow-sm"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                Cập nhật Năng lượng (Vibe)
-              </button>
+            {/* Edit Profile Action Buttons */}
+            <div className="pt-2 flex flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    setEditName(userData.name || "");
+                    setEditVibe(userData.vibe || "🌱 Mầm non chữa lành (Bắt đầu tìm lại sự tích cực)");
+                    setEditGoal(userData.goal || "Tìm người lắng nghe");
+                    setEditModalOpen(true);
+                  }}
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 text-white hover:bg-emerald-600 transition-colors cursor-pointer shadow-sm"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  Chỉnh sửa Hồ Sơ Cá Nhân 🏷️
+                </button>
+
+                <button
+                  onClick={() => setVibeSelectOpen(!vibeSelectOpen)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/80 dark:bg-[#1a201b] text-slate-700 dark:text-[#e0e6e2] border border-slate-200 dark:border-[#a0a8a3]/20 hover:bg-slate-50 transition-colors cursor-pointer shadow-sm"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
+                  Cập nhật Vibe nhanh
+                </button>
+              </div>
 
               <AnimatePresence>
                 {vibeSelectOpen && (
@@ -233,81 +264,105 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {/* 2. Bento Grid Progress Tracking */}
-      <div className="space-y-4">
+      {/* 2. Bento Grid Progress Tracking - 5 Main Profile Columns */}
+      <div className="space-y-6">
         <h3 className="font-serif text-lg font-bold text-slate-800 dark:text-[#e0e6e2] flex items-center gap-2">
           <Activity className="w-5 h-5 text-emerald-500" />
-          Tiến trình rèn luyện cá nhân
+          Hồ Sơ Bản Ngã & Tiến Trình Rèn Luyện
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           
-          {/* Card 1: Karma XP */}
-          <div className="bg-white/40 dark:bg-[#252e27]/40 border border-white/40 dark:border-[#a0a8a3]/20 rounded-[24px] p-5 backdrop-blur-md flex items-start gap-4">
+          {/* Item 1: Cấp Độ Bản Ngã (Karma Level) */}
+          <div className="bg-white/40 dark:bg-[#252e27]/40 border border-white/40 dark:border-[#a0a8a3]/20 rounded-[24px] p-5 backdrop-blur-md flex items-start gap-4 shadow-sm">
             <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
               <Award className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-slate-400 dark:text-[#a0a8a3] uppercase tracking-wider">Tích lũy KarmaXP</p>
-              <h4 className="text-2xl font-extrabold text-slate-800 dark:text-[#e0e6e2] mt-1 font-mono">{karmaXP} <span className="text-xs font-sans text-slate-400 font-normal">XP</span></h4>
-              <p className="text-[11px] text-slate-500 dark:text-[#a0a8a3] mt-2">Duy trì thói quen tích cực để nhận thêm điểm lành.</p>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-[#a0a8a3] uppercase tracking-wider">Cấp Độ Bản Ngã (Karma Level)</p>
+              <h4 className="text-xl font-extrabold text-slate-800 dark:text-[#e0e6e2] mt-1 font-mono flex items-center gap-2">
+                Level {plantStage + 1}
+                <span className="text-xs font-sans font-normal text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200">
+                  {karmaXP} XP
+                </span>
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-[#a0a8a3] mt-1.5">
+                {karmaXP >= 100 ? "Bản ngã Điềm Tĩnh & Chánh Niệm" : "Bản ngã Đang Sinh Trưởng Tự Nhiên"}
+              </p>
             </div>
           </div>
 
-          {/* Card 2: Digital Detox */}
-          <div className="bg-white/40 dark:bg-[#252e27]/40 border border-white/40 dark:border-[#a0a8a3]/20 rounded-[24px] p-5 backdrop-blur-md flex items-start gap-4">
+          {/* Item 2: Cây Bản Địa Của Cậu */}
+          <div className="bg-white/40 dark:bg-[#252e27]/40 border border-white/40 dark:border-[#a0a8a3]/20 rounded-[24px] p-5 backdrop-blur-md flex items-start gap-4 shadow-sm">
             <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-              <Compass className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 dark:text-[#a0a8a3] uppercase tracking-wider">Thải độc kỹ thuật số</p>
-              <h4 className="text-2xl font-extrabold text-slate-800 dark:text-[#e0e6e2] mt-1 font-mono">{detoxMinutes} <span className="text-xs font-sans text-slate-400 font-normal">phút</span></h4>
-              <p className="text-[11px] text-slate-500 dark:text-[#a0a8a3] mt-2">Thời gian vàng rời xa thiết bị, sạc năng lượng.</p>
-            </div>
-          </div>
-
-          {/* Card 3: Indigenous Plant */}
-          <div className="bg-white/40 dark:bg-[#252e27]/40 border border-white/40 dark:border-[#a0a8a3]/20 rounded-[24px] p-5 backdrop-blur-md flex items-start gap-4 sm:col-span-2 lg:col-span-1">
-            <div className="p-3 rounded-2xl bg-teal-500/10 text-teal-500 border border-teal-500/20">
               <Sparkles className="w-5 h-5" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-bold text-slate-400 dark:text-[#a0a8a3] uppercase tracking-wider">Cây bản địa của cậu</p>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-[#a0a8a3] uppercase tracking-wider">Cây Bản Địa Của Cậu</p>
               <h4 className="text-base font-bold text-slate-800 dark:text-[#e0e6e2] mt-1 flex items-center gap-1.5">
                 <span className="text-lg">{currentPlant.icon}</span>
                 {currentPlant.title}
               </h4>
-              <p className="text-[10px] text-slate-500 dark:text-[#a0a8a3] mt-1.5 leading-tight">{currentPlant.desc}</p>
+              <p className="text-[10.5px] text-slate-500 dark:text-[#a0a8a3] mt-1 leading-tight">{currentPlant.desc}</p>
             </div>
           </div>
 
-          {/* Sub-counts section */}
+          {/* Item 3: Chỉ Số Chông Chênh (DII) */}
+          <div className="bg-white/40 dark:bg-[#252e27]/40 border border-white/40 dark:border-[#a0a8a3]/20 rounded-[24px] p-5 backdrop-blur-md flex items-start gap-4 sm:col-span-2 lg:col-span-1 shadow-sm">
+            <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-bold text-slate-400 dark:text-[#a0a8a3] uppercase tracking-wider">Chỉ Số Chông Chênh (DII)</p>
+              <h4 className="text-xl font-extrabold text-slate-800 dark:text-[#e0e6e2] mt-1 font-mono flex items-center gap-2">
+                {userData.diiScore || 0} <span className="text-xs font-sans text-slate-400 font-normal">/ 100</span>
+                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                  userData.diiScore > 60 
+                    ? "bg-rose-50 text-rose-600 border-rose-200"
+                    : userData.diiScore > 30 
+                    ? "bg-amber-50 text-amber-600 border-amber-200"
+                    : "bg-emerald-50 text-emerald-600 border-emerald-200"
+                }`}>
+                  {userData.diiLevel || "Cân bằng chánh niệm"}
+                </span>
+              </h4>
+              <p className="text-[10.5px] text-slate-500 dark:text-[#a0a8a3] mt-1">
+                Đánh giá mức độ áp lực từ môi trường số & tự do tâm trí.
+              </p>
+            </div>
+          </div>
+
+          {/* Sub-counts overview */}
           <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-3 gap-3">
-            
-            {/* Reflection Count */}
-            <div className="bg-white/20 dark:bg-[#252e27]/20 rounded-2xl p-4 text-center border border-white/20 dark:border-white/5">
+            <div className="bg-white/20 dark:bg-[#252e27]/20 rounded-2xl p-3.5 text-center border border-white/20 dark:border-white/5">
               <BookOpen className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
               <p className="text-[9px] font-bold text-slate-400 uppercase">Phản tư</p>
-              <p className="text-lg font-bold text-slate-800 dark:text-[#e0e6e2] mt-0.5 font-mono">{reflectionsCount}</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-[#e0e6e2] font-mono">{reflectionsCount}</p>
             </div>
-
-            {/* Future Letters Count */}
-            <div className="bg-white/20 dark:bg-[#252e27]/20 rounded-2xl p-4 text-center border border-white/20 dark:border-white/5">
+            <div className="bg-white/20 dark:bg-[#252e27]/20 rounded-2xl p-3.5 text-center border border-white/20 dark:border-white/5">
               <Mail className="w-4 h-4 text-indigo-400 mx-auto mb-1" />
               <p className="text-[9px] font-bold text-slate-400 uppercase">Thư tương lai</p>
-              <p className="text-lg font-bold text-slate-800 dark:text-[#e0e6e2] mt-0.5 font-mono">{lettersCount}</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-[#e0e6e2] font-mono">{lettersCount}</p>
             </div>
-
-            {/* Mood Logs Count */}
-            <div className="bg-white/20 dark:bg-[#252e27]/20 rounded-2xl p-4 text-center border border-white/20 dark:border-white/5">
+            <div className="bg-white/20 dark:bg-[#252e27]/20 rounded-2xl p-3.5 text-center border border-white/20 dark:border-white/5">
               <Heart className="w-4 h-4 text-rose-400 mx-auto mb-1" />
               <p className="text-[9px] font-bold text-slate-400 uppercase">Nhật ký cảm xúc</p>
-              <p className="text-lg font-bold text-slate-800 dark:text-[#e0e6e2] mt-0.5 font-mono">{moodLogsCount}</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-[#e0e6e2] font-mono">{moodLogsCount}</p>
             </div>
-
           </div>
 
         </div>
+
+        {/* Item 4: Biểu Đồ Sức Khỏe Tinh Thần */}
+        <div className="pt-2">
+          <MoodTrendChart logs={userData.moodLogs || []} onResetLogs={() => {}} />
+        </div>
+
+        {/* Item 5: Tiến Trình Thải Độc Số (30 Ngày Gần Nhất) */}
+        <div className="pt-2">
+          <DigitalDetoxChart />
+        </div>
+
       </div>
 
       {/* 3. AI Journey Summarization Console & History */}
@@ -460,6 +515,124 @@ export default function UserProfile() {
         </div>
 
       </div>
+
+      {/* EDIT PROFILE MODAL */}
+      <AnimatePresence>
+        {editModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-lg bg-white dark:bg-[#1f2520] border border-slate-200 dark:border-[#a0a8a3]/20 rounded-[32px] p-6 sm:p-8 shadow-2xl space-y-6 text-slate-800 dark:text-[#e0e6e2] max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#a0a8a3]/10 pb-4">
+                <h3 className="font-serif text-xl font-bold flex items-center gap-2">
+                  <User className="w-5 h-5 text-emerald-500" />
+                  Chỉnh Sửa Hồ Sơ Cá Nhân 🏷️
+                </h3>
+                <button
+                  onClick={() => setEditModalOpen(false)}
+                  className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-5 text-xs">
+                {/* 🏷️ Tên gọi (Custom Nickname) */}
+                <div className="space-y-2">
+                  <label className="font-bold text-slate-700 dark:text-[#e0e6e2] flex items-center gap-1.5 uppercase tracking-wider">
+                    🏷️ Tên gọi (Custom Nickname)
+                  </label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Nhập tên gọi / biệt danh yêu thích..."
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-[#1a201b] border border-slate-200 dark:border-[#a0a8a3]/20 text-slate-800 dark:text-[#e0e6e2] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm font-medium"
+                  />
+                </div>
+
+                {/* 🌌 Mức năng lượng hiện tại (Energy Status) */}
+                <div className="space-y-2">
+                  <label className="font-bold text-slate-700 dark:text-[#e0e6e2] flex items-center gap-1.5 uppercase tracking-wider">
+                    🌌 Mức năng lượng hiện tại (Energy Status)
+                  </label>
+                  <div className="space-y-2">
+                    {VIBES.map((v) => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => setEditVibe(v.id)}
+                        className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-2.5 ${
+                          editVibe === v.id
+                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-bold"
+                            : "border-slate-100 dark:border-[#a0a8a3]/10 bg-slate-50/50 dark:bg-[#1a201b]/40 text-slate-600 dark:text-[#a0a8a3]"
+                        }`}
+                      >
+                        <span className="text-lg">{v.icon}</span>
+                        <div>
+                          <p className="font-bold text-xs">{v.title}</p>
+                          <p className="text-[10px] opacity-75">{v.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 🎯 Mục tiêu tham gia (Personal Goal) */}
+                <div className="space-y-2">
+                  <label className="font-bold text-slate-700 dark:text-[#e0e6e2] flex items-center gap-1.5 uppercase tracking-wider">
+                    🎯 Mục tiêu tham gia (Personal Goal)
+                  </label>
+                  <div className="space-y-2">
+                    {GOALS.map((g) => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => setEditGoal(g.id)}
+                        className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer text-xs ${
+                          editGoal === g.id
+                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 font-bold"
+                            : "border-slate-100 dark:border-[#a0a8a3]/10 bg-slate-50/50 dark:bg-[#1a201b]/40 text-slate-600 dark:text-[#a0a8a3]"
+                        }`}
+                      >
+                        {g.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditModalOpen(false)}
+                  className="flex-1 py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-[#a0a8a3] font-bold text-xs cursor-pointer hover:bg-slate-200"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateProfile(
+                      editName.trim() || "Cậu",
+                      editVibe || "🌱 Mầm non chữa lành (Bắt đầu tìm lại sự tích cực)",
+                      editGoal || "Tìm người lắng nghe"
+                    );
+                    setEditModalOpen(false);
+                  }}
+                  className="flex-1 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+                >
+                  Lưu thay đổi
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

@@ -280,7 +280,7 @@ export const DigitalDetoxChart: React.FC = () => {
         <div className="space-y-1">
           <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-            Nhận định từ AI Mentor Cozy
+            Nhận định từ AI Mentor CoreZ
           </h4>
           <p className="text-[11px] text-slate-600 leading-relaxed font-light">
             {averageMinutes >= 60 ? (

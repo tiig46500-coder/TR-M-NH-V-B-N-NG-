@@ -340,7 +340,7 @@ export default function Journaling({ initialTab }: JournalingProps) {
                   <label className="text-[10.5px] font-bold text-slate-500 uppercase font-mono block">Nội dung phản tư của cậu</label>
                   <textarea
                     rows={6}
-                    placeholder="Hãy viết thật chậm, mộc mạc và chân thực nhất những suy nghĩ ẩn sâu trong cậu ngày hôm nay... Ở Cozy, không ai phán xét cậu cả."
+                    placeholder="Hãy viết thật chậm, mộc mạc và chân thực nhất những suy nghĩ ẩn sâu trong cậu ngày hôm nay... Ở CoreZ, không ai phán xét cậu cả."
                     value={reflectionInput}
                     onChange={(e) => setReflectionInput(e.target.value)}
                     className="w-full p-4 rounded-2xl border border-white/40 focus:outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white/50 placeholder:text-slate-400 shadow-inner resize-none flex-1 min-h-[140px]"
@@ -465,7 +465,7 @@ export default function Journaling({ initialTab }: JournalingProps) {
                         Đang niêm phong thư bằng sáp ong...
                       </h4>
                       <p className="text-xs text-slate-400 font-light max-w-xs mx-auto leading-relaxed">
-                        Thư của cậu đang được bọc sáp, đóng dấu mộc Cozy và gửi vào lồng kính thời gian. Xin hãy đợi trong giây lát...
+                        Thư của cậu đang được bọc sáp, đóng dấu mộc CoreZ và gửi vào lồng kính thời gian. Xin hãy đợi trong giây lát...
                       </p>
                     </div>
                     {/* Tiny animated spinner */}

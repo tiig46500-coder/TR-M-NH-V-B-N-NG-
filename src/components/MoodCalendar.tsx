@@ -187,8 +187,8 @@ export const MoodCalendar: React.FC<MoodCalendarProps> = ({ logs, moodsConfig })
       // Friendly fallback insight
       const fallbackInsights = [
         "Cậu đã dành trọn vẹn sự chú tâm cho ngày hôm nay dẫu cho có những khoảnh khắc chông chênh. Hãy nhớ ranh giới giữa cõi mạng và đời thực là nơi cậu gieo mầm hạnh phúc đích thực. 🌱🫂",
-        "Hãy nâng niu đứa trẻ bên trong cậu lúc này. Cozy luôn tự hào vì cậu đã dũng cảm ghi nhận mọi cảm xúc của mình mà không hề phán xét. Đêm nay, cậu nhớ đắp chăn ấm và đi ngủ sớm nha. ✨☁️",
-        "Trạm sạc tinh thần Cozy nhận thấy cậu đang kiên nhẫn tích lũy từng chút bình yên qua các hoạt động chánh niệm. Cứ đi thong thả theo nhịp độ của riêng cậu nhé! 🌸🌱"
+        "Hãy nâng niu đứa trẻ bên trong cậu lúc này. CoreZ luôn tự hào vì cậu đã dũng cảm ghi nhận mọi cảm xúc của mình mà không hề phán xét. Đêm nay, cậu nhớ đắp chăn ấm và đi ngủ sớm nha. ✨☁️",
+        "Trạm sạc tinh thần CoreZ nhận thấy cậu đang kiên nhẫn tích lũy từng chút bình yên qua các hoạt động chánh niệm. Cứ đi thong thả theo nhịp độ của riêng cậu nhé! 🌸🌱"
       ];
       setAiInsight(fallbackInsights[Math.floor(Math.random() * fallbackInsights.length)]);
     } finally {
@@ -567,7 +567,7 @@ export const MoodCalendar: React.FC<MoodCalendarProps> = ({ logs, moodsConfig })
                         <div className="flex items-center gap-1.5 mb-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-emerald-500 animate-spin-slow" />
                           <span className="text-[9.5px] font-sans font-bold uppercase text-emerald-600 tracking-wider">
-                            Lời vỗ về từ Cozy:
+                            Lời vỗ về từ CoreZ:
                           </span>
                         </div>
                         <p className="italic text-slate-800">
@@ -584,12 +584,12 @@ export const MoodCalendar: React.FC<MoodCalendarProps> = ({ logs, moodsConfig })
                         {loadingInsight ? (
                           <>
                             <div className="w-3 h-3 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                            <span>Đang kết nối tâm hồn cùng Cozy...</span>
+                            <span>Đang kết nối tâm hồn cùng CoreZ...</span>
                           </>
                         ) : (
                           <>
                             <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-                            <span>Nhận phản hồi thấu cảm từ Cozy cho ngày này ✨</span>
+                            <span>Nhận phản hồi thấu cảm từ CoreZ cho ngày này ✨</span>
                           </>
                         )}
                       </button>

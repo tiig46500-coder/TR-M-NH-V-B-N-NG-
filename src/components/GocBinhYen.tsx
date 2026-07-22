@@ -87,7 +87,7 @@ export default function GocBinhYen() {
             Góc Bình Yên Của Bạn
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Nơi lưu trữ những lời khuyên thông thái, bí kíp 1 phút và thông điệp chữa lành từ Cozy.
+            Nơi lưu trữ những lời khuyên thông thái, bí kíp 1 phút và thông điệp chữa lành từ CoreZ.
           </p>
         </div>
         
@@ -222,7 +222,7 @@ export default function GocBinhYen() {
               Chưa có lời khuyên nào được lưu lại...
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Hãy trò chuyện cùng <strong>Cozy • AI Mentor</strong> hoặc xem các <strong>Bí Kíp 1 Phút</strong>, sau đó nhấn nút thả tim hoặc nút lưu để lưu giữ những thông điệp thông thái tại đây nhé! 🌱
+              Hãy trò chuyện cùng <strong>CoreZ • AI Mentor</strong> hoặc xem các <strong>Bí Kíp 1 Phút</strong>, sau đó nhấn nút thả tim hoặc nút lưu để lưu giữ những thông điệp thông thái tại đây nhé! 🌱
             </p>
           </div>
         </motion.div>
