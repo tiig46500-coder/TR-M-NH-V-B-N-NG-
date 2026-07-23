@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Phone, Heart, X, MessageCircle, Clock, Eye, Sparkles, Check, ArrowRight, Activity } from "lucide-react";
+import { Phone, X, Sparkles, Check, ArrowRight, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const SOOTHING_QUOTES = [
@@ -20,7 +20,7 @@ const SOOTHING_QUOTES = [
 
 export default function SosButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1); // Steps 1 to 5, and Step 6 is the final Hotline page
+  const [currentStep, setCurrentStep] = useState(1); // Steps 1 to 5, and Step 6 is closure/soothe
   const [isSoothed, setIsSoothed] = useState(false);
   const [sootheQuote, setSootheQuote] = useState("");
 
@@ -94,65 +94,85 @@ export default function SosButton() {
 
   return (
     <>
-      {/* SOS Floating Action Button */}
+      {/* 1. COLLAPSED STATE: COMPACT FLOATING ACTION BUTTON (NÚT TRÒN NỔI SOS) */}
       {!isOpen && (
-        <button
+        <motion.button
           id="sos-button"
           onClick={handleOpen}
-          className="fixed bottom-8 right-8 z-[100] px-5 py-3.5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs sm:text-sm flex items-center gap-2 border border-rose-400 shadow-xl shadow-rose-200 dark:shadow-none transition-all duration-300 hover:scale-105 active:scale-95 animate-pulse cursor-pointer"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="fixed bottom-6 right-6 z-[100] w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex flex-col items-center justify-center border-2 border-rose-300 shadow-2xl shadow-rose-600/50 cursor-pointer group transition-all duration-300"
+          title="Sơ Cứu Cảm Xúc SOS Khẩn Cấp"
         >
-          <Phone className="w-4 h-4 fill-current animate-bounce" />
-          <span>Sơ Cứu Cảm Xúc SOS</span>
-        </button>
+          {/* Pulse ring highlight around circular FAB */}
+          <span className="absolute inset-0 rounded-full bg-rose-500 opacity-75 animate-ping pointer-events-none" />
+
+          {/* Main Icon & Label inside circle */}
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            <Phone className="w-5 h-5 text-white animate-bounce" />
+            <span className="text-[9px] font-extrabold tracking-tighter uppercase font-mono text-white leading-none mt-0.5">
+              SOS
+            </span>
+          </div>
+
+          {/* Red prominent badge */}
+          <span className="absolute -top-1 -right-1 bg-white text-rose-600 font-black text-[9px] px-1.5 py-0.5 rounded-full border border-rose-300 shadow-md font-mono leading-none">
+            SOS
+          </span>
+        </motion.button>
       )}
 
-      {/* SOS Dialog - Full Screen */}
+      {/* 2. EXPANDED STATE: POPUP / MODAL SOS DIALOG */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
             
-            {/* Dark Calming Background with custom breathing pulse animation */}
+            {/* Backdrop with click-outside-to-close capability */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-[#12221A] z-0 overflow-hidden"
+              onClick={handleClose}
+              className="absolute inset-0 bg-[#0d1c15]/85 backdrop-blur-md cursor-pointer z-0 overflow-hidden"
             >
               {/* Giant pulsing therapeutic light circle in the background */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-[450px] h-[450px] sm:w-[650px] sm:h-[650px] rounded-full bg-emerald-500/10 blur-[120px] animate-pulse" style={{ animationDuration: '6s' }} />
-                <div className="absolute w-[250px] h-[250px] sm:w-[400px] sm:h-[400px] rounded-full bg-teal-500/5 blur-[80px] animate-ping" style={{ animationDuration: '12s' }} />
+                <div className="w-[450px] h-[450px] sm:w-[650px] sm:h-[650px] rounded-full bg-emerald-500/15 blur-[120px] animate-pulse" style={{ animationDuration: '6s' }} />
+                <div className="absolute w-[250px] h-[250px] sm:w-[400px] sm:h-[400px] rounded-full bg-rose-500/10 blur-[80px] animate-ping" style={{ animationDuration: '10s' }} />
               </div>
             </motion.div>
 
-            {/* Modal Container */}
+            {/* Modal Content Container */}
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: "spring", damping: 28, stiffness: 300 }}
-              className="sos-first-aid-modal relative w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-[36px] bg-slate-900/75 backdrop-blur-3xl border border-white/10 shadow-2xl p-5 sm:p-8 z-10 flex flex-col justify-between text-white scrollbar-thin scrollbar-thumb-white/10"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 26, stiffness: 320 }}
+              onClick={(e) => e.stopPropagation()}
+              className="sos-first-aid-modal relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-[36px] bg-slate-900/90 backdrop-blur-3xl border border-rose-500/30 shadow-2xl p-5 sm:p-8 z-10 flex flex-col justify-between text-white scrollbar-thin scrollbar-thumb-white/10"
             >
               {/* Close Button */}
               <button
                 onClick={handleClose}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
-                title="Đóng sơ cứu khẩn cấp"
+                className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-rose-500/30 text-slate-300 hover:text-white border border-white/10 transition-all cursor-pointer z-20"
+                title="Đóng cửa sổ SOS"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Progress Indicator */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-3.5 h-3.5 rounded-full bg-rose-500 flex items-center justify-center animate-ping">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+              {/* Header / Progress Indicator */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6 pr-10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-4 h-4 rounded-full bg-rose-500 flex items-center justify-center animate-pulse">
+                    <Phone className="w-2.5 h-2.5 text-white" />
                   </div>
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-rose-400 font-mono">
+                  <span className="text-[11px] font-extrabold uppercase tracking-widest text-rose-400 font-mono">
                     Trạm Sơ Cứu Cảm Xúc SOS
                   </span>
                 </div>
-                <div className="text-xs text-slate-400 font-mono font-bold">
+                <div className="text-xs text-slate-400 font-mono font-bold bg-white/5 px-2.5 py-1 rounded-full border border-white/10">
                   {currentStep <= 5 ? `Bước ${currentStep} / 5` : "Hoàn thành Sơ cứu"}
                 </div>
               </div>
@@ -165,13 +185,13 @@ export default function SosButton() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
                     className="flex-1 flex flex-col justify-center space-y-4 my-2"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3.5">
                       <span className="text-4xl">{STEPS_DATA[currentStep - 1].emoji}</span>
                       <div>
-                        <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider font-mono">
+                        <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider font-mono">
                           {STEPS_DATA[currentStep - 1].badge}
                         </span>
                         <h3 className="font-serif text-xl sm:text-2xl font-bold mt-1 text-emerald-300">
@@ -180,19 +200,19 @@ export default function SosButton() {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <p className="text-base sm:text-lg font-medium text-slate-100 leading-relaxed">
                         {STEPS_DATA[currentStep - 1].instruction}
                       </p>
-                      <div className="p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/5 text-xs sm:text-sm text-slate-300 leading-relaxed font-light">
+                      <div className="p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/10 text-xs sm:text-sm text-slate-300 leading-relaxed font-light">
                         {STEPS_DATA[currentStep - 1].detail}
                       </div>
                     </div>
 
                     {/* Grounding Respiratory Helper */}
-                    <div className="flex items-center gap-3 bg-emerald-950/20 py-2.5 px-4 rounded-xl border border-emerald-900/20">
+                    <div className="flex items-center gap-3 bg-emerald-950/40 py-2.5 px-4 rounded-xl border border-emerald-500/20">
                       <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
-                      <p className="text-[11.5px] text-emerald-400 font-medium">
+                      <p className="text-[11.5px] text-emerald-300 font-medium">
                         Hít vào chậm qua mũi... và thở ra thật êm bằng miệng...
                       </p>
                     </div>
@@ -201,10 +221,10 @@ export default function SosButton() {
                     <div className="pt-4 flex justify-end">
                       <button
                         onClick={handleNextStep}
-                        className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-950/20 transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+                        className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
                       >
                         <span>Tiếp tục</span>
-                        <ArrowRight className="w-4.5 h-4.5 shrink-0 text-white" />
+                        <ArrowRight className="w-4.5 h-4.5 shrink-0 text-slate-950" />
                       </button>
                     </div>
                   </motion.div>
@@ -218,7 +238,7 @@ export default function SosButton() {
                     className="flex-1 flex flex-col justify-center items-center space-y-6 my-6 text-center"
                   >
                     <div className="space-y-3">
-                      <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-400">
+                      <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-emerald-400 border border-emerald-500/30">
                         <Sparkles className="w-8 h-8 animate-spin-slow" />
                       </div>
                       <h3 className="font-serif text-2xl font-bold text-emerald-300">
@@ -232,14 +252,14 @@ export default function SosButton() {
                     <div className="pt-4 w-full max-w-md flex flex-col sm:flex-row gap-3 justify-center">
                       <button
                         onClick={handleClose}
-                        className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-950/40 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                        className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-sm shadow-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                       >
-                        <Check className="w-4.5 h-4.5 text-white" />
+                        <Check className="w-4.5 h-4.5 text-slate-950" />
                         <span>Tớ ổn hơn rồi</span>
                       </button>
                       <button
                         onClick={triggerSoothe}
-                        className="flex-1 py-3.5 px-6 rounded-2xl bg-slate-800 hover:bg-slate-750 border border-white/10 text-slate-200 font-bold text-sm transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                        className="flex-1 py-3.5 px-6 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-slate-200 font-bold text-sm transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                       >
                         <span>Tớ vẫn thấy chênh vênh...</span>
                       </button>
@@ -279,9 +299,9 @@ export default function SosButton() {
                       </button>
                       <button
                         onClick={handleClose}
-                        className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-950/40 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                        className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-sm shadow-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                       >
-                        <Check className="w-4.5 h-4.5 text-white" />
+                        <Check className="w-4.5 h-4.5 text-slate-950" />
                         <span>Tớ thấy nhẹ lòng rồi</span>
                       </button>
                     </div>
@@ -290,7 +310,7 @@ export default function SosButton() {
               </AnimatePresence>
 
               {/* Modal footer text */}
-              <div className="text-[10px] text-slate-500 text-center mt-6 pt-3 border-t border-white/5">
+              <div className="text-[10px] text-slate-400 text-center mt-6 pt-3 border-t border-white/10">
                 Mọi thông tin cuộc gọi và tư vấn đều được hoàn toàn bảo mật • Bạn không cô đơn 💚
               </div>
 

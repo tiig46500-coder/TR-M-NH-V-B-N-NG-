@@ -29,6 +29,7 @@ import {
 import { INITIAL_CONFESSIONS, LẠNG_SƠN_PLACES } from "../data";
 import { Confession, HabitChallenge, LạngSơnPlace } from "../types";
 import CommunityAcceptanceD2 from "./CommunityAcceptanceD2";
+import ECardsDaily from "./ECardsDaily";
 
 const INSPIRE_QUOTES = [
   {
@@ -1017,6 +1018,7 @@ export default function Space4D() {
               </div>
 
               {/* CÔNG CỤ ĐẶC BIỆT VÒNG D4: HÀNH ĐỘNG D4 */}
+              <ECardsDaily />
 
               {/* Vòng 3 Interactive Planner */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
