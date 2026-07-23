@@ -1,5 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import AnonymousHeader from "./components/AnonymousHeader";
+
+const DASHBOARD_TABS = [
+  "space4d",
+  "self_discovery",
+  "mood",
+  "journaling",
+  "gamification",
+  "mentor",
+  "gocbinhyen",
+  "profile"
+] as const;
+
+type DashboardTab = typeof DASHBOARD_TABS[number];
+
+const tabSlideVariants = {
+  initial: (direction: number) => ({
+    opacity: 0,
+    x: direction > 0 ? 32 : -32,
+    scale: 0.98,
+  }),
+  animate: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: {
+      duration: 0.28,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+  exit: (direction: number) => ({
+    opacity: 0,
+    x: direction > 0 ? -32 : 32,
+    scale: 0.98,
+    transition: {
+      duration: 0.18,
+      ease: [0.4, 0, 1, 1],
+    },
+  }),
+};
 import { 
   Compass, 
   HelpCircle, 
@@ -143,7 +183,19 @@ export default function App() {
   const [currentView, setCurrentView] = useState<"landing" | "profile_onboarding" | "quiz" | "main">("landing");
   
   // Dashboard Tabs: 'space4d' | 'self_discovery' | 'mood' | 'journaling' | 'gamification' | 'community' | 'mentor' | 'gocbinhyen' | 'profile'
-  const [activeTab, setActiveTab] = useState<"space4d" | "self_discovery" | "mood" | "journaling" | "gamification" | "community" | "mentor" | "gocbinhyen" | "profile">("space4d");
+  const [activeTab, setActiveTab] = useState<DashboardTab>("space4d");
+  const prevTabRef = useRef<DashboardTab>(activeTab);
+  const [tabDirection, setTabDirection] = useState<number>(1);
+
+  const handleTabChange = (newTab: DashboardTab) => {
+    if (newTab === activeTab) return;
+    const prevIdx = DASHBOARD_TABS.indexOf(prevTabRef.current);
+    const newIdx = DASHBOARD_TABS.indexOf(newTab);
+    const dir = newIdx >= prevIdx ? 1 : -1;
+    setTabDirection(dir);
+    prevTabRef.current = newTab;
+    setActiveTab(newTab);
+  };
   
   // State for Reset Confirmation Modal
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -550,13 +602,15 @@ export default function App() {
 
         {/* VIEW C: FULL DASHBOARD */}
         {currentView === "main" && (
-          <motion.div
-            key="view-main"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="w-full max-w-5xl mx-auto px-4 pt-12 relative z-10"
-          >
+          <>
+            <AnonymousHeader />
+            <motion.div
+              key="view-main"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="w-full max-w-5xl mx-auto px-4 pt-6 relative z-10"
+            >
             {/* Empathetic AI Mentor Toast Trigger Notification */}
             <AnimatePresence>
               {showMentorToast && (
@@ -582,7 +636,7 @@ export default function App() {
                       onClick={() => {
                         // Deep link navigation to Time Capsules
                         setJournalingSubTab("future");
-                        setActiveTab("journaling");
+                        handleTabChange("journaling");
                         setShowMentorToast(false);
                       }}
                       className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer whitespace-nowrap"
@@ -702,14 +756,21 @@ export default function App() {
                 {/* Tab 1: Không Gian Thực Hành 4D */}
                 <button
                   id="tab-space4d"
-                  onClick={() => setActiveTab("space4d")}
+                  onClick={() => handleTabChange("space4d")}
                   className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
                     activeTab === "space4d"
-                      ? "text-emerald-600 bg-white/85 shadow-sm"
+                      ? "text-emerald-600 dark:text-emerald-300"
                       : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  {activeTab === "space4d" && (
+                    <motion.div
+                      layoutId="activeTabBadge"
+                      className="absolute inset-0 bg-white/90 dark:bg-white/10 rounded-xl shadow-sm border border-emerald-500/10"
+                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
                     <Compass className="w-3.5 h-3.5 text-emerald-500 animate-spin-slow" />
                     Không Gian 4D
                   </span>
@@ -718,14 +779,21 @@ export default function App() {
                 {/* Tab 2: Trắc Nghiệm Bản Ngã */}
                 <button
                   id="tab-self-discovery"
-                  onClick={() => setActiveTab("self_discovery")}
+                  onClick={() => handleTabChange("self_discovery")}
                   className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
                     activeTab === "self_discovery"
-                      ? "text-emerald-600 bg-white/85 shadow-sm"
+                      ? "text-emerald-600 dark:text-emerald-300"
                       : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  {activeTab === "self_discovery" && (
+                    <motion.div
+                      layoutId="activeTabBadge"
+                      className="absolute inset-0 bg-white/90 dark:bg-white/10 rounded-xl shadow-sm border border-emerald-500/10"
+                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
                     <Zap className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
                     Trắc Nghiệm Bản Ngã
                   </span>
@@ -734,14 +802,21 @@ export default function App() {
                 {/* Tab 3: Nhật Ký Cảm Xúc (Mood Log) */}
                 <button
                   id="tab-mood"
-                  onClick={() => setActiveTab("mood")}
+                  onClick={() => handleTabChange("mood")}
                   className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
                     activeTab === "mood"
-                      ? "text-emerald-600 bg-white/85 shadow-sm"
+                      ? "text-emerald-600 dark:text-emerald-300"
                       : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  {activeTab === "mood" && (
+                    <motion.div
+                      layoutId="activeTabBadge"
+                      className="absolute inset-0 bg-white/90 dark:bg-white/10 rounded-xl shadow-sm border border-emerald-500/10"
+                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
                     <Activity className="w-3.5 h-3.5 text-emerald-500" />
                     Nhật Ký Cảm Xúc
                   </span>
@@ -751,16 +826,23 @@ export default function App() {
                 <button
                   id="tab-journaling"
                   onClick={() => {
-                    setActiveTab("journaling");
                     setJournalingSubTab("daily");
+                    handleTabChange("journaling");
                   }}
                   className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
                     activeTab === "journaling"
-                      ? "text-emerald-600 bg-white/85 shadow-sm"
+                      ? "text-emerald-600 dark:text-emerald-300"
                       : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  {activeTab === "journaling" && (
+                    <motion.div
+                      layoutId="activeTabBadge"
+                      className="absolute inset-0 bg-white/90 dark:bg-white/10 rounded-xl shadow-sm border border-emerald-500/10"
+                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
                     <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
                     Góc Phản Tư
                   </span>
@@ -769,46 +851,44 @@ export default function App() {
                 {/* Tab 5: Kỷ Luật CoreZ (Gamification) */}
                 <button
                   id="tab-gamification"
-                  onClick={() => setActiveTab("gamification")}
+                  onClick={() => handleTabChange("gamification")}
                   className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
                     activeTab === "gamification"
-                      ? "text-emerald-600 bg-white/85 shadow-sm"
+                      ? "text-emerald-600 dark:text-emerald-300"
                       : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  {activeTab === "gamification" && (
+                    <motion.div
+                      layoutId="activeTabBadge"
+                      className="absolute inset-0 bg-white/90 dark:bg-white/10 rounded-xl shadow-sm border border-emerald-500/10"
+                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
                     <Award className="w-3.5 h-3.5 text-emerald-500 animate-float" />
                     Kỷ Luật CoreZ
                   </span>
                 </button>
 
-                {/* Tab 6: Bức Tường Sẻ Chia (Community Wall) */}
-                <button
-                  id="tab-community"
-                  onClick={() => setActiveTab("community")}
-                  className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
-                    activeTab === "community"
-                      ? "text-emerald-600 bg-white/85 shadow-sm"
-                      : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">
-                    <Users className="w-3.5 h-3.5 text-emerald-500" />
-                    Bức Tường Sẻ Chia
-                  </span>
-                </button>
-
-                {/* Tab 7: Bí Kíp & AI Mentor */}
+                {/* Tab 6: Bí Kíp & AI Mentor */}
                 <button
                   id="tab-mentor"
-                  onClick={() => setActiveTab("mentor")}
+                  onClick={() => handleTabChange("mentor")}
                   className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
                     activeTab === "mentor"
-                      ? "text-emerald-600 bg-white/85 shadow-sm"
+                      ? "text-emerald-600 dark:text-emerald-300"
                       : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  {activeTab === "mentor" && (
+                    <motion.div
+                      layoutId="activeTabBadge"
+                      className="absolute inset-0 bg-white/90 dark:bg-white/10 rounded-xl shadow-sm border border-emerald-500/10"
+                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
                     <Heart className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
                     AI Mentor & Bí Kíp
                   </span>
@@ -817,14 +897,21 @@ export default function App() {
                 {/* Tab 8: Góc Bình Yên */}
                 <button
                   id="tab-gocbinhyen"
-                  onClick={() => setActiveTab("gocbinhyen")}
+                  onClick={() => handleTabChange("gocbinhyen")}
                   className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
                     activeTab === "gocbinhyen"
-                      ? "text-rose-600 bg-white/85 shadow-sm"
+                      ? "text-rose-600 dark:text-rose-300"
                       : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  {activeTab === "gocbinhyen" && (
+                    <motion.div
+                      layoutId="activeTabBadge"
+                      className="absolute inset-0 bg-white/90 dark:bg-white/10 rounded-xl shadow-sm border border-rose-500/10"
+                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
                     <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500/10 animate-pulse" />
                     Góc Bình Yên
                   </span>
@@ -833,14 +920,21 @@ export default function App() {
                 {/* Tab 9: Hồ sơ Cá nhân */}
                 <button
                   id="tab-profile"
-                  onClick={() => setActiveTab("profile")}
+                  onClick={() => handleTabChange("profile")}
                   className={`py-2 px-3 text-[11px] sm:text-xs font-bold transition-all relative rounded-xl cursor-pointer ${
                     activeTab === "profile"
-                      ? "text-emerald-600 bg-white/85 shadow-sm"
+                      ? "text-emerald-600 dark:text-emerald-300"
                       : "text-slate-500 hover:text-slate-800 hover:bg-white/40"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  {activeTab === "profile" && (
+                    <motion.div
+                      layoutId="activeTabBadge"
+                      className="absolute inset-0 bg-white/90 dark:bg-white/10 rounded-xl shadow-sm border border-emerald-500/10"
+                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1.5 whitespace-nowrap">
                     <User className="w-3.5 h-3.5 text-emerald-500" />
                     Hồ sơ Cá nhân
                   </span>
@@ -850,7 +944,7 @@ export default function App() {
             </div>
 
             {/* Inner Tabs View Render */}
-            <main className="py-2 relative">
+            <main className="py-2 relative overflow-hidden">
               {/* Soft decorative blurred stars on left/right edges to float around the section headings and content */}
               <div className="absolute top-[-40px] left-[-30px] pointer-events-none z-0 select-none opacity-40 animate-float" style={{ animationDuration: "6s" }}>
                 <CuteStar variant="blur" size={120} showSurroundings={false} />
@@ -862,14 +956,15 @@ export default function App() {
                 <CuteStar variant="blur" size={80} showSurroundings={false} />
               </div>
 
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="wait" custom={tabDirection}>
                 {activeTab === "space4d" && (
                   <motion.div
                     key="tab-content-space4d"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
+                    custom={tabDirection}
+                    variants={tabSlideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                   >
                     <Space4D />
                   </motion.div>
@@ -877,10 +972,11 @@ export default function App() {
                 {activeTab === "self_discovery" && (
                   <motion.div
                     key="tab-content-self-discovery"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
+                    custom={tabDirection}
+                    variants={tabSlideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                   >
                     <SelfDiscovery />
                   </motion.div>
@@ -888,10 +984,11 @@ export default function App() {
                 {activeTab === "mentor" && (
                   <motion.div
                     key="tab-content-mentor"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
+                    custom={tabDirection}
+                    variants={tabSlideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                   >
                     <FlashcardsAndAi />
                   </motion.div>
@@ -899,10 +996,11 @@ export default function App() {
                 {activeTab === "mood" && (
                   <motion.div
                     key="tab-content-mood"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
+                    custom={tabDirection}
+                    variants={tabSlideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                   >
                     <MoodLogger />
                   </motion.div>
@@ -910,10 +1008,11 @@ export default function App() {
                 {activeTab === "journaling" && (
                   <motion.div
                     key="tab-content-journaling"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
+                    custom={tabDirection}
+                    variants={tabSlideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                   >
                     <Journaling initialTab={journalingSubTab} />
                   </motion.div>
@@ -921,32 +1020,23 @@ export default function App() {
                 {activeTab === "gamification" && (
                   <motion.div
                     key="tab-content-gamification"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
+                    custom={tabDirection}
+                    variants={tabSlideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                   >
                     <Gamification />
-                  </motion.div>
-                )}
-                {activeTab === "community" && (
-                  <motion.div
-                    key="tab-content-community"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Community />
                   </motion.div>
                 )}
                 {activeTab === "gocbinhyen" && (
                   <motion.div
                     key="tab-content-gocbinhyen"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
+                    custom={tabDirection}
+                    variants={tabSlideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                   >
                     <GocBinhYen />
                   </motion.div>
@@ -954,10 +1044,11 @@ export default function App() {
                 {activeTab === "profile" && (
                   <motion.div
                     key="tab-content-profile"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    transition={{ duration: 0.2 }}
+                    custom={tabDirection}
+                    variants={tabSlideVariants}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
                   >
                     <UserProfile />
                   </motion.div>
@@ -971,13 +1062,14 @@ export default function App() {
               <p>Phòng Nghiên cứu Tâm lí học Ứng dụng&Phát triển Hành vi Xứ Lạng</p>
             </footer>
           </motion.div>
+        </>
         )}
 
       </AnimatePresence>
 
       {/* 5. Glowing Interactive Identity Compass Widget */}
       {currentView === "main" && (
-        <IdentityCompassWidget assessmentLevel={assessmentLevel} onNavigate={(tab) => setActiveTab(tab)} />
+        <IdentityCompassWidget assessmentLevel={assessmentLevel} onNavigate={(tab) => handleTabChange(tab as DashboardTab)} />
       )}
 
       {/* 4. Beautiful Reset Confirmation Modal */}

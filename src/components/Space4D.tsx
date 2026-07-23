@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { INITIAL_CONFESSIONS, LẠNG_SƠN_PLACES } from "../data";
 import { Confession, HabitChallenge, LạngSơnPlace } from "../types";
-import ECardsDaily from "./ECardsDaily";
+import CommunityAcceptanceD2 from "./CommunityAcceptanceD2";
 
 const INSPIRE_QUOTES = [
   {
@@ -671,7 +671,7 @@ export default function Space4D() {
             </motion.div>
           )}
 
-          {/* TAB 2: DE-VIRTUALIZE */}
+          {/* TAB 2: DE-VIRTUALIZE / CHẤP NHẬN & VŨ TRỤ 4D */}
           {activeSubTab === "devirtualize" && (
             <motion.div
               key="devirtualize-tab"
@@ -679,84 +679,8 @@ export default function Space4D() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="space-y-6"
             >
-              <div className="border-b border-white/40 pb-4">
-                <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-2.5 py-1 rounded-full uppercase border border-sky-100/40">
-                  Vòng 2: Đối diện & Soi chiếu (D2)
-                </span>
-                <h3 className="font-serif text-xl font-bold text-slate-800 flex items-center gap-2 mt-2">
-                  <MessageSquare className="w-5 h-5 text-sky-400" />
-                  Diễn đàn ẩn danh "Bản ngã chông chênh"
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Nơi các em viết chia sẻ giấu tên về những sự tự ti, lo âu của mình. Khi đọc bài của nhau, các em nhận ra: Hóa ra ai cũng có góc khuất, sự hoàn hảo trên mạng chỉ là ảo ảnh.
-                </p>
-              </div>
-
-              {/* Confession Submission Form */}
-              <form onSubmit={handlePostConfession} className="flex gap-2.5">
-                <input
-                  type="text"
-                  placeholder="Nhập nỗi lòng tự ti, lo âu hay áp lực số mà cậu muốn gửi gắm giấu tên..."
-                  value={newConfession}
-                  onChange={(e) => setNewConfession(e.target.value)}
-                  maxLength={180}
-                  className="flex-1 px-4 py-3 rounded-xl border border-white/40 bg-white/45 backdrop-blur-sm focus:border-sky-300 focus:outline-none text-slate-700 text-sm placeholder:text-slate-400 shadow-inner"
-                />
-                <button
-                  type="submit"
-                  className="px-5 py-3 rounded-xl bg-sky-400 hover:bg-sky-500 text-white font-semibold text-sm flex items-center gap-1.5 transition-all shadow-lg shadow-sky-200/50 active:scale-95 shrink-0"
-                >
-                  <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">Trút Bỏ</span>
-                </button>
-              </form>
-
-              {/* The Corkboard Mock Layout */}
-              <div className="relative rounded-[24px] border border-amber-200/40 bg-amber-50/45 p-5 min-h-[300px] shadow-inner overflow-hidden backdrop-blur-md">
-                {/* Board pins style background */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-slate-300/40 shadow-sm" />
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 relative z-10">
-                  <AnimatePresence>
-                    {confessions.map((conf) => (
-                      <motion.div
-                        key={conf.id}
-                        initial={{ scale: 0.9, opacity: 0, y: 10 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.9, opacity: 0 }}
-                        className={`p-4 rounded-lg border shadow-sm relative ${conf.color} ${conf.rotation} hover:rotate-0 hover:scale-105 hover:shadow-md transition-all duration-300 font-sans max-h-[160px] flex flex-col justify-between`}
-                      >
-                        {/* Decorative Pin */}
-                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-red-400 drop-shadow-sm">
-                          <Pin className="w-4 h-4 fill-red-400 stroke-red-500 rotate-45" />
-                        </div>
-
-                        <p className="text-xs sm:text-[13px] leading-relaxed text-justify overflow-y-auto pr-1 line-clamp-4 font-sans text-slate-700">
-                          {conf.content}
-                        </p>
-
-                        <div className="flex justify-between items-center text-[10px] text-slate-400/80 border-t border-slate-200/20 pt-1.5 mt-2">
-                          <span>#ẩn_danh_xứ_lạng</span>
-                          <span>{conf.timestamp}</span>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-
-              {/* Vòng 2 Outcome Callout for D2 */}
-              <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-100 flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-sky-500 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-xs font-bold text-sky-800 uppercase tracking-wide">Mục tiêu của sự Chấp Nhận</h4>
-                  <p className="text-xs text-sky-600 mt-1 leading-relaxed">
-                    Giúp các em nhận thức được rằng mọi người đều có góc khuất và những khoảnh khắc chông chênh, gạt bỏ ảo ảnh hoàn mỹ của mạng xã hội để đối diện chân thật với chính mình.
-                  </p>
-                </div>
-              </div>
+              <CommunityAcceptanceD2 />
             </motion.div>
           )}
 
@@ -1092,10 +1016,7 @@ export default function Space4D() {
                 </p>
               </div>
 
-              {/* CÔNG CỤ ĐẶC BIỆT VÒNG D4: BỘ E-CARDS CHẠM VÀO BẢN NGÃ */}
-              <div className="my-4">
-                <ECardsDaily />
-              </div>
+              {/* CÔNG CỤ ĐẶC BIỆT VÒNG D4: HÀNH ĐỘNG D4 */}
 
               {/* Vòng 3 Interactive Planner */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -1,0 +1,15 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /community_messages/{document} {
+      allow read, create, update, delete: if true;
+    }
+    match /community_stats/{document} {
+      allow read, create, update, delete: if true;
+    }
+    match /users/{userId} {
+      allow read, create, update, delete: if true;
+    }
+  }
+}

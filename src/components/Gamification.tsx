@@ -21,7 +21,6 @@ import {
 import { useUserData } from "../context/UserContext";
 import confetti from "canvas-confetti";
 import { DigitalDetoxChart } from "./DigitalDetoxChart";
-import ECardsDaily from "./ECardsDaily";
 
 interface DailyChallengeTask {
   id: string;
@@ -1629,11 +1628,6 @@ export default function Gamification() {
 
         </div>
 
-      </div>
-
-      {/* E-Cards Touch Your Ego / Cham Vao Ban Nga (Vong 4: Hanh dong) */}
-      <div className="mt-8">
-        <ECardsDaily />
       </div>
 
       {/* 30-Day Digital Detox Chart */}
