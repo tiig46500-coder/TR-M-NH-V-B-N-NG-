@@ -30,6 +30,7 @@ import { INITIAL_CONFESSIONS, LẠNG_SƠN_PLACES } from "../data";
 import { Confession, HabitChallenge, LạngSơnPlace } from "../types";
 import CommunityAcceptanceD2 from "./CommunityAcceptanceD2";
 import ECardsDaily from "./ECardsDaily";
+import AchievementPopup from "./AchievementPopup";
 
 const INSPIRE_QUOTES = [
   {
@@ -1340,6 +1341,12 @@ export default function Space4D() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Auto Slam Achievement Popup when completing 6/6 Detox Tasks */}
+      <AchievementPopup 
+        completedCount={completedDetoxCount} 
+        targetCount={6} 
+      />
     </div>
   );
 }

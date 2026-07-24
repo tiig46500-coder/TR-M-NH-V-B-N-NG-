@@ -77,3 +77,406 @@
   box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* ==========================================
+   1. QUY TẮC MÀU SẮC & ĐỘ TƯƠNG PHẢN CỰC NÉT
+   ========================================== */
+
+/* Thẻ chứa chung & Các mục danh mục - Chống mờ nhòe trên mọi hình nền */
+.card-item, .task-card, .badge-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Chế độ nền Tối / Đất Trầm / Sương Rêu */
+[data-theme="dark"], [data-theme="moss"], [data-theme="earth"] {
+  --text-main: #FFFFFF;
+  --text-sub: #E2E8F0;
+  --heading-color: #FFE600; /* Vàng tươi rực rỡ, không chói */
+}
+
+[data-theme="dark"] .card-item,
+[data-theme="moss"] .card-item,
+[data-theme="earth"] .card-item,
+[data-theme="dark"] .task-card,
+[data-theme="moss"] .task-card,
+[data-theme="earth"] .task-card {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Tiêu đề các mục (Định vị bản ngã, Thanh lọc...) - Chống chói & Rõ nét */
+.section-title, .badge-title {
+  color: var(--heading-color, #1A202C) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.3px;
+  /* Đổ bóng chữ đen hậu thuẫn giúp đọc rõ trên MỌI màu nền */
+  text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 230, 0, 0.2) !important;
+}
+
+/* Văn bản thường & nội dung nhiệm vụ */
+.task-desc, .card-text {
+  color: #1E293B !important;
+  font-weight: 600 !important;
+  line-height: 1.5;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .task-desc,
+[data-theme="moss"] .task-desc,
+[data-theme="earth"] .task-desc {
+  color: #F8FAFC !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+}
+
+
+/* ==========================================
+   2. HIỆU ỨNG "RẦM MỘT CÁI" POPUP THẺ THƯỞNG
+   ========================================== */
+
+/* Lớp phủ làm mờ nền phía sau khi bật popup */
+.achievement-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 15, 30, 0.85) !important;
+  backdrop-filter: blur(8px);
+  z-index: 9998;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Khung Popup Thẻ Thưởng */
+.achievement-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 380px;
+  background: linear-gradient(145deg, #0B132B, #1C2541) !important;
+  border: 2px solid #00F0FF !important;
+  border-radius: 24px;
+  padding: 28px 20px;
+  text-align: center;
+  z-index: 9999;
+  box-shadow: 0 0 40px rgba(0, 240, 255, 0.4), 0 20px 50px rgba(0, 0, 0, 0.9);
+  animation: popSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
+}
+
+/* Sửa tiêu đề "Chiến Binh Kỷ Luật" sắc nét 100% */
+.achievement-modal .section-title, 
+.achievement-modal h2 {
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  font-size: 1.5rem !important;
+  margin: 10px 0 !important;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.6), 0 2px 4px rgba(0,0,0,0.9) !important;
+}
+
+/* Biểu tượng Huy chương phát sáng */
+.badge-glow-icon {
+  font-size: 70px;
+  margin: 10px 0;
+  filter: drop-shadow(0 0 15px #FFE600);
+  animation: pulseGlow 1.5s infinite alternate;
+}
+
+/* Lời nhắn động lực */
+.quote-box {
+  background: rgba(255, 255, 255, 0.08);
+  border-left: 4px solid #00FF87;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 15px 0;
+  color: #FFFFFF !important;
+  font-size: 0.9rem;
+  text-shadow: 0 1px 2px #000;
+}
+
+/* Khung các nút bấm */
+.achievement-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@media (min-width: 480px) {
+  .achievement-modal-actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+/* Nút Đóng / Tiếp tục */
+.btn-claim {
+  background: linear-gradient(90deg, #00F0FF, #00FF87);
+  color: #0F172A;
+  font-weight: 800;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.4);
+  transition: transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-claim:hover {
+  transform: scale(1.05);
+}
+
+/* Nút Chia sẻ thành tựu */
+.btn-share {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.5);
+  color: #00F0FF;
+  font-weight: 700;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-share:hover {
+  background: rgba(0, 240, 255, 0.25);
+  color: #FFFFFF;
+  transform: scale(1.03);
+}
+
+@keyframes popSlam {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+  70% { transform: translate(-50%, -50%) scale(0.95); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ===================================================
+   FIX VỊ TRÍ NÚT MỤC LỤC 3 GẠCH - KHÔNG CHE CHỮ/AVATAR
+   =================================================== */
+
+.fixed-menu-btn {
+  position: fixed;
+  top: 75px !important;
+  left: 16px !important;
+  z-index: 9999; /* Luôn nằm trên cùng mọi thành phần */
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--bg-card, rgba(255, 255, 255, 0.95));
+  border: 1px solid var(--border-card, rgba(0, 0, 0, 0.15));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+}
+
+[data-theme="dark"] .fixed-menu-btn,
+[data-theme="moss"] .fixed-menu-btn,
+[data-theme="earth"] .fixed-menu-btn,
+.dark-theme-indigo .fixed-menu-btn,
+.dark-theme-moss .fixed-menu-btn {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.fixed-menu-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+
+/* Biểu tượng 3 gạch */
+.hamburger-icon {
+  width: 20px;
+  height: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hamburger-icon span {
+  display: block;
+  width: 100%;
+  height: 2.5px;
+  background-color: var(--text-main, #0F172A);
+  border-radius: 2px;
+}
+
+[data-theme="dark"] .hamburger-icon span,
+[data-theme="moss"] .hamburger-icon span,
+[data-theme="earth"] .hamburger-icon span,
+.dark-theme-indigo .hamburger-icon span,
+.dark-theme-moss .hamburger-icon span {
+  background-color: #FFFFFF;
+}
+
+.close-icon {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--text-main, #0F172A);
+}
+
+[data-theme="dark"] .close-icon,
+[data-theme="moss"] .close-icon,
+[data-theme="earth"] .close-icon,
+.dark-theme-indigo .close-icon,
+.dark-theme-moss .close-icon {
+  color: #FFFFFF;
+}
+
+/* ===================================================
+   LỚP NỀN MỜ & KHUNG MENU MỤC LỤC TRƯỢT (DRAWER)
+   =================================================== */
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9997;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.sidebar-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 80vw;
+  background: var(--bg-card, #FFFFFF);
+  border-right: 1px solid var(--border-card, rgba(0, 0, 0, 0.1));
+  z-index: 9998;
+  padding: 130px 16px 24px 16px !important;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2);
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] .sidebar-drawer,
+[data-theme="moss"] .sidebar-drawer,
+[data-theme="earth"] .sidebar-drawer,
+.dark-theme-indigo .sidebar-drawer,
+.dark-theme-moss .sidebar-drawer {
+  background: #0f172a;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-drawer.open {
+  transform: translateX(0);
+}
+
+/* Header Mục lục */
+.sidebar-header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-card, rgba(0, 0, 0, 0.08));
+}
+
+[data-theme="dark"] .sidebar-header,
+[data-theme="moss"] .sidebar-header,
+[data-theme="earth"] .sidebar-header,
+.dark-theme-indigo .sidebar-header,
+.dark-theme-moss .sidebar-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.brand-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #00F0FF;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main, #0F172A) !important;
+}
+
+[data-theme="dark"] .sidebar-header h3,
+[data-theme="moss"] .sidebar-header h3,
+[data-theme="earth"] .sidebar-header h3,
+.dark-theme-indigo .sidebar-header h3,
+.dark-theme-moss .sidebar-header h3 {
+  color: #FFFFFF !important;
+}
+
+/* Danh sách các mục */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-main, #0F172A) !important;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .sidebar-item,
+[data-theme="moss"] .sidebar-item,
+[data-theme="earth"] .sidebar-item,
+.dark-theme-indigo .sidebar-item,
+.dark-theme-moss .sidebar-item {
+  color: #E2E8F0 !important;
+}
+
+.sidebar-item:hover {
+  background: rgba(0, 240, 255, 0.12);
+  transform: translateX(4px);
+}
+
+.sidebar-item.active {
+  background: linear-gradient(90deg, rgba(0, 240, 255, 0.2), rgba(16, 185, 129, 0.15));
+  border-left: 4px solid #00F0FF;
+  font-weight: 800;
+}
+
+.item-icon {
+  font-size: 1.2rem;
+}
+
+.item-label {
+  color: var(--text-main, #0F172A) !important;
+}
+
+[data-theme="dark"] .item-label,
+[data-theme="moss"] .item-label,
+[data-theme="earth"] .item-label,
+.dark-theme-indigo .item-label,
+.dark-theme-moss .item-label {
+  color: #FFFFFF !important;
+}
+
+

@@ -881,8 +881,93 @@ export default function MoodLogger() {
     .slice(-7);
 
 
+// Component Cành Hoa Đào Lung Linh Khung Cảnh Nhật Ký Cảm Xúc (Lush Flowering Sakura Branches Overlay)
+const MoodJournalSakuraHeader: React.FC = () => (
+  <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden select-none">
+    {/* Cành đào trái trên vươn rộng */}
+    <motion.svg
+      viewBox="0 0 240 120"
+      className="absolute -top-2 -left-2 w-56 sm:w-80 h-auto opacity-85 filter drop-shadow-sm origin-top-left"
+      animate={{ rotate: [0, 1.2, -1, 0] }}
+      transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+    >
+      <path
+        d="M 0 0 C 50 15, 100 30, 160 22 C 185 18, 210 25, 230 35"
+        fill="none"
+        stroke="#5c2c16"
+        strokeWidth="3.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 80 24 C 105 40, 130 48, 155 58"
+        fill="none"
+        stroke="#5c2c16"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 140 23 C 160 12, 180 8, 200 5"
+        fill="none"
+        stroke="#5c2c16"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      {/* Đóa hoa đào trổ bông chật cành */}
+      {[
+        { x: 160, y: 22, r: 12, c: "#f472b6" },
+        { x: 230, y: 35, r: 10, c: "#fb7185" },
+        { x: 105, y: 40, r: 11, c: "#f472b6" },
+        { x: 155, y: 58, r: 9, c: "#f472b6" },
+        { x: 200, y: 5, r: 10, c: "#fda4af" },
+        { x: 120, y: 26, r: 11, c: "#f472b6" },
+      ].map((f, i) => (
+        <g key={i} transform={`translate(${f.x}, ${f.y})`}>
+          <circle cx="0" cy="0" r={f.r} fill={f.c} opacity="0.9" />
+          <circle cx="0" cy="0" r={f.r * 0.35} fill="#fde047" />
+        </g>
+      ))}
+    </motion.svg>
+
+    {/* Cành đào phải trên rủ xuống */}
+    <motion.svg
+      viewBox="0 0 240 120"
+      className="absolute -top-2 -right-2 w-56 sm:w-80 h-auto opacity-85 filter drop-shadow-sm origin-top-right scale-x-[-1]"
+      animate={{ rotate: [0, -1.5, 0.8, 0] }}
+      transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
+    >
+      <path
+        d="M 0 0 C 50 18, 110 32, 170 25 C 195 22, 220 32, 235 48"
+        fill="none"
+        stroke="#5c2c16"
+        strokeWidth="3.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 90 26 C 115 42, 140 50, 165 62"
+        fill="none"
+        stroke="#5c2c16"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      {/* Đóa hoa đào trổ bông chật cành */}
+      {[
+        { x: 170, y: 25, r: 12, c: "#f472b6" },
+        { x: 235, y: 48, r: 10, c: "#fb7185" },
+        { x: 115, y: 42, r: 11, c: "#f472b6" },
+        { x: 165, y: 62, r: 9, c: "#fda4af" },
+      ].map((f, i) => (
+        <g key={i} transform={`translate(${f.x}, ${f.y})`}>
+          <circle cx="0" cy="0" r={f.r} fill={f.c} opacity="0.9" />
+          <circle cx="0" cy="0" r={f.r * 0.35} fill="#fde047" />
+        </g>
+      ))}
+    </motion.svg>
+  </div>
+);
+
   return (
     <div className="w-full max-w-4xl mx-auto py-4 px-4 font-sans relative z-10" id="mood-logger-module">
+      <MoodJournalSakuraHeader />
       
       {/* Intro Header */}
       <div className="mb-8 text-center sm:text-left bg-white/40 backdrop-blur-md border border-white/50 rounded-[24px] p-5 shadow-sm relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1261,42 +1346,74 @@ export default function MoodLogger() {
                       transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
                     />
                     
-                    {/* Side branches - Level 2+ */}
+                    {/* Side branches - Level 2+ (Nhiều cành vươn rộng sum sê) */}
                     {growthLevel >= 2 && (
                       <>
-                        {/* Left Side branch */}
+                        {/* Left Side main branch */}
                         <path
-                          d="M 48 60 C 38 52, 35 48, 30 46"
+                          d="M 48 60 C 38 52, 30 48, 22 46"
                           fill="none"
                           stroke={isWithered ? "#78716c" : "#7c2d12"}
-                          strokeWidth="2.5"
+                          strokeWidth="2.8"
                           strokeLinecap="round"
                         />
-                        {/* Right Side branch */}
+                        {/* Right Side main branch */}
                         <path
-                          d="M 51 45 C 58 38, 65 35, 70 34"
+                          d="M 51 45 C 62 38, 72 35, 82 32"
                           fill="none"
                           stroke={isWithered ? "#78716c" : "#7c2d12"}
-                          strokeWidth="2.5"
+                          strokeWidth="2.8"
+                          strokeLinecap="round"
+                        />
+                        {/* Lower Left branch */}
+                        <path
+                          d="M 49 70 C 36 65, 26 60, 18 55"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#7c2d12"}
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                        />
+                        {/* Lower Right branch */}
+                        <path
+                          d="M 51 62 C 65 58, 75 52, 84 48"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#7c2d12"}
+                          strokeWidth="2.2"
                           strokeLinecap="round"
                         />
                       </>
                     )}
 
-                    {/* Extra branches for Level 4+ */}
+                    {/* Extra branches for Level 4+ (Cành phụ uốn lượn lung linh) */}
                     {growthLevel >= 4 && (
                       <>
-                        {/* Extra left branch */}
+                        {/* Extra upper left branch */}
                         <path
-                          d="M 43 50 C 37 45, 38 42, 42 38"
+                          d="M 43 50 C 35 42, 32 32, 26 24"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#7c2d12"}
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                        {/* Extra upper right branch */}
+                        <path
+                          d="M 53 38 C 64 30, 70 20, 76 14"
+                          fill="none"
+                          stroke={isWithered ? "#78716c" : "#7c2d12"}
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                        {/* Top crown branch left */}
+                        <path
+                          d="M 55 30 C 50 20, 44 14, 48 8"
                           fill="none"
                           stroke={isWithered ? "#78716c" : "#7c2d12"}
                           strokeWidth="1.8"
                           strokeLinecap="round"
                         />
-                        {/* Extra right branch */}
+                        {/* Top crown branch right */}
                         <path
-                          d="M 53 38 C 62 34, 60 30, 65 26"
+                          d="M 55 30 C 60 20, 66 12, 60 6"
                           fill="none"
                           stroke={isWithered ? "#78716c" : "#7c2d12"}
                           strokeWidth="1.8"
@@ -1308,38 +1425,39 @@ export default function MoodLogger() {
                     {/* Green Leaves - Level 2+ */}
                     {growthLevel >= 2 && (
                       <>
-                        <path d="M 32 46 Q 28 42, 30 46" fill={isWithered ? "#a8a29e" : "#10b981"} />
-                        <path d="M 68 34 Q 72 30, 70 34" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 22 46 Q 18 40, 20 46" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 82 32 Q 86 28, 84 32" fill={isWithered ? "#a8a29e" : "#10b981"} />
                         <path d="M 54 30 Q 52 24, 55 30" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 18 55 Q 14 50, 16 55" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 84 48 Q 88 44, 86 48" fill={isWithered ? "#a8a29e" : "#10b981"} />
                       </>
                     )}
                     {/* Extra Leaves for Level 4+ */}
                     {growthLevel >= 4 && (
                       <>
-                        <path d="M 42 38 Q 38 34, 40 38" fill={isWithered ? "#a8a29e" : "#059669"} />
-                        <path d="M 65 26 Q 69 22, 67 26" fill={isWithered ? "#a8a29e" : "#059669"} />
-                        <path d="M 46 58 Q 42 54, 44 58" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 26 24 Q 22 20, 24 24" fill={isWithered ? "#a8a29e" : "#059669"} />
+                        <path d="M 76 14 Q 80 10, 78 14" fill={isWithered ? "#a8a29e" : "#059669"} />
+                        <path d="M 48 8 Q 44 4, 46 8" fill={isWithered ? "#a8a29e" : "#10b981"} />
+                        <path d="M 60 6 Q 64 2, 62 6" fill={isWithered ? "#a8a29e" : "#10b981"} />
                       </>
                     )}
 
-                    {/* Blossoms & Buds */}
+                    {/* Blossoms & Buds (Hàng chục bông hoa nở rộ trổ bông rực rỡ) */}
                     {isWithered ? (
                       /* Withered/Closed Buds */
                       <>
                         {growthLevel >= 3 && (
-                          <g transform="translate(55, 30)">
-                            <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
-                          </g>
-                        )}
-                        {growthLevel >= 3 && (
-                          <g transform="translate(30, 46)">
-                            <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
-                          </g>
-                        )}
-                        {growthLevel >= 3 && (
-                          <g transform="translate(70, 34)">
-                            <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
-                          </g>
+                          <>
+                            <g transform="translate(55, 30)">
+                              <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(22, 46)">
+                              <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(82, 32)">
+                              <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWithered={true} isWatered={isWatered} />
+                            </g>
+                          </>
                         )}
                       </>
                     ) : (
@@ -1350,55 +1468,98 @@ export default function MoodLogger() {
                             <g transform="translate(55, 30)">
                               <SvgPeachBlossom scale={0.45} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
-                            <g transform="translate(30, 46)">
+                            <g transform="translate(22, 46)">
                               <SvgPeachBlossom scale={0.45} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
-                            <g transform="translate(70, 34)">
+                            <g transform="translate(82, 32)">
                               <SvgPeachBlossom scale={0.45} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(18, 55)">
+                              <SvgPeachBlossom scale={0.4} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(84, 48)">
+                              <SvgPeachBlossom scale={0.4} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                           </>
                         )}
 
-                        {/* Level 4: 2-3 big blossoms */}
+                        {/* Level 4: Many blooming flowers */}
                         {growthLevel === 4 && (
                           <>
-                            {/* Blossom 1 Left */}
-                            <g transform="translate(30, 46)">
+                            <g transform="translate(22, 46)">
                               <SvgPeachBlossom scale={0.9} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
-                            {/* Blossom 2 Right */}
-                            <g transform="translate(70, 34)">
+                            <g transform="translate(82, 32)">
                               <SvgPeachBlossom scale={0.95} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
-                            {/* Top is still a bud */}
                             <g transform="translate(55, 30)">
-                              <SvgPeachBlossom scale={0.5} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                              <SvgPeachBlossom scale={0.8} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(18, 55)">
+                              <SvgPeachBlossom scale={0.75} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(84, 48)">
+                              <SvgPeachBlossom scale={0.75} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(26, 24)">
+                              <SvgPeachBlossom scale={0.7} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(76, 14)">
+                              <SvgPeachBlossom scale={0.7} isExpanded={false} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                           </>
                         )}
 
-                        {/* Level 5: Fully Blooming Peach Tree */}
+                        {/* Level 5: Fully Blooming Dense Peach Tree (Nhiều cành hoa nở trổ bông chật kín, lung linh) */}
                         {growthLevel >= 5 && (
                           <>
-                            {/* Blossom 1 Top */}
-                            <g transform="translate(55, 30)">
-                              <SvgPeachBlossom scale={1.15} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            {/* Bông đỉnh cao nhất */}
+                            <g transform="translate(60, 6)">
+                              <SvgPeachBlossom scale={0.85} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
-                            {/* Blossom 2 Left */}
-                            <g transform="translate(30, 46)">
-                              <SvgPeachBlossom scale={1.0} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            <g transform="translate(48, 8)">
+                              <SvgPeachBlossom scale={0.9} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
-                            {/* Blossom 3 Right */}
-                            <g transform="translate(70, 34)">
+                            {/* Cành trên bên trái */}
+                            <g transform="translate(26, 24)">
                               <SvgPeachBlossom scale={1.05} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
-                            {/* Blossom 4 Extra Lower Left */}
-                            <g transform="translate(42, 38)">
+                            {/* Cành trên bên phải */}
+                            <g transform="translate(76, 14)">
+                              <SvgPeachBlossom scale={1.1} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            {/* Cành giữa trung tâm */}
+                            <g transform="translate(55, 30)">
+                              <SvgPeachBlossom scale={1.2} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            {/* Cành chính bên trái */}
+                            <g transform="translate(22, 46)">
+                              <SvgPeachBlossom scale={1.15} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            {/* Cành chính bên phải */}
+                            <g transform="translate(82, 32)">
+                              <SvgPeachBlossom scale={1.15} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            {/* Cành dưới bên trái */}
+                            <g transform="translate(18, 55)">
+                              <SvgPeachBlossom scale={0.95} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            {/* Cành dưới bên phải */}
+                            <g transform="translate(84, 48)">
+                              <SvgPeachBlossom scale={0.95} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            {/* Các bông điểm xuyết lung linh giữa các nhánh */}
+                            <g transform="translate(38, 38)">
+                              <SvgPeachBlossom scale={0.85} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(68, 24)">
+                              <SvgPeachBlossom scale={0.9} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            </g>
+                            <g transform="translate(34, 58)">
                               <SvgPeachBlossom scale={0.8} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
-                            {/* Blossom 5 Extra Upper Right */}
-                            <g transform="translate(65, 26)">
-                              <SvgPeachBlossom scale={0.8} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
+                            <g transform="translate(70, 42)">
+                              <SvgPeachBlossom scale={0.85} isExpanded={true} isClicked={isFlowerClicked} isWatered={isWatered} />
                             </g>
                           </>
                         )}

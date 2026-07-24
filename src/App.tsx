@@ -76,6 +76,7 @@ import SosButton from "./components/SosButton";
 import CuteStar from "./components/CuteStar";
 import IdentityCompassWidget from "./components/IdentityCompassWidget";
 import UserProfile from "./components/UserProfile";
+import SidebarMenu from "./components/SidebarMenu";
 import { useUserData } from "./context/UserContext";
 import { RiskLevel } from "./types";
 
@@ -289,6 +290,17 @@ export default function App() {
 
   return (
     <div id="app-root" key={theme} className={getThemeClasses()}>
+      {/* Nút Hamburger Menu 3 gạch cố định ở góc trái */}
+      <SidebarMenu 
+        activeTab={activeTab} 
+        onSelectTab={(tabId) => {
+          if (currentView !== "main") {
+            setCurrentView("main");
+          }
+          handleTabChange(tabId as DashboardTab);
+        }} 
+      />
+
       {/* CSS overrides for dark-indigo & dark-moss therapeutic modes */}
       <style>{`
         /* Deep Dark Indigo (Đất Trầm / Tối Tràm) overrides */

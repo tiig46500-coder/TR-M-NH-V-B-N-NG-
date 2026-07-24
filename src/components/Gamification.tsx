@@ -21,6 +21,7 @@ import {
 import { useUserData } from "../context/UserContext";
 import confetti from "canvas-confetti";
 import { DigitalDetoxChart } from "./DigitalDetoxChart";
+import AchievementPopup from "./AchievementPopup";
 
 interface DailyChallengeTask {
   id: string;
@@ -1678,6 +1679,12 @@ export default function Gamification() {
           ))}
         </AnimatePresence>
       </div>
+
+      {/* Auto Slam Popup Achievement on Task Completion */}
+      <AchievementPopup 
+        completedCount={completedTaskIds.length} 
+        targetCount={dailyActiveTasks.length > 0 ? dailyActiveTasks.length : 5} 
+      />
 
     </div>
   );

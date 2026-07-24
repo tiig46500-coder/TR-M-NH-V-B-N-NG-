@@ -533,7 +533,7 @@ export default function SelfDiscovery() {
                 </div>
               </div>
   
-              {/* CARD BACK SIDE (REVEALED RESULT) */}
+              {/* CARD BACK SIDE (REVEALED RESULT - WHITE CARD DESIGN) */}
               <div 
                 style={{
                   backfaceVisibility: "hidden",
@@ -545,16 +545,16 @@ export default function SelfDiscovery() {
                   height: "100%",
                   transform: "rotateY(180deg)",
                 }}
-                className="rounded-[36px] p-6 flex flex-col justify-between border-2 border-slate-700 text-white shadow-2xl overflow-hidden bg-slate-950 no-dark-override"
+                className="rounded-[36px] p-6 flex flex-col justify-between border-2 border-emerald-300/80 text-slate-800 shadow-2xl overflow-hidden bg-gradient-to-b from-white via-slate-50 to-emerald-50/40 no-dark-override"
               >
                 {/* Colored visual backdrop */}
-                <div className={`absolute -top-12 -right-12 w-48 h-48 rounded-full ${theme?.glowColor} blur-3xl pointer-events-none`} />
-                <div className="absolute inset-3.5 border border-white/10 rounded-[28px] pointer-events-none" />
+                <div className={`absolute -top-12 -right-12 w-48 h-48 rounded-full bg-emerald-200/40 blur-3xl pointer-events-none`} />
+                <div className="absolute inset-3.5 border border-slate-200/80 rounded-[28px] pointer-events-none" />
 
                 {/* Back Header */}
-                <div className="flex justify-between items-center relative z-10 pb-2 border-b border-white/15 shrink-0">
-                  <span className="text-[9px] font-mono tracking-widest text-slate-400 uppercase">ĐÃ ĐỊNH VỊ BẢN NGÃ</span>
-                  <span className="text-[10px] font-bold text-emerald-400">CoreZ ✨</span>
+                <div className="flex justify-between items-center relative z-10 pb-2 border-b border-slate-200/80 shrink-0">
+                  <span className="text-[9px] font-mono tracking-widest text-slate-500 font-bold uppercase">ĐÃ ĐỊNH VỊ BẢN NGÃ</span>
+                  <span className="text-[10px] font-extrabold text-emerald-600">CoreZ ✨</span>
                 </div>
 
                 {/* Scrollable Container for all content to prevent overflow in 450px card height */}
@@ -562,29 +562,29 @@ export default function SelfDiscovery() {
                   className="flex-1 overflow-y-auto mt-2.5 pr-1 space-y-4 relative z-10 text-center"
                   style={{
                     scrollbarWidth: "thin",
-                    scrollbarColor: "rgba(255, 255, 255, 0.15) transparent",
+                    scrollbarColor: "rgba(16, 185, 129, 0.3) transparent",
                   }}
                 >
                   <div className="space-y-1">
-                    <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-md border border-white/15 ${personalityResult.color} animate-bounce`}>
+                    <div className={`mx-auto w-14 h-14 rounded-full flex items-center justify-center text-3xl shadow-md border border-emerald-200 ${personalityResult.color} animate-bounce`}>
                       {personalityResult.icon}
                     </div>
-                    <h4 className="font-serif text-lg font-black tracking-tight text-white mt-2">
+                    <h4 className="font-serif text-lg font-black tracking-tight text-slate-900 mt-2">
                       {personalityResult.title}
                     </h4>
-                    <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-mono">
+                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest font-mono">
                       {personalityResult.subtitle}
                     </p>
-                    <div className="mt-2.5 mx-auto px-3 py-1 bg-white/10 rounded-full max-w-max flex items-center justify-center border border-white/5 shadow-inner">
-                      <span className="text-sm font-medium text-slate-200">
+                    <div className="mt-2.5 mx-auto px-3 py-1 bg-emerald-50 rounded-full max-w-max flex items-center justify-center border border-emerald-200/80 shadow-xs">
+                      <span className="text-sm font-semibold text-emerald-900">
                         {personalityResult.phanTich}
                       </span>
                     </div>
                   </div>
 
                   {/* Read personality analysis */}
-                  <div className="bg-white/5 p-3 rounded-2xl border border-white/10 text-justify">
-                    <p className="text-[11px] text-slate-200 leading-relaxed font-light italic">
+                  <div className="bg-white/80 p-3 rounded-2xl border border-slate-200/80 shadow-xs text-justify">
+                    <p className="text-[11px] text-slate-700 leading-relaxed font-medium italic">
                       “ {personalityResult.docVi} ”
                     </p>
                   </div>
@@ -593,19 +593,19 @@ export default function SelfDiscovery() {
                   {personalityResult.dacTrung && personalityResult.diemMu && (
                     <div className="grid grid-cols-1 gap-2.5">
                       {/* Đặc trưng cốt lõi */}
-                      <div className="bg-emerald-500/5 border border-emerald-500/10 p-2.5 rounded-xl text-left space-y-1">
+                      <div className="bg-emerald-50/90 border border-emerald-200/80 p-2.5 rounded-xl text-left space-y-1 shadow-xs">
                         <span className={`text-[10px] font-extrabold uppercase tracking-widest block font-sans ${
-                          resultKey === "A" ? "text-pink-400" :
-                          resultKey === "B" ? "text-slate-400" :
-                          resultKey === "C" ? "text-blue-400" :
-                          "text-emerald-400"
+                          resultKey === "A" ? "text-pink-600" :
+                          resultKey === "B" ? "text-slate-700" :
+                          resultKey === "C" ? "text-blue-600" :
+                          "text-emerald-700"
                         }`}>
                           🌟 ĐẶC TRƯNG CỐT LÕI
                         </span>
-                        <div className="space-y-1 text-[10.5px] text-slate-200 font-light">
+                        <div className="space-y-1 text-[10.5px] text-slate-700 font-medium">
                           {personalityResult.dacTrung.map((dt, idx) => (
                             <div key={idx} className="flex items-start gap-1.5">
-                              <span className="text-emerald-400 font-bold">•</span>
+                              <span className="text-emerald-600 font-bold">•</span>
                               <span>{dt}</span>
                             </div>
                           ))}
@@ -613,14 +613,14 @@ export default function SelfDiscovery() {
                       </div>
 
                       {/* Điểm mù tâm lý */}
-                      <div className="bg-rose-500/5 border border-rose-500/10 p-2.5 rounded-xl text-left space-y-1">
-                        <span className="text-[10px] font-extrabold text-rose-400 uppercase tracking-widest block font-sans">
+                      <div className="bg-rose-50/90 border border-rose-200/80 p-2.5 rounded-xl text-left space-y-1 shadow-xs">
+                        <span className="text-[10px] font-extrabold text-rose-600 uppercase tracking-widest block font-sans">
                           ⚠️ ĐIỂM MÙ TÂM LÝ
                         </span>
-                        <div className="space-y-1 text-[10.5px] text-slate-200 font-light">
+                        <div className="space-y-1 text-[10.5px] text-slate-700 font-medium">
                           {personalityResult.diemMu.map((dm, idx) => (
                             <div key={idx} className="flex items-start gap-1.5">
-                              <span className="text-rose-400 font-bold">•</span>
+                              <span className="text-rose-500 font-bold">•</span>
                               <span>{dm}</span>
                             </div>
                           ))}
@@ -631,48 +631,48 @@ export default function SelfDiscovery() {
 
                   {/* Lời khuyên phát triển */}
                   {personalityResult.loiKhuyenPhatTrien && (
-                    <div className="bg-amber-500/5 border border-amber-500/10 p-2.5 rounded-xl text-left space-y-1">
-                      <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-widest block font-sans">
+                    <div className="bg-amber-50/90 border border-amber-200/80 p-2.5 rounded-xl text-left space-y-1 shadow-xs">
+                      <span className="text-[10px] font-extrabold text-amber-700 uppercase tracking-widest block font-sans">
                         🌱 LỜI KHUYÊN PHÁT TRIỂN
                       </span>
-                      <p className="text-[10.5px] text-slate-200 leading-relaxed font-light italic">
+                      <p className="text-[10.5px] text-slate-700 leading-relaxed font-medium italic">
                         “ {personalityResult.loiKhuyenPhatTrien} ”
                       </p>
                     </div>
                   )}
 
                   {/* Handheld Item */}
-                  <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-xl">
-                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-emerald-400">Vật Phẩm Trao Tay</span>
-                    <span className="text-xs font-extrabold text-white flex items-center gap-1.5">
+                  <div className="flex items-center justify-between bg-emerald-100/70 border border-emerald-300/80 px-3.5 py-1.5 rounded-xl shadow-xs">
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-emerald-800">Vật Phẩm Trao Tay</span>
+                    <span className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
                       <span>{personalityResult.icon}</span>
-                      <span className={`tracking-wide bg-gradient-to-r ${theme?.itemGradient} bg-clip-text text-transparent`}>
+                      <span className="tracking-wide text-emerald-900 font-black">
                         {personalityResult.item}
                       </span>
                     </span>
                   </div>
 
                   {/* Back Footer (Second Round Mission) */}
-                  <div className="text-left space-y-1 bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
-                    <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block font-mono">Nhiệm Vụ Rèn Luyện</span>
-                    <p className="text-[10.5px] text-slate-300 leading-snug font-sans">
+                  <div className="text-left space-y-1 bg-slate-100/80 p-2.5 rounded-xl border border-slate-200/80 shadow-xs">
+                    <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-widest block font-mono">Nhiệm Vụ Rèn Luyện</span>
+                    <p className="text-[10.5px] text-slate-700 leading-snug font-sans font-medium">
                       {personalityResult.nhiemVu}
                     </p>
                   </div>
 
                   {/* Lời khuyên tâm lý */}
-                  <div className="text-left space-y-1 bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
+                  <div className="text-left space-y-1 bg-slate-100/80 p-2.5 rounded-xl border border-slate-200/80 shadow-xs">
                     <span className={`text-sm font-bold uppercase tracking-widest block font-sans ${
-                      resultKey === "A" ? "text-pink-400" :
-                      resultKey === "B" ? "text-slate-400" :
-                      resultKey === "C" ? "text-blue-400" :
-                      "text-emerald-400"
+                      resultKey === "A" ? "text-pink-600" :
+                      resultKey === "B" ? "text-slate-700" :
+                      resultKey === "C" ? "text-blue-600" :
+                      "text-emerald-700"
                     }`}>
                       LỜI KHUYÊN TỪ COREZ 🌿
                     </span>
                     <div className="space-y-1.5 mt-1.5">
                       {personalityResult.loiKhuyen.map((advice, index) => (
-                        <p key={index} className="text-[10.5px] text-white/80 leading-relaxed font-sans">
+                        <p key={index} className="text-[10.5px] text-slate-700 leading-relaxed font-sans font-medium">
                           {advice}
                         </p>
                       ))}
